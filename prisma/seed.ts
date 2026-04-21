@@ -4,7 +4,6 @@ import bcrypt from "bcryptjs";
 import { pathToFileURL } from "node:url";
 import { calculateDayTotalMinutes, calculatePayrollEstimate } from "../server/payroll.js";
 import { addDays } from "../server/utils.js";
-import { setupDatabase } from "./setup.js";
 
 const PAYROLL_DISCLAIMER_VERSION = "2026-04-20-v1";
 export const PAYROLL_PREP_DISCLAIMER = `Important: Payroll Estimates
@@ -25,7 +24,6 @@ async function hashPassword(password: string) {
 }
 
 export async function seedDatabase() {
-  setupDatabase();
   const prisma = new PrismaClient();
 
   try {
@@ -186,6 +184,7 @@ export async function seedDatabase() {
     const company = await prisma.company.create({
       data: {
         companyName: "Crew Time Masonry & Roofing",
+        ownerName: "Dana Office",
         stateCode: "MA",
       },
     });
@@ -201,6 +200,10 @@ export async function seedDatabase() {
         defaultFederalWithholdingValue: 0.1,
         defaultStateWithholdingMode: companyRule.defaultStateWithholdingMode,
         defaultStateWithholdingValue: companyRule.defaultStateWithholdingValue,
+        timeTrackingStyle: "FOREMAN",
+        defaultLunchMinutes: 30,
+        payType: "HOURLY_OVERTIME",
+        trackExpenses: true,
         payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
         pfmlEnabled: companyRule.defaultPfmlEnabled,
         pfmlEmployeeRate: companyRule.defaultPfmlEmployeeRate,
@@ -320,6 +323,8 @@ export async function seedDatabase() {
     await prisma.company.update({
       where: { id: company.id },
       data: {
+        onboardingCompletedAt: new Date("2026-04-20T09:00:00"),
+        onboardingCompletedByUserId: adminUser.id,
         payrollDisclaimerAcceptedAt: new Date("2026-04-20T09:00:00"),
         payrollDisclaimerAcceptedByUserId: adminUser.id,
         payrollDisclaimerVersion: PAYROLL_DISCLAIMER_VERSION,

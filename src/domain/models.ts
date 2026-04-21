@@ -1,4 +1,7 @@
 export type UserRole = "admin" | "foreman" | "employee";
+export type WorkerType = "employee" | "contractor_1099";
+export type TimeTrackingStyle = "foreman" | "worker_self_entry" | "mixed";
+export type PayType = "hourly" | "hourly_overtime";
 
 export type TimesheetStatus =
   | "draft"
@@ -72,10 +75,20 @@ export interface PayrollEstimateSummary {
   netCheckEstimate: number;
 }
 
+export interface YtdPayrollSummary {
+  calendarYear: number;
+  workerType: WorkerType;
+  grossPayments: number;
+  reimbursements: number;
+  deductions: number;
+  netEstimate: number;
+}
+
 export interface EmployeeWeek {
   id: string;
   employeeId: string;
   employeeName: string;
+  workerType: WorkerType;
   crewId: string;
   crewName: string;
   hourlyRate: number | null;
@@ -88,6 +101,7 @@ export interface EmployeeWeek {
   missingConfirmationDays: number;
   adjustment: AdjustmentSummary;
   payrollEstimate: PayrollEstimateSummary;
+  ytdSummary: YtdPayrollSummary;
   exportedAt: string | null;
   exportedByFullName: string | null;
   statusAuditTrail: StatusAuditEntry[];
@@ -117,6 +131,7 @@ export interface ArchivedEmployee {
 export interface CompanySettingsSummary {
   id: string;
   companyName: string;
+  ownerName: string;
   companyState: string;
   stateName: string;
   supportLevel: "full" | "partial_manual" | "unsupported";
@@ -131,6 +146,10 @@ export interface CompanySettingsSummary {
   hasStateIncomeTax: boolean;
   hasExtraEmployeeWithholdings: boolean;
   supportedLines: string[];
+  timeTrackingStyle: TimeTrackingStyle;
+  defaultLunchMinutes: number;
+  payType: PayType;
+  trackExpenses: boolean;
   payrollPrepDisclaimer: string;
   stateDisclaimer: string;
   payrollReminder: string;
@@ -179,4 +198,20 @@ export interface PrivateReportInput {
   category: string;
   severity: string;
   factualDescription: string;
+}
+
+export interface OnboardingEmployeeInput {
+  displayName: string;
+  hourlyRate?: number;
+  workerType: "w2" | "1099";
+}
+
+export interface CompanyOnboardingInput {
+  companyName: string;
+  ownerName?: string;
+  employees: OnboardingEmployeeInput[];
+  timeTrackingStyle: TimeTrackingStyle;
+  lunchDeductionMinutes: 0 | 30 | 60;
+  payType: PayType;
+  trackExpenses: boolean;
 }

@@ -1,16 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CompanySettingsSummary, EmployeeWeek, TimesheetStatus } from "../domain/models";
 import { formatCurrency } from "../domain/format";
-import { frontendSentryEnabled, frontendSentryVerificationEnabled } from "../lib/sentry";
 import { needsEmployeeConfirmation, prettyStatus, statusTone } from "../domain/permissions";
-import { SentryVerificationPanel } from "./SentryVerificationPanel";
 import { StatCard } from "./StatCard";
+import { YtdReportingPanel } from "./YtdReportingPanel";
 
 interface OfficeDashboardProps {
   companySettings: CompanySettingsSummary | null;
   employeeWeeks: EmployeeWeek[];
-  token: string;
-  backendSentryVerificationEnabled: boolean;
   onExport: (kind: "payroll-summary" | "time-detail" | "weekly-summary") => Promise<void>;
   onUpdateAdjustment: (
     timesheetId: string,
@@ -143,8 +140,6 @@ function AdjustmentEditor({
 export function OfficeDashboard({
   companySettings,
   employeeWeeks,
-  token,
-  backendSentryVerificationEnabled,
   onExport,
   onUpdateAdjustment,
   onReopenWeek,
@@ -201,12 +196,7 @@ export function OfficeDashboard({
         </div>
       ) : null}
 
-      <SentryVerificationPanel
-        token={token}
-        frontendEnabled={frontendSentryEnabled}
-        frontendVerificationEnabled={frontendSentryVerificationEnabled}
-        backendVerificationEnabled={backendSentryVerificationEnabled}
-      />
+      <YtdReportingPanel employeeWeeks={employeeWeeks} />
 
       <div className="office-week-list">
         {employeeWeeks.map((week) => {

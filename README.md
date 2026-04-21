@@ -9,7 +9,7 @@ A clean MVP scaffold for a crew timecard and payroll-prep web app for small cont
 - Frontend: React 18 + TypeScript + Vite
 - Backend: Express + TypeScript
 - Styling: plain CSS with design tokens and card-based layout
-- Local database: SQLite
+- Database: hosted PostgreSQL
 - ORM/runtime data access: Prisma Client
 - Auth: email/password with JWT role claims
 - Export layer: CSV generation plus printable HTML summary
@@ -18,9 +18,16 @@ A clean MVP scaffold for a crew timecard and payroll-prep web app for small cont
 
 - React + Vite keeps the UI fast and simple for field crews and office review.
 - Express keeps the API thin and focused on permission enforcement plus export handoff.
-- SQLite gives the MVP a real local database without adding deployment complexity yet.
+- Hosted Postgres keeps the deployed API compatible with Vercel serverless runtime.
 - TypeScript helps protect payroll-prep and timekeeping logic.
-- Prisma keeps the schema explicit and portable if the data layer changes to Postgres later.
+- Prisma keeps the schema explicit and portable across local and hosted environments.
+
+### Database environment setup
+
+- Production uses hosted Neon Postgres through `DATABASE_URL`.
+- The Vercel Neon integration in this project also provides prefixed `NEON_*` variables.
+- For local Prisma work, pull Vercel envs and map `DATABASE_URL` to `NEON_POSTGRES_PRISMA_URL` before running `prisma db push`, `prisma generate`, or `npm run db:seed`.
+- SQLite is no longer part of the supported runtime path for this app.
 
 ## Product Architecture
 
@@ -186,7 +193,7 @@ Key model decisions:
 - CSV and printable export scaffolding
 
 ### Phase 2
-- migrate SQLite MVP to Postgres if multi-user deployment demands it
+- expand reporting and audit depth after the hosted Postgres rollout is stable
 - richer adjustment editing
 - archive and rehire flow
 - private reports workflow refinement
@@ -203,7 +210,7 @@ Key model decisions:
 This repository started empty. The current implementation includes:
 
 - product architecture documentation
-- SQLite-backed schema bootstrap and seed scripts
+- Prisma-backed schema and seed scripts for hosted Postgres
 - Prisma-backed API and auth flow
 - React/Vite app shell wired to live API data
 - typed payroll-prep domain models

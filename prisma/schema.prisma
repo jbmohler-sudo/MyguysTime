@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -23,20 +23,27 @@ model User {
 model Company {
   id                           String                 @id @default(cuid())
   companyName                  String
+  ownerName                    String?
   stateCode                    String
+  onboardingCompletedAt        DateTime?
+  onboardingCompletedByUserId  String?
   payrollDisclaimerAcceptedAt  DateTime?
   payrollDisclaimerAcceptedByUserId String?
   payrollDisclaimerVersion     String?
   createdAt                    DateTime               @default(now())
   updatedAt                    DateTime               @updatedAt
   payrollSettings              CompanyPayrollSettings?
+  crews                        Crew[]
+  employees                    Employee[]
 }
 
 model Crew {
   id           String           @id @default(cuid())
+  companyId    String
   name         String
   foremanId    String?
   foreman      Employee?        @relation("ForemanCrew", fields: [foremanId], references: [id])
+  company      Company          @relation(fields: [companyId], references: [id], onDelete: Restrict)
   defaultEmployees Employee[]   @relation("DefaultCrew")
   assignments  CrewAssignment[]
   dayDefaults  CrewDayDefault[]
@@ -44,13 +51,17 @@ model Crew {
   reports      PrivateReport[]
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
+
+  @@index([companyId])
 }
 
 model Employee {
   id                String             @id @default(cuid())
+  companyId         String
   firstName         String
   lastName          String
   displayName       String
+  workerType        String             @default("EMPLOYEE")
   employmentStatus  String             @default("ACTIVE")
   hourlyRateCents   Int
   overtimeRateCents Int?
@@ -64,6 +75,7 @@ model Employee {
   archivedAt        DateTime?
   rehiredAt         DateTime?
   user              User?
+  company           Company            @relation(fields: [companyId], references: [id], onDelete: Restrict)
   defaultCrew       Crew?              @relation("DefaultCrew", fields: [defaultCrewId], references: [id])
   foremanForCrew    Crew[]             @relation("ForemanCrew")
   assignments       CrewAssignment[]
@@ -73,6 +85,8 @@ model Employee {
   reports           PrivateReport[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
+
+  @@index([companyId])
 }
 
 model CompanyPayrollSettings {
@@ -82,6 +96,10 @@ model CompanyPayrollSettings {
   defaultFederalWithholdingValue Float    @default(0.10)
   defaultStateWithholdingMode    String   @default("PERCENTAGE")
   defaultStateWithholdingValue   Float    @default(0.03)
+  timeTrackingStyle             String   @default("FOREMAN")
+  defaultLunchMinutes           Int      @default(30)
+  payType                       String   @default("HOURLY_OVERTIME")
+  trackExpenses                 Boolean  @default(true)
   payrollPrepDisclaimer          String?
   pfmlEnabled                    Boolean  @default(false)
   pfmlEmployeeRate               Float    @default(0)

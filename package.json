@@ -4,12 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:client": "vite",
     "dev:server": "tsx watch server/index.ts",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "db:push": "tsx prisma/setup.ts",
+    "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "test": "tsc -b && node tests/run-tests.mjs"
   },

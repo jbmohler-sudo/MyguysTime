@@ -1,81 +1,80 @@
-import { useEffect, useMemo, useState } from "react";
-import type { CompanySettingsSummary, StateRuleSummary } from "../domain/models";
-import { SupportSummaryBlock } from "./SupportSummaryBlock";
+import { useState } from "react";
+import type { CompanyOnboardingInput, CompanySettingsSummary } from "../domain/models";
 
 interface CompanySetupScreenProps {
   companySettings: CompanySettingsSummary;
-  stateRules: StateRuleSummary[];
-  onComplete: (payload: {
-    companyName: string;
-    companyState: string;
-    acknowledgementAccepted: boolean;
-    defaultFederalWithholdingMode?: string;
-    defaultFederalWithholdingValue?: number;
-    defaultStateWithholdingMode?: string;
-    defaultStateWithholdingValue?: number;
-    initialCrewName?: string;
-    initialEmployees?: Array<{ displayName: string; hourlyRate: number }>;
-  }) => Promise<void>;
+  onComplete: (payload: CompanyOnboardingInput) => Promise<void>;
 }
 
-const STEP_TITLES = [
-  "Company profile",
-  "Payroll defaults",
-  "Disclaimer acknowledgement",
-  "Initial crew and employees",
+const STEP_TITLES = ["Company setup", "Crew setup", "Time tracking style", "Payroll preferences"] as const;
+const TIME_TRACKING_OPTIONS = [
+  {
+    value: "foreman" as const,
+    title: "Foreman enters time",
+    detail: "One guy handles the week for the crew.",
+  },
+  {
+    value: "worker_self_entry" as const,
+    title: "Workers enter their own time",
+    detail: "Each worker confirms and updates their own hours.",
+  },
+  {
+    value: "mixed" as const,
+    title: "Mixed",
+    detail: "Foreman leads it, but workers can still update their own time.",
+  },
 ] as const;
 
-export function CompanySetupScreen({
-  companySettings,
-  stateRules,
-  onComplete,
-}: CompanySetupScreenProps) {
+const LUNCH_OPTIONS = [
+  { value: 0 as const, title: "No lunch deduction" },
+  { value: 30 as const, title: "30 minute lunch" },
+  { value: 60 as const, title: "60 minute lunch" },
+] as const;
+
+const PAY_TYPE_OPTIONS = [
+  {
+    value: "hourly" as const,
+    title: "Hourly",
+    detail: "All hours stay at the base hourly rate.",
+  },
+  {
+    value: "hourly_overtime" as const,
+    title: "Hourly + overtime",
+    detail: "Overtime stays separate in the weekly payroll-prep estimate.",
+  },
+] as const;
+
+export function CompanySetupScreen({ companySettings, onComplete }: CompanySetupScreenProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [companyName, setCompanyName] = useState(companySettings.companyName);
-  const [companyState, setCompanyState] = useState(companySettings.companyState);
-  const [defaultFederalWithholdingMode, setDefaultFederalWithholdingMode] = useState(
-    companySettings.defaultFederalWithholdingMode,
-  );
-  const [defaultFederalWithholdingValue, setDefaultFederalWithholdingValue] = useState(
-    companySettings.defaultFederalWithholdingValue,
-  );
-  const [defaultStateWithholdingMode, setDefaultStateWithholdingMode] = useState(
-    companySettings.defaultStateWithholdingMode,
-  );
-  const [defaultStateWithholdingValue, setDefaultStateWithholdingValue] = useState(
-    companySettings.defaultStateWithholdingValue,
-  );
-  const [initialCrewName, setInitialCrewName] = useState("Crew 1");
-  const [initialEmployees, setInitialEmployees] = useState([
-    { displayName: "", hourlyRate: 25 },
-    { displayName: "", hourlyRate: 25 },
+  const [ownerName, setOwnerName] = useState(companySettings.ownerName);
+  const [employees, setEmployees] = useState<Array<{ displayName: string; hourlyRate: string; workerType: "w2" | "1099" }>>([
+    { displayName: "", hourlyRate: "", workerType: "w2" },
   ]);
-  const [acknowledged, setAcknowledged] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const selectedState = useMemo(
-    () => stateRules.find((rule) => rule.stateCode === companyState) ?? null,
-    [companyState, stateRules],
+  const [timeTrackingStyle, setTimeTrackingStyle] = useState<CompanyOnboardingInput["timeTrackingStyle"]>(
+    companySettings.timeTrackingStyle,
   );
+  const [lunchDeductionMinutes, setLunchDeductionMinutes] = useState<CompanyOnboardingInput["lunchDeductionMinutes"]>(
+    companySettings.defaultLunchMinutes as 0 | 30 | 60,
+  );
+  const [payType, setPayType] = useState<CompanyOnboardingInput["payType"]>(companySettings.payType);
+  const [trackExpenses, setTrackExpenses] = useState(companySettings.trackExpenses);
+  const [saving, setSaving] = useState(false);
+
+  const hasNamedEmployees = employees.some((employee) => employee.displayName.trim().length > 0);
   const canAdvance =
     stepIndex === 0
-      ? companyName.trim().length > 0 && companyState.trim().length > 0
+      ? companyName.trim().length > 0
       : stepIndex === 1
-        ? Number.isFinite(defaultFederalWithholdingValue) && Number.isFinite(defaultStateWithholdingValue)
-        : stepIndex === 2
-          ? acknowledged
-          : true;
+        ? hasNamedEmployees
+        : true;
 
-  useEffect(() => {
-    if (!selectedState) {
-      return;
-    }
-
-    setDefaultStateWithholdingMode(selectedState.defaultStateWithholdingMode);
-    setDefaultStateWithholdingValue(selectedState.defaultStateWithholdingValue);
-  }, [selectedState]);
-
-  function updateEmployee(index: number, field: "displayName" | "hourlyRate", value: string | number) {
-    setInitialEmployees((current) =>
+  function updateEmployee(
+    index: number,
+    field: "displayName" | "hourlyRate" | "workerType",
+    value: string,
+  ) {
+    setEmployees((current) =>
       current.map((employee, employeeIndex) =>
         employeeIndex === index
           ? {
@@ -87,8 +86,16 @@ export function CompanySetupScreen({
     );
   }
 
+  function addEmployeeRow() {
+    setEmployees((current) => [...current, { displayName: "", hourlyRate: "", workerType: "w2" }]);
+  }
+
+  function removeEmployeeRow(index: number) {
+    setEmployees((current) => current.filter((_, employeeIndex) => employeeIndex !== index));
+  }
+
   async function handleSubmit() {
-    if (!acknowledged || saving) {
+    if (saving) {
       return;
     }
 
@@ -96,19 +103,18 @@ export function CompanySetupScreen({
     try {
       await onComplete({
         companyName: companyName.trim(),
-        companyState,
-        acknowledgementAccepted: true,
-        defaultFederalWithholdingMode,
-        defaultFederalWithholdingValue,
-        defaultStateWithholdingMode,
-        defaultStateWithholdingValue,
-        initialCrewName: initialCrewName.trim(),
-        initialEmployees: initialEmployees
+        ownerName: ownerName.trim() || undefined,
+        employees: employees
           .filter((employee) => employee.displayName.trim().length > 0)
           .map((employee) => ({
             displayName: employee.displayName.trim(),
-            hourlyRate: employee.hourlyRate,
+            hourlyRate: employee.hourlyRate.trim().length > 0 ? Number(employee.hourlyRate) : undefined,
+            workerType: employee.workerType,
           })),
+        timeTrackingStyle,
+        lunchDeductionMinutes,
+        payType,
+        trackExpenses,
       });
     } finally {
       setSaving(false);
@@ -117,11 +123,11 @@ export function CompanySetupScreen({
 
   return (
     <div className="login-shell">
-      <section className="login-card setup-card">
-        <p className="eyebrow">Company Setup</p>
-        <h1>Finish company setup before weekly review starts</h1>
+      <section className="login-card setup-card onboarding-card">
+        <p className="eyebrow">New company setup</p>
+        <h1>Get your weekly board ready fast</h1>
         <p className="hero-copy">
-          This quick setup keeps the dashboard focused on weekly work and moves payroll-prep defaults into a reusable company profile.
+          Four quick steps, then you land on the current week with a crew, timesheets, and payroll-prep numbers ready to review.
         </p>
 
         <div className="setup-progress">
@@ -137,172 +143,52 @@ export function CompanySetupScreen({
         </div>
 
         {stepIndex === 0 ? (
-          <section className="settings-section">
+          <section className="settings-section onboarding-step">
             <div className="settings-section__header">
               <div>
                 <p className="eyebrow">Step 1</p>
-                <h3>Company profile</h3>
+                <h3>Company setup</h3>
               </div>
+              <span className="settings-meta">Keep it simple. We only need the basics to get the week open.</span>
             </div>
+
             <div className="settings-grid">
               <label>
                 Company name
                 <input
+                  autoFocus
                   type="text"
                   value={companyName}
                   onChange={(event) => setCompanyName(event.target.value)}
                 />
               </label>
               <label>
-                Company state
-                <select value={companyState} onChange={(event) => setCompanyState(event.target.value)}>
-                  {stateRules.map((rule) => (
-                    <option key={rule.stateCode} value={rule.stateCode}>
-                      {rule.stateCode} - {rule.stateName}
-                    </option>
-                  ))}
-                </select>
+                Owner name
+                <input
+                  type="text"
+                  value={ownerName}
+                  onChange={(event) => setOwnerName(event.target.value)}
+                />
               </label>
             </div>
-
-            {selectedState ? (
-              <SupportSummaryBlock
-                context="setup"
-                supportLevel={selectedState.supportLevel}
-                hasStateIncomeTax={selectedState.hasStateIncomeTax}
-                hasExtraEmployeeWithholdings={selectedState.hasExtraEmployeeWithholdings}
-                supportedLines={[
-                  "Federal withholding estimate",
-                  selectedState.hasStateIncomeTax
-                    ? selectedState.supportLevel === "full"
-                      ? "State withholding estimate"
-                      : "Manual state withholding review"
-                    : "No state income tax withholding",
-                  ...(companyState === "MA" ? ["PFML employee withholding"] : []),
-                ]}
-                extraWithholdingLabel={companyState === "MA" ? "PFML" : selectedState.extraWithholdingTypes.join(", ")}
-                stateCode={selectedState.stateCode}
-                stateName={selectedState.stateName}
-                stateDisclaimer={selectedState.disclaimerText || selectedState.notes}
-                lastReviewedAt={selectedState.lastReviewedAt}
-                sourceLabel={selectedState.sourceLabel}
-                sourceUrl={selectedState.sourceUrl}
-              />
-            ) : null}
-
-            {companyState === "MA" ? (
-              <div className="workflow-banner workflow-banner--soft">
-                <strong>Massachusetts support includes PFML</strong>
-                <span>PFML stays separate from state withholding and will show as its own payroll-prep line.</span>
-              </div>
-            ) : null}
           </section>
         ) : null}
 
         {stepIndex === 1 ? (
-          <section className="settings-section">
+          <section className="settings-section onboarding-step">
             <div className="settings-section__header">
               <div>
                 <p className="eyebrow">Step 2</p>
-                <h3>Payroll defaults</h3>
+                <h3>Crew setup</h3>
               </div>
-              <span className="settings-meta">These become the starting point for payroll estimates unless an employee override exists.</span>
+              <span className="settings-meta">Add the guys you need on this week's board.</span>
             </div>
-            <div className="settings-grid">
-              <label>
-                Default federal withholding mode
-                <select
-                  value={defaultFederalWithholdingMode}
-                  onChange={(event) => setDefaultFederalWithholdingMode(event.target.value)}
-                >
-                  <option value="percentage">Percentage estimate</option>
-                  <option value="manual_override">Manual value</option>
-                </select>
-              </label>
-              <label>
-                Default federal withholding value
-                <input
-                  type="number"
-                  step="0.0001"
-                  value={defaultFederalWithholdingValue}
-                  onChange={(event) => setDefaultFederalWithholdingValue(Number(event.target.value))}
-                />
-              </label>
-              <label>
-                Default state withholding mode
-                <select
-                  value={defaultStateWithholdingMode}
-                  onChange={(event) => setDefaultStateWithholdingMode(event.target.value)}
-                >
-                  <option value="percentage">Percentage estimate</option>
-                  <option value="manual_override">Manual value</option>
-                </select>
-              </label>
-              <label>
-                Default state withholding value
-                <input
-                  type="number"
-                  step="0.0001"
-                  value={defaultStateWithholdingValue}
-                  onChange={(event) => setDefaultStateWithholdingValue(Number(event.target.value))}
-                />
-              </label>
-            </div>
-            <p className="panel-subcopy">
-              Estimates only. You can revise these later in Company Settings without changing the weekly dashboard layout.
-            </p>
-          </section>
-        ) : null}
 
-        {stepIndex === 2 ? (
-          <section className="disclaimer-card">
-            <div className="disclaimer-card__header">
-              <div>
-                <p className="eyebrow">Step 3</p>
-                <h2>Important: Payroll Estimates</h2>
-                <p className="disclaimer-card__intro">{companySettings.payrollReminder}</p>
-              </div>
-            </div>
-            <div className="disclaimer-copy">
-              {companySettings.payrollPrepDisclaimer.split("\n").map((line, index) =>
-                line ? <p key={`${line}-${index}`}>{line}</p> : <div className="disclaimer-spacer" key={`space-${index}`} />,
-              )}
-            </div>
-            <label className="checkbox-row checkbox-row--disclaimer">
-              <input
-                checked={acknowledged}
-                type="checkbox"
-                onChange={(event) => setAcknowledged(event.target.checked)}
-              />
-              I understand this is a payroll-prep tool and I am responsible for verifying amounts.
-            </label>
-          </section>
-        ) : null}
-
-        {stepIndex === 3 ? (
-          <section className="settings-section">
-            <div className="settings-section__header">
-              <div>
-                <p className="eyebrow">Step 4</p>
-                <h3>Create your initial crew and employees</h3>
-              </div>
-              <span className="settings-meta">Optional but helpful so the dashboard is ready for real weekly review right away.</span>
-            </div>
-            <div className="settings-grid">
-              <label className="settings-grid__full">
-                Initial crew name
-                <input
-                  type="text"
-                  value={initialCrewName}
-                  onChange={(event) => setInitialCrewName(event.target.value)}
-                />
-              </label>
-            </div>
-            <div className="setup-employees">
-              {initialEmployees.map((employee, index) => (
-                <div className="setup-employee-row" key={`setup-employee-${index}`}>
-                  <label>
-                    Employee name
+            <div className="setup-employees onboarding-employees">
+              {employees.map((employee, index) => (
+                <div className="setup-employee-row onboarding-employee-card" key={`setup-employee-${index}`}>
+                  <label className="settings-grid__full">
+                    Worker name
                     <input
                       type="text"
                       value={employee.displayName}
@@ -312,39 +198,159 @@ export function CompanySetupScreen({
                   <label>
                     Hourly rate
                     <input
+                      placeholder="Optional"
                       type="number"
                       step="0.01"
                       value={employee.hourlyRate}
-                      onChange={(event) => updateEmployee(index, "hourlyRate", Number(event.target.value))}
+                      onChange={(event) => updateEmployee(index, "hourlyRate", event.target.value)}
                     />
                   </label>
+                  <label>
+                    Worker type
+                    <select
+                      value={employee.workerType}
+                      onChange={(event) => updateEmployee(index, "workerType", event.target.value)}
+                    >
+                      <option value="w2">W2</option>
+                      <option value="1099">1099</option>
+                    </select>
+                  </label>
+                  {employees.length > 1 ? (
+                    <button
+                      className="button-muted"
+                      onClick={() => removeEmployeeRow(index)}
+                      type="button"
+                    >
+                      Remove
+                    </button>
+                  ) : null}
                 </div>
               ))}
             </div>
+
             <div className="adjustment-actions">
-              <button
-                onClick={() =>
-                  setInitialEmployees((current) => [...current, { displayName: "", hourlyRate: 25 }])
-                }
-                type="button"
-              >
-                Add employee
+              <button onClick={addEmployeeRow} type="button">
+                Add another guy
               </button>
             </div>
           </section>
         ) : null}
 
+        {stepIndex === 2 ? (
+          <section className="settings-section onboarding-step">
+            <div className="settings-section__header">
+              <div>
+                <p className="eyebrow">Step 3</p>
+                <h3>How do you want time entered?</h3>
+              </div>
+            </div>
+
+            <div className="onboarding-choice-grid">
+              {TIME_TRACKING_OPTIONS.map((option) => (
+                <button
+                  className={
+                    option.value === timeTrackingStyle
+                      ? "onboarding-choice onboarding-choice--active"
+                      : "onboarding-choice"
+                  }
+                  key={option.value}
+                  onClick={() => setTimeTrackingStyle(option.value)}
+                  type="button"
+                >
+                  <strong>{option.title}</strong>
+                  <span>{option.detail}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {stepIndex === 3 ? (
+          <section className="settings-section onboarding-step">
+            <div className="settings-section__header">
+              <div>
+                <p className="eyebrow">Step 4</p>
+                <h3>Payroll preferences</h3>
+              </div>
+              <span className="settings-meta">These are just starting defaults for the weekly board.</span>
+            </div>
+
+            <div className="onboarding-choice-grid">
+              {LUNCH_OPTIONS.map((option) => (
+                <button
+                  className={
+                    option.value === lunchDeductionMinutes
+                      ? "onboarding-choice onboarding-choice--active"
+                      : "onboarding-choice"
+                  }
+                  key={option.value}
+                  onClick={() => setLunchDeductionMinutes(option.value)}
+                  type="button"
+                >
+                  <strong>{option.title}</strong>
+                </button>
+              ))}
+            </div>
+
+            <div className="onboarding-choice-grid onboarding-choice-grid--compact">
+              {PAY_TYPE_OPTIONS.map((option) => (
+                <button
+                  className={
+                    option.value === payType
+                      ? "onboarding-choice onboarding-choice--active"
+                      : "onboarding-choice"
+                  }
+                  key={option.value}
+                  onClick={() => setPayType(option.value)}
+                  type="button"
+                >
+                  <strong>{option.title}</strong>
+                  <span>{option.detail}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="onboarding-toggle-row">
+              <div>
+                <strong>Track expenses</strong>
+                <span>Keep gas, petty cash, and job costs available in payroll prep.</span>
+              </div>
+              <select
+                value={trackExpenses ? "yes" : "no"}
+                onChange={(event) => setTrackExpenses(event.target.value === "yes")}
+              >
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+
+            <div className="workflow-banner workflow-banner--soft">
+              <strong>Reporting only</strong>
+              <span>Payroll estimates help you review the week. Verify amounts before issuing checks or filing anything.</span>
+            </div>
+          </section>
+        ) : null}
+
         <div className="adjustment-actions">
-          <button disabled={stepIndex === 0 || saving} onClick={() => setStepIndex((current) => current - 1)} type="button">
+          <button
+            disabled={stepIndex === 0 || saving}
+            onClick={() => setStepIndex((current) => current - 1)}
+            type="button"
+          >
             Back
           </button>
           {stepIndex < STEP_TITLES.length - 1 ? (
-            <button className="button-strong" disabled={!canAdvance || saving} onClick={() => setStepIndex((current) => current + 1)} type="button">
+            <button
+              className="button-strong"
+              disabled={!canAdvance || saving}
+              onClick={() => setStepIndex((current) => current + 1)}
+              type="button"
+            >
               Next
             </button>
           ) : (
-            <button className="button-strong" disabled={!acknowledged || saving} onClick={() => void handleSubmit()} type="button">
-              {saving ? "Creating workspace..." : "Create company workspace"}
+            <button className="button-strong" disabled={!canAdvance || saving} onClick={() => void handleSubmit()} type="button">
+              {saving ? "Opening your week..." : "Open weekly board"}
             </button>
           )}
         </div>

@@ -3,7 +3,7 @@ import { AppShell } from "./components/AppShell";
 import { CompanySetupScreen } from "./components/CompanySetupScreen";
 import { LoginScreen } from "./components/LoginScreen";
 import { PublicHomepage } from "./components/PublicHomepage";
-import type { BootstrapPayload, PrivateReportInput, TimesheetStatus } from "./domain/models";
+import type { BootstrapPayload, CompanyOnboardingInput, PrivateReportInput, TimesheetStatus } from "./domain/models";
 import {
   applyCrewDefaults,
   completeCompanySetup,
@@ -19,8 +19,6 @@ import {
 import { getCurrentHostname, getPreferredAppUrl, isPublicHomepageHost } from "./lib/host";
 
 const TOKEN_STORAGE_KEY = "crew-timecard-token";
-const BACKEND_SENTRY_VERIFICATION_ENABLED =
-  (import.meta.env.VITE_SENTRY_BACKEND_VERIFY_ENABLED ?? "").trim().toLowerCase() === "true";
 
 function getCurrentWeekStart(date: Date) {
   const result = new Date(date);
@@ -206,30 +204,13 @@ function App() {
     );
   }
 
-  async function handleCompleteCompanySetup(payload: {
-    companyName: string;
-    companyState: string;
-    acknowledgementAccepted: boolean;
-    defaultFederalWithholdingMode?: string;
-    defaultFederalWithholdingValue?: number;
-    defaultStateWithholdingMode?: string;
-    defaultStateWithholdingValue?: number;
-    initialCrewName?: string;
-    initialEmployees?: Array<{ displayName: string; hourlyRate: number }>;
-  }) {
+  async function handleCompleteCompanySetup(payload: CompanyOnboardingInput) {
     if (!token) {
       return;
     }
 
     const response = await completeCompanySetup(token, payload);
-    setData((current) =>
-      current
-        ? {
-            ...current,
-            companySettings: response.companySettings,
-          }
-        : current,
-    );
+    setData(response);
   }
 
   async function handleExport(kind: "payroll-summary" | "time-detail" | "weekly-summary") {
@@ -283,7 +264,6 @@ function App() {
     return (
       <CompanySetupScreen
         companySettings={data.companySettings}
-        stateRules={data.stateRules}
         onComplete={handleCompleteCompanySetup}
       />
     );
@@ -292,8 +272,6 @@ function App() {
   return (
     <AppShell
       data={data}
-      token={token}
-      backendSentryVerificationEnabled={BACKEND_SENTRY_VERIFICATION_ENABLED}
       error={error}
       onLogout={handleLogout}
       onRefresh={handleRefresh}

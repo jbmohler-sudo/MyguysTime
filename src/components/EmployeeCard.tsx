@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { DayEntry, EmployeeWeek, TimesheetStatus, Viewer } from "../domain/models";
 import { adjustTimeValue, formatCurrency, formatDayCardDate } from "../domain/format";
+import { PayrollYtdSummaryGrid, workerTypeLabel } from "./PayrollYtdSummaryGrid";
 import {
   canApproveWeek,
   canConfirmWeek,
@@ -34,6 +35,7 @@ function DayEditor({
   employeeWeek,
   entry,
   todayIso,
+  dayRef,
   onUpdateDay,
 }: {
   uiMode: UiMode;
@@ -41,6 +43,7 @@ function DayEditor({
   employeeWeek: EmployeeWeek;
   entry: DayEntry;
   todayIso: string;
+  dayRef?: (node: HTMLDivElement | null) => void;
   onUpdateDay: (timesheetId: string, dayEntryId: string, payload: Record<string, unknown>) => Promise<void>;
 }) {
   const editable = canEditTimesheet(viewer.role, viewer.employeeId, employeeWeek);
@@ -83,7 +86,17 @@ function DayEditor({
   return (
     <div
       className={`${isToday ? "day-cell day-cell--today" : "day-cell"} ${uiMode === "truck" ? "day-cell--truck" : ""}`}
-      ref={isToday ? todayRef : null}
+      ref={(node) => {
+        if (isToday) {
+          todayRef.current = node;
+        }
+
+        if (!dayRef) {
+          return;
+        }
+
+        dayRef(node);
+      }}
       tabIndex={isToday ? -1 : undefined}
     >
       <div className="day-cell__top">
@@ -213,6 +226,12 @@ export function EmployeeCard({
   const showRates = uiMode === "office" && employeeWeek.hourlyRate !== null;
   const [reopenNote, setReopenNote] = useState("");
   const [revisionNote, setRevisionNote] = useState("");
+  const truckDayGridRef = useRef<HTMLDivElement | null>(null);
+  const truckDayRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const [activeTruckDayIndex, setActiveTruckDayIndex] = useState(() => {
+    const todayIndex = employeeWeek.entries.findIndex((entry) => entry.date === todayIso);
+    return todayIndex >= 0 ? todayIndex : 0;
+  });
   const editable = canEditTimesheet(viewer.role, viewer.employeeId, employeeWeek);
   const canFlagRevision =
     uiMode === "office" &&
@@ -239,6 +258,36 @@ export function EmployeeCard({
     workflowMessage = "Needs revision is active. Worker editing is unlocked until the week is resubmitted.";
   } else if (employeeWeek.status === "office_locked") {
     workflowMessage = "Office locked this week. Reopen with an audit note before any further edits.";
+  }
+
+  useEffect(() => {
+    if (uiMode !== "truck") {
+      return;
+    }
+
+    const todayIndex = employeeWeek.entries.findIndex((entry) => entry.date === todayIso);
+    setActiveTruckDayIndex(todayIndex >= 0 ? todayIndex : 0);
+  }, [employeeWeek.entries, todayIso, uiMode]);
+
+  function jumpToTruckDay(index: number) {
+    setActiveTruckDayIndex(index);
+    truckDayRefs.current[index]?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "start",
+    });
+  }
+
+  function handleTruckGridScroll() {
+    const grid = truckDayGridRef.current;
+    if (!grid) {
+      return;
+    }
+
+    const nextIndex = Math.round(grid.scrollLeft / Math.max(grid.clientWidth, 1));
+    if (nextIndex !== activeTruckDayIndex) {
+      setActiveTruckDayIndex(nextIndex);
+    }
   }
 
   return (
@@ -285,10 +334,42 @@ export function EmployeeCard({
         </div>
       ) : null}
 
-      <div className="day-grid">
+      {uiMode === "truck" ? (
+        <div className="truck-day-nav" aria-label={`${employeeWeek.employeeName} week days`}>
+          {employeeWeek.entries.map((entry, index) => {
+            const isToday = entry.date === todayIso;
+            const isActive = index === activeTruckDayIndex;
+            return (
+              <button
+                className={isActive ? "truck-day-nav__button truck-day-nav__button--active" : "truck-day-nav__button"}
+                key={entry.id}
+                onClick={() => jumpToTruckDay(index)}
+                type="button"
+              >
+                <span>{entry.dayLabel}</span>
+                <strong>{formatDayCardDate(entry.date)}</strong>
+                {isToday ? <em>Today</em> : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
+      <div
+        className={uiMode === "truck" ? "day-grid day-grid--truck" : "day-grid"}
+        onScroll={uiMode === "truck" ? handleTruckGridScroll : undefined}
+        ref={uiMode === "truck" ? truckDayGridRef : undefined}
+      >
         {employeeWeek.entries.map((entry) => (
           <DayEditor
             key={entry.id}
+            dayRef={
+              uiMode === "truck"
+                ? (node) => {
+                    truckDayRefs.current[entry.dayIndex] = node;
+                  }
+                : undefined
+            }
             uiMode={uiMode}
             viewer={viewer}
             employeeWeek={employeeWeek}
@@ -300,55 +381,63 @@ export function EmployeeCard({
       </div>
 
       {uiMode === "office" ? (
-        <div className="employee-card__footer employee-card__footer--actions">
-          <div className="employee-card__metrics">
-            <div>
-              <span>Weekly total</span>
-              <strong>{employeeWeek.weeklyTotalHours.toFixed(2)}h</strong>
+        <>
+          <div className="employee-card__footer employee-card__footer--actions">
+            <div className="employee-card__metrics">
+              <div>
+                <span>Weekly total</span>
+                <strong>{employeeWeek.weeklyTotalHours.toFixed(2)}h</strong>
+              </div>
+              <div>
+                <span>Overtime</span>
+                <strong>{employeeWeek.overtimeHours.toFixed(2)}h</strong>
+              </div>
+              <div className="employee-card__net">
+                <span>Net check estimate</span>
+                <strong>{formatCurrency(employeeWeek.payrollEstimate.netCheckEstimate)}</strong>
+              </div>
             </div>
-            <div>
-              <span>Overtime</span>
-              <strong>{employeeWeek.overtimeHours.toFixed(2)}h</strong>
-            </div>
-            <div className="employee-card__net">
-              <span>Net check estimate</span>
-              <strong>{formatCurrency(employeeWeek.payrollEstimate.netCheckEstimate)}</strong>
+            <div className="employee-card__workflow">
+              <span className="employee-card__workflow-label">Weekly action</span>
+              <div className="status-actions">
+                {canConfirmWeek(viewer.role, viewer.employeeId, employeeWeek) ? (
+                  <button
+                    className="button-strong"
+                    onClick={() => void onStatusChange(employeeWeek.id, "employee_confirmed")}
+                    type="button"
+                  >
+                    Confirm week
+                  </button>
+                ) : null}
+                {canApproveWeek(viewer.role, employeeWeek) ? (
+                  <button
+                    className="button-strong"
+                    onClick={() => void onStatusChange(employeeWeek.id, "foreman_approved")}
+                    type="button"
+                  >
+                    Approve week
+                  </button>
+                ) : null}
+                {canOfficeLock(viewer.role, employeeWeek) ? (
+                  <button
+                    className="button-strong"
+                    onClick={() => void onStatusChange(employeeWeek.id, "office_locked")}
+                    type="button"
+                  >
+                    Lock for payroll
+                  </button>
+                ) : null}
+              </div>
+              <p className="employee-card__workflow-hint">{workflowMessage}</p>
             </div>
           </div>
-          <div className="employee-card__workflow">
-            <span className="employee-card__workflow-label">Weekly action</span>
-            <div className="status-actions">
-              {canConfirmWeek(viewer.role, viewer.employeeId, employeeWeek) ? (
-                <button
-                  className="button-strong"
-                  onClick={() => void onStatusChange(employeeWeek.id, "employee_confirmed")}
-                  type="button"
-                >
-                  Confirm week
-                </button>
-              ) : null}
-              {canApproveWeek(viewer.role, employeeWeek) ? (
-                <button
-                  className="button-strong"
-                  onClick={() => void onStatusChange(employeeWeek.id, "foreman_approved")}
-                  type="button"
-                >
-                  Approve week
-                </button>
-              ) : null}
-              {canOfficeLock(viewer.role, employeeWeek) ? (
-                <button
-                  className="button-strong"
-                  onClick={() => void onStatusChange(employeeWeek.id, "office_locked")}
-                  type="button"
-                >
-                  Lock for payroll
-                </button>
-              ) : null}
-            </div>
-            <p className="employee-card__workflow-hint">{workflowMessage}</p>
-          </div>
-        </div>
+          <PayrollYtdSummaryGrid
+            className="employee-card__ytd"
+            summary={employeeWeek.ytdSummary}
+            heading={`${employeeWeek.ytdSummary.calendarYear} YTD reporting`}
+            subcopy={`${workerTypeLabel(employeeWeek.workerType)} totals only. This is reporting, not tax filing.`}
+          />
+        </>
       ) : (
         <div className="truck-week-actions">
           {canConfirmWeek(viewer.role, viewer.employeeId, employeeWeek) ? (

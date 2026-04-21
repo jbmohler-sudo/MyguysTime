@@ -4,5 +4,4 @@ node_modules
 dist
 dist-server
 *.tsbuildinfo
-prisma/dev.db
 .tmp-*.log

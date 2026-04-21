@@ -1,6 +1,28 @@
-import type { BootstrapPayload, CompanySettingsSummary, PrivateReportInput, TimesheetStatus } from "../domain/models";
+import type {
+  BootstrapPayload,
+  CompanyOnboardingInput,
+  CompanySettingsSummary,
+  PrivateReportInput,
+  TimesheetStatus,
+} from "../domain/models";
 
-export const API_BASE = "http://localhost:3001/api";
+function getApiBase() {
+  const configuredBase = import.meta.env.VITE_API_BASE_URL?.trim();
+  if (configuredBase) {
+    return configuredBase;
+  }
+
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname.toLowerCase();
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return "http://localhost:3001/api";
+    }
+  }
+
+  return "/api";
+}
+
+export const API_BASE = getApiBase();
 
 async function request<T>(path: string, options: RequestInit = {}, token?: string | null): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -134,21 +156,8 @@ export async function updateCompanySettings(
   );
 }
 
-export async function completeCompanySetup(
-  token: string,
-  payload: {
-    companyName: string;
-    companyState: string;
-    acknowledgementAccepted: boolean;
-    defaultFederalWithholdingMode?: string;
-    defaultFederalWithholdingValue?: number;
-    defaultStateWithholdingMode?: string;
-    defaultStateWithholdingValue?: number;
-    initialCrewName?: string;
-    initialEmployees?: Array<{ displayName: string; hourlyRate: number }>;
-  },
-) {
-  return request<{ companySettings: CompanySettingsSummary }>(
+export async function completeCompanySetup(token: string, payload: CompanyOnboardingInput) {
+  return request<BootstrapPayload>(
     "/company-setup",
     {
       method: "POST",

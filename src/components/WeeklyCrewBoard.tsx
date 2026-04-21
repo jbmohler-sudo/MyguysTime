@@ -62,7 +62,7 @@ export function WeeklyCrewBoard({
       <div className="panel__header">
         <div>
           <p className="eyebrow">Weekly Crew Board</p>
-          <h2>{uiMode === "truck" ? "Current-week day cards" : "Live employee cards for 7-day time review"}</h2>
+          <h2>{uiMode === "truck" ? "Current-week truck time entry" : "Live employee cards for 7-day time review"}</h2>
           <div className="week-context-row">
             <span className={`week-context-chip week-context-chip--${weekContext}`}>{weekContextLabel}</span>
             {weekContext !== "current" ? (
@@ -70,6 +70,9 @@ export function WeeklyCrewBoard({
             ) : (
               <span className="week-context-note">This selected week includes today.</span>
             )}
+            {uiMode === "truck" ? (
+              <span className="week-context-note">Swipe day cards left or right to move through the week.</span>
+            ) : null}
           </div>
         </div>
         <div className="toolbar toolbar--stack">
@@ -128,7 +131,7 @@ export function WeeklyCrewBoard({
         </div>
       </div>
 
-      <div className="employee-list">
+      <div className={uiMode === "truck" ? "employee-list employee-list--truck" : "employee-list"}>
         {employeeWeeks.map((employeeWeek) => (
           <EmployeeCard
             key={employeeWeek.id}

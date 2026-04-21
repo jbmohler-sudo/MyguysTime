@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Logo } from "./Logo";
 
 interface PublicHomepageProps {
   appUrl: string;
@@ -20,10 +21,8 @@ function ProductPreview() {
     <div className="homepage-shot" aria-label="My Guys Time product screenshot">
       <div className="homepage-shot__topbar">
         <div>
-<div className="brand-logo">
-  <span className="brand-logo__primary">My Guys</span>
-  <span className="brand-logo__secondary">Time</span>
-</div>          <h3>Weekly crew board</h3>
+          <Logo size="preview" />
+          <h3>Weekly crew board</h3>
         </div>
         <span className="homepage-shot__badge">Payroll-prep ready</span>
       </div>
@@ -119,9 +118,11 @@ export function PublicHomepage({ appUrl }: PublicHomepageProps) {
 
   return (
     <div className="marketing-shell">
+      <div className="marketing-header">
+        <Logo className="marketing-header__logo" size="marketing" />
+      </div>
       <header className="marketing-hero">
         <div className="marketing-hero__copy">
-          <p className="eyebrow">My Guys Time</p>
           <h1>Track Crew Hours &amp; Prep Payroll in Seconds, Built for Contractors</h1>
           <p className="marketing-lead">
             My Guys Time is a simple contractor hour tracking app built for small crews. Track your

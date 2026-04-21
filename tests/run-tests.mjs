@@ -94,6 +94,26 @@ await runCase("foreman only accesses assigned crews", async () => {
   }
 });
 
+await runCase("admin bootstrap includes YTD reporting totals", async () => {
+  const app = await bootApp();
+  try {
+    const token = await app.login("admin@crewtime.local", "admin123");
+    const response = await app.api(`/api/auth/me?weekStart=${WEEK_START}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const payload = await response.json();
+    const firstWeek = payload.employeeWeeks[0];
+
+    assert.equal(response.status, 200);
+    assert.equal(firstWeek.workerType, "employee");
+    assert.equal(firstWeek.ytdSummary.calendarYear, 2026);
+    assert.ok(firstWeek.ytdSummary.grossPayments >= firstWeek.payrollEstimate.grossPay);
+    assert.ok(firstWeek.ytdSummary.netEstimate >= firstWeek.payrollEstimate.netCheckEstimate);
+  } finally {
+    await app.shutdown();
+  }
+});
+
 await runCase("office can lock a week", async () => {
   const app = await bootApp();
   try {
@@ -408,12 +428,13 @@ await runCase("payroll estimate updates correctly after adjustment edits", async
     assert.equal(adjustResponse.status, 200);
     assert.equal(payload.timesheet.payrollEstimate.netCheckEstimate, beforeNet + 25);
     assert.equal(payload.timesheet.adjustment.notes, "Office adjustment test.");
+    assert.ok(payload.timesheet.ytdSummary.netEstimate >= payload.timesheet.payrollEstimate.netCheckEstimate);
   } finally {
     await app.shutdown();
   }
 });
 
-await runCase("company setup requires disclaimer acknowledgement", async () => {
+await runCase("new admin sees onboarding until setup is completed", async () => {
   const app = await bootApp();
   try {
     const token = await app.login("admin@crewtime.local", "admin123");
@@ -421,32 +442,24 @@ await runCase("company setup requires disclaimer acknowledgement", async () => {
     await prisma.company.update({
       where: { id: company.id },
       data: {
-        payrollDisclaimerAcceptedAt: null,
-        payrollDisclaimerAcceptedByUserId: null,
-        payrollDisclaimerVersion: null,
+        onboardingCompletedAt: null,
+        onboardingCompletedByUserId: null,
       },
     });
 
-    const setupResponse = await app.api("/api/company-setup", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        companyName: "Test Masonry Co",
-        companyState: "MA",
-        acknowledgementAccepted: false,
-      }),
+    const bootstrapResponse = await app.api(`/api/auth/me?weekStart=${WEEK_START}`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
+    const payload = await bootstrapResponse.json();
 
-    assert.equal(setupResponse.status, 400);
+    assert.equal(bootstrapResponse.status, 200);
+    assert.equal(payload.companySettings.setupComplete, false);
   } finally {
     await app.shutdown();
   }
 });
 
-await runCase("company setup accepts payroll defaults and initial crew payload", async () => {
+await runCase("company setup creates a default crew and current-week timesheets", async () => {
   const app = await bootApp();
   try {
     const token = await app.login("admin@crewtime.local", "admin123");
@@ -454,9 +467,8 @@ await runCase("company setup accepts payroll defaults and initial crew payload",
     await prisma.company.update({
       where: { id: company.id },
       data: {
-        payrollDisclaimerAcceptedAt: null,
-        payrollDisclaimerAcceptedByUserId: null,
-        payrollDisclaimerVersion: null,
+        onboardingCompletedAt: null,
+        onboardingCompletedByUserId: null,
       },
     });
 
@@ -468,26 +480,29 @@ await runCase("company setup accepts payroll defaults and initial crew payload",
       },
       body: JSON.stringify({
         companyName: "Fieldstone Roofing",
-        companyState: "MA",
-        acknowledgementAccepted: true,
-        defaultFederalWithholdingMode: "percentage",
-        defaultFederalWithholdingValue: 0.12,
-        defaultStateWithholdingMode: "percentage",
-        defaultStateWithholdingValue: 0.05,
-        initialCrewName: "Crew Alpha",
-        initialEmployees: [
-          { displayName: "Ana Torres", hourlyRate: 28 },
-          { displayName: "Ben Cruz", hourlyRate: 24 },
+        ownerName: "Jeff Mohler",
+        employees: [
+          { displayName: "Ana Torres", hourlyRate: 28, workerType: "w2" },
+          { displayName: "Ben Cruz", hourlyRate: 24, workerType: "1099" },
         ],
+        timeTrackingStyle: "mixed",
+        lunchDeductionMinutes: 60,
+        payType: "hourly",
+        trackExpenses: true,
       }),
     });
     const payload = await setupResponse.json();
 
     assert.equal(setupResponse.status, 200);
     assert.equal(payload.companySettings.companyName, "Fieldstone Roofing");
-    assert.equal(payload.companySettings.defaultFederalWithholdingValue, 0.12);
+    assert.equal(payload.companySettings.ownerName, "Jeff Mohler");
+    assert.equal(payload.companySettings.setupComplete, true);
+    assert.equal(payload.companySettings.timeTrackingStyle, "mixed");
+    assert.equal(payload.companySettings.defaultLunchMinutes, 60);
+    assert.equal(payload.companySettings.payType, "hourly");
+    assert.equal(payload.companySettings.trackExpenses, true);
 
-    const crew = await prisma.crew.findFirstOrThrow({ where: { name: "Crew Alpha" } });
+    const crew = await prisma.crew.findFirstOrThrow({ where: { name: "Main Crew" } });
     const employees = await prisma.employee.findMany({
       where: { defaultCrewId: crew.id },
       orderBy: { displayName: "asc" },
@@ -498,6 +513,14 @@ await runCase("company setup accepts payroll defaults and initial crew payload",
       employees.map((employee) => employee.displayName),
       ["Ana Torres", "Ben Cruz"],
     );
+    assert.deepEqual(
+      employees.map((employee) => employee.workerType),
+      ["EMPLOYEE", "CONTRACTOR_1099"],
+    );
+
+    const createdWeeks = payload.employeeWeeks.filter((week) => week.crewName === "Main Crew");
+    assert.equal(createdWeeks.length, 2);
+    assert.ok(createdWeeks.every((week) => week.entries.every((entry) => entry.lunchMinutes === 60)));
   } finally {
     await app.shutdown();
   }

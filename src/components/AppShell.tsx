@@ -3,6 +3,7 @@ import type { BootstrapPayload, PrivateReportInput, TimesheetStatus } from "../d
 import { prettyStatus } from "../domain/permissions";
 import { ArchivePanel } from "./ArchivePanel";
 import { CompanySettingsPanel } from "./CompanySettingsPanel";
+import { Logo } from "./Logo";
 import { OfficeDashboard } from "./OfficeDashboard";
 import { PrivateReportsPanel } from "./PrivateReportsPanel";
 import { WeeklyCrewBoard } from "./WeeklyCrewBoard";
@@ -12,8 +13,6 @@ type AppPage = "dashboard" | "company-settings" | "archive";
 
 interface AppShellProps {
   data: BootstrapPayload;
-  token: string;
-  backendSentryVerificationEnabled: boolean;
   error?: string;
   onLogout: () => void;
   onRefresh: (weekStart?: string) => Promise<void>;
@@ -53,8 +52,6 @@ interface AppShellProps {
 
 export function AppShell({
   data,
-  token,
-  backendSentryVerificationEnabled,
   error,
   onLogout,
   onRefresh,
@@ -67,10 +64,11 @@ export function AppShell({
   onExport,
   onUpdateCompanySettings,
 }: AppShellProps) {
+  const truckViewportQuery = "(max-width: 720px)";
   const [selectedCrewId, setSelectedCrewId] = useState<string>("all");
   const [openedAt] = useState(() => new Date());
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth < 900 : false,
+    typeof window !== "undefined" ? window.matchMedia(truckViewportQuery).matches : false,
   );
   const [modeOverride] = useState<UiMode | null>(null);
   const [activePage, setActivePage] = useState<AppPage>("dashboard");
@@ -127,13 +125,21 @@ export function AppShell({
       return;
     }
 
-    function handleResize() {
-      setIsMobileViewport(window.innerWidth < 900);
+    const mediaQuery = window.matchMedia(truckViewportQuery);
+    function handleViewportChange(event: MediaQueryList | MediaQueryListEvent) {
+      setIsMobileViewport(event.matches);
     }
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+    setIsMobileViewport(mediaQuery.matches);
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handleViewportChange);
+      return () => mediaQuery.removeEventListener("change", handleViewportChange);
+    }
+
+    mediaQuery.addListener(handleViewportChange);
+    return () => mediaQuery.removeListener(handleViewportChange);
+  }, [truckViewportQuery]);
 
   useEffect(() => {
     if (uiMode === "truck" && data.weekStart !== currentWeekStart) {
@@ -159,8 +165,8 @@ export function AppShell({
       <header className="hero hero--app">
         <div className="hero__main">
           <div className="hero__topbar">
-            <div>
-              <p className="eyebrow">Crew Timecard MVP</p>
+            <div className="hero__brand-block">
+              <Logo className="hero__logo" size="app" />
               <h1>
                 {uiMode === "truck"
                   ? "Current-week crew timecards for the truck."
@@ -270,8 +276,6 @@ export function AppShell({
               <OfficeDashboard
                 companySettings={data.companySettings}
                 employeeWeeks={data.employeeWeeks}
-                token={token}
-                backendSentryVerificationEnabled={backendSentryVerificationEnabled}
                 onExport={onExport}
                 onUpdateAdjustment={onUpdateAdjustment}
                 onReopenWeek={onReopenWeek}

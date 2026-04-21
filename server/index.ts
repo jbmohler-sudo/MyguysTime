@@ -20,7 +20,9 @@ import {
 export const app = express();
 const port = Number(process.env.PORT || 3001);
 type TimesheetStatus = "DRAFT" | "NEEDS_REVISION" | "EMPLOYEE_CONFIRMED" | "FOREMAN_APPROVED" | "OFFICE_LOCKED";
-const PAYROLL_DISCLAIMER_VERSION = "2026-04-20-v1";
+type WorkerType = "EMPLOYEE" | "CONTRACTOR_1099";
+type TimeTrackingStyle = "FOREMAN" | "WORKER_SELF_ENTRY" | "MIXED";
+type PayType = "HOURLY" | "HOURLY_OVERTIME";
 const PAYROLL_PREP_DISCLAIMER = `Important: Payroll Estimates
 
 This app is designed to help you track hours and estimate pay and withholdings.
@@ -63,6 +65,14 @@ function asTimesheetStatus(status: string): TimesheetStatus {
   throw new Error(`Unsupported timesheet status: ${status}`);
 }
 
+function asWorkerType(workerType: string | null | undefined): WorkerType {
+  if (workerType === "CONTRACTOR_1099") {
+    return workerType;
+  }
+
+  return "EMPLOYEE";
+}
+
 function getParam(value: string | string[] | undefined): string {
   if (typeof value === "string") {
     return value;
@@ -73,6 +83,33 @@ function getParam(value: string | string[] | undefined): string {
 
 function statusToClient(status: TimesheetStatus) {
   return status.toLowerCase() as "draft" | "employee_confirmed" | "foreman_approved" | "office_locked";
+}
+
+function workerTypeToClient(workerType: WorkerType) {
+  return workerType.toLowerCase() as "employee" | "contractor_1099";
+}
+
+function timeTrackingStyleToClient(value: TimeTrackingStyle) {
+  if (value === "WORKER_SELF_ENTRY") {
+    return "worker_self_entry" as const;
+  }
+
+  return value.toLowerCase() as "foreman" | "mixed";
+}
+
+function payTypeToClient(value: PayType) {
+  return value === "HOURLY" ? "hourly" as const : "hourly_overtime" as const;
+}
+
+function createEmptyYtdSummary(workerType: WorkerType, calendarYear: number) {
+  return {
+    calendarYear,
+    workerType: workerTypeToClient(workerType),
+    grossPayments: 0,
+    reimbursements: 0,
+    deductions: 0,
+    netEstimate: 0,
+  };
 }
 
 async function getCompanySettingsOrThrow() {
@@ -127,6 +164,10 @@ function buildPayrollSettingsDefaults(
     defaultFederalWithholdingValue?: number;
     defaultStateWithholdingMode?: "PERCENTAGE" | "MANUAL_OVERRIDE";
     defaultStateWithholdingValue?: number;
+    timeTrackingStyle?: TimeTrackingStyle;
+    defaultLunchMinutes?: 0 | 30 | 60;
+    payType?: PayType;
+    trackExpenses?: boolean;
   },
 ) {
   const federalMode = overrides?.defaultFederalWithholdingMode ?? "PERCENTAGE";
@@ -139,6 +180,10 @@ function buildPayrollSettingsDefaults(
     defaultFederalWithholdingValue: federalValue,
     defaultStateWithholdingMode: stateMode,
     defaultStateWithholdingValue: stateValue,
+    timeTrackingStyle: overrides?.timeTrackingStyle ?? "FOREMAN",
+    defaultLunchMinutes: overrides?.defaultLunchMinutes ?? 30,
+    payType: overrides?.payType ?? "HOURLY_OVERTIME",
+    trackExpenses: overrides?.trackExpenses ?? true,
     payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
     pfmlEnabled: stateCode === "MA" ? Boolean(stateRule?.defaultPfmlEnabled) : false,
     pfmlEmployeeRate: stateCode === "MA" ? stateRule?.defaultPfmlEmployeeRate ?? 0 : 0,
@@ -202,6 +247,7 @@ function serializeCompanySettings(
   return {
     id: company.id,
     companyName: company.companyName,
+    ownerName: company.ownerName ?? "",
     companyState: company.stateCode,
     stateName: stateRule.stateName,
     supportLevel: stateSupportLevel,
@@ -216,6 +262,10 @@ function serializeCompanySettings(
     hasStateIncomeTax: stateRule.hasStateIncomeTax,
     hasExtraEmployeeWithholdings: stateRule.hasExtraEmployeeWithholdings,
     supportedLines,
+    timeTrackingStyle: timeTrackingStyleToClient(settings.timeTrackingStyle as TimeTrackingStyle),
+    defaultLunchMinutes: settings.defaultLunchMinutes,
+    payType: payTypeToClient(settings.payType as PayType),
+    trackExpenses: settings.trackExpenses,
     payrollPrepDisclaimer:
       settings.payrollPrepDisclaimer || PAYROLL_PREP_DISCLAIMER,
     stateDisclaimer:
@@ -225,7 +275,7 @@ function serializeCompanySettings(
     disclaimerAcceptedAt: company.payrollDisclaimerAcceptedAt?.toISOString() ?? null,
     disclaimerAcceptedByUserId: company.payrollDisclaimerAcceptedByUserId ?? null,
     disclaimerVersion: company.payrollDisclaimerVersion ?? null,
-    setupComplete: Boolean(company.payrollDisclaimerAcceptedAt),
+    setupComplete: Boolean(company.onboardingCompletedAt),
     lastReviewedAt: stateRule.lastReviewedAt?.toISOString() ?? null,
     sourceLabel: stateRule.sourceLabel ?? "",
     sourceUrl: stateRule.sourceUrl ?? "",
@@ -306,7 +356,7 @@ async function ensureWeekData(weekStart: Date) {
           create: Array.from({ length: 7 }, (_, dayIndex) => ({
             dayIndex,
             workDate: addDays(weekStart, dayIndex),
-            lunchMinutes: 30,
+            lunchMinutes: payrollSettings.defaultLunchMinutes,
             totalMinutes: 0,
           })),
         },
@@ -454,6 +504,7 @@ function serializeTimesheet(
   timesheet: Awaited<ReturnType<typeof getAuthorizedTimesheet>> extends infer T ? Exclude<T, null> : never,
   viewerRole: UserRole,
   usersById: Map<string, string>,
+  ytdSummary: ReturnType<typeof createEmptyYtdSummary>,
 ) {
   const totalHours = timesheet.dayEntries.reduce((sum, day) => sum + day.totalMinutes, 0) / 60;
   const overtimeHours = (timesheet.payrollEstimate?.overtimeMinutes ?? 0) / 60;
@@ -463,6 +514,7 @@ function serializeTimesheet(
     id: timesheet.id,
     employeeId: timesheet.employeeId,
     employeeName: timesheet.employee.displayName,
+    workerType: workerTypeToClient(asWorkerType(timesheet.employee.workerType)),
     crewId: timesheet.crewId,
     crewName: timesheet.crew.name,
     hourlyRate: viewerRole === "EMPLOYEE" ? null : currencyFromCents(timesheet.employee.hourlyRateCents),
@@ -505,6 +557,7 @@ function serializeTimesheet(
       deductions: currencyFromCents(timesheet.adjustment?.deductionCents ?? 0),
       netCheckEstimate: currencyFromCents(timesheet.payrollEstimate?.netCheckEstimateCents ?? 0),
     },
+    ytdSummary,
     exportedAt: timesheet.exportedAt?.toISOString() ?? null,
     exportedByFullName: timesheet.exportedByUserId ? usersById.get(timesheet.exportedByUserId) ?? "Unknown user" : null,
     statusAuditTrail: timesheet.statusAuditEvents.map((event) => ({
@@ -516,6 +569,58 @@ function serializeTimesheet(
       createdByFullName: usersById.get(event.createdByUserId) ?? "Unknown user",
     })),
   };
+}
+
+type TimesheetSummarySource = Awaited<ReturnType<typeof getAuthorizedTimesheet>> extends infer T
+  ? Exclude<T, null>
+  : never;
+
+async function buildYtdSummaries(
+  timesheets: TimesheetSummarySource[],
+  weekStart: Date,
+) {
+  const employeeIds = Array.from(new Set(timesheets.map((timesheet) => timesheet.employeeId)));
+  const calendarYear = weekStart.getFullYear();
+  const fallbackSummaries = new Map(
+    timesheets.map((timesheet) => [
+      timesheet.employeeId,
+      createEmptyYtdSummary(asWorkerType(timesheet.employee.workerType), calendarYear),
+    ]),
+  );
+
+  if (employeeIds.length === 0) {
+    return fallbackSummaries;
+  }
+
+  const yearStart = new Date(calendarYear, 0, 1);
+  const nextWeekStart = addDays(weekStart, 7);
+  const ytdTimesheets = await prisma.timesheetWeek.findMany({
+    where: {
+      employeeId: { in: employeeIds },
+      weekStartDate: {
+        gte: yearStart,
+        lt: nextWeekStart,
+      },
+    },
+    include: {
+      employee: true,
+      adjustment: true,
+      payrollEstimate: true,
+    },
+  });
+
+  for (const timesheet of ytdTimesheets) {
+    const current = fallbackSummaries.get(timesheet.employeeId) ?? createEmptyYtdSummary(asWorkerType(timesheet.employee.workerType), calendarYear);
+    current.grossPayments += currencyFromCents(timesheet.payrollEstimate?.grossPayCents ?? 0);
+    current.reimbursements += currencyFromCents(
+      (timesheet.adjustment?.gasReimbursementCents ?? 0) + (timesheet.adjustment?.pettyCashCents ?? 0),
+    );
+    current.deductions += currencyFromCents(timesheet.adjustment?.deductionCents ?? 0);
+    current.netEstimate += currencyFromCents(timesheet.payrollEstimate?.netCheckEstimateCents ?? 0);
+    fallbackSummaries.set(timesheet.employeeId, current);
+  }
+
+  return fallbackSummaries;
 }
 
 async function buildBootstrap(userId: string, role: UserRole, weekStart: Date) {
@@ -608,6 +713,7 @@ async function buildBootstrap(userId: string, role: UserRole, weekStart: Date) {
         })
       : [];
   const auditUsersById = new Map(auditUsers.map((entry) => [entry.id, entry.fullName]));
+  const ytdSummariesByEmployeeId = await buildYtdSummaries(timesheets, weekStart);
 
   return {
     viewer: {
@@ -630,7 +736,13 @@ async function buildBootstrap(userId: string, role: UserRole, weekStart: Date) {
       })),
     })),
     employeeWeeks: timesheets.map((timesheet) =>
-      serializeTimesheet(timesheet, asUserRole(user.role), auditUsersById),
+      serializeTimesheet(
+        timesheet,
+        asUserRole(user.role),
+        auditUsersById,
+        ytdSummariesByEmployeeId.get(timesheet.employeeId) ??
+          createEmptyYtdSummary(asWorkerType(timesheet.employee.workerType), weekStart.getFullYear()),
+      ),
     ),
     privateReports: privateReports.map((report) => ({
       id: report.id,
@@ -739,24 +851,20 @@ app.post("/api/company-setup", authenticate, async (req: AuthenticatedRequest, r
 
   const {
     companyName,
-    companyState,
-    acknowledgementAccepted,
-    defaultFederalWithholdingMode,
-    defaultFederalWithholdingValue,
-    defaultStateWithholdingMode,
-    defaultStateWithholdingValue,
-    initialCrewName,
-    initialEmployees,
+    ownerName,
+    employees,
+    timeTrackingStyle,
+    lunchDeductionMinutes,
+    payType,
+    trackExpenses,
   } = req.body as {
     companyName?: string;
-    companyState?: string;
-    acknowledgementAccepted?: boolean;
-    defaultFederalWithholdingMode?: string;
-    defaultFederalWithholdingValue?: number;
-    defaultStateWithholdingMode?: string;
-    defaultStateWithholdingValue?: number;
-    initialCrewName?: string;
-    initialEmployees?: Array<{ displayName?: string; hourlyRate?: number }>;
+    ownerName?: string;
+    employees?: Array<{ displayName?: string; hourlyRate?: number; workerType?: string }>;
+    timeTrackingStyle?: string;
+    lunchDeductionMinutes?: number;
+    payType?: string;
+    trackExpenses?: boolean;
   };
 
   if (!companyName?.trim()) {
@@ -764,121 +872,108 @@ app.post("/api/company-setup", authenticate, async (req: AuthenticatedRequest, r
     return;
   }
 
-  if (!companyState?.trim()) {
-    res.status(400).json({ error: "Company state is required." });
+  const nextTimeTrackingStyle = timeTrackingStyle?.trim().toUpperCase() as TimeTrackingStyle | undefined;
+  if (!nextTimeTrackingStyle || !["FOREMAN", "WORKER_SELF_ENTRY", "MIXED"].includes(nextTimeTrackingStyle)) {
+    res.status(400).json({ error: "Time tracking style is required." });
     return;
   }
 
-  if (!acknowledgementAccepted) {
-    res.status(400).json({ error: "Disclaimer acknowledgement is required." });
+  if (lunchDeductionMinutes !== 0 && lunchDeductionMinutes !== 30 && lunchDeductionMinutes !== 60) {
+    res.status(400).json({ error: "Lunch deduction must be none, 30, or 60 minutes." });
     return;
   }
 
-  const nextFederalMode = defaultFederalWithholdingMode?.trim().toUpperCase() || "PERCENTAGE";
-  const nextStateMode = defaultStateWithholdingMode?.trim().toUpperCase();
-  if (!["PERCENTAGE", "MANUAL_OVERRIDE"].includes(nextFederalMode)) {
-    res.status(400).json({ error: "Unsupported default federal withholding mode." });
-    return;
-  }
-  if (nextStateMode && !["PERCENTAGE", "MANUAL_OVERRIDE"].includes(nextStateMode)) {
-    res.status(400).json({ error: "Unsupported default state withholding mode." });
-    return;
-  }
-  if (
-    defaultFederalWithholdingValue !== undefined &&
-    !isFiniteNonNegativeNumber(defaultFederalWithholdingValue)
-  ) {
-    res.status(400).json({ error: "Default federal withholding value must be a non-negative number." });
-    return;
-  }
-  if (
-    defaultStateWithholdingValue !== undefined &&
-    !isFiniteNonNegativeNumber(defaultStateWithholdingValue)
-  ) {
-    res.status(400).json({ error: "Default state withholding value must be a non-negative number." });
+  const nextPayType = payType?.trim().toUpperCase() as PayType | undefined;
+  if (!nextPayType || !["HOURLY", "HOURLY_OVERTIME"].includes(nextPayType)) {
+    res.status(400).json({ error: "Pay type is required." });
     return;
   }
 
-  const cleanEmployees = (initialEmployees ?? [])
+  if (typeof trackExpenses !== "boolean") {
+    res.status(400).json({ error: "Track expenses must be yes or no." });
+    return;
+  }
+
+  const cleanEmployees = (employees ?? [])
     .map((employee) => ({
       displayName: employee.displayName?.trim() ?? "",
       hourlyRate: employee.hourlyRate,
+      workerType: employee.workerType?.trim().toUpperCase() ?? "W2",
     }))
     .filter((employee) => employee.displayName.length > 0);
 
-  const invalidEmployee = cleanEmployees.find(
-    (employee) =>
-      typeof employee.hourlyRate !== "number" ||
-      !Number.isFinite(employee.hourlyRate) ||
-      employee.hourlyRate < 0,
-  );
-  if (invalidEmployee) {
-    res.status(400).json({ error: "Initial employee hourly rates must be non-negative numbers." });
+  if (cleanEmployees.length === 0) {
+    res.status(400).json({ error: "Add at least one employee before finishing setup." });
     return;
   }
 
-  const nextStateCode = companyState.trim().toUpperCase();
-  const stateRule = await prisma.statePayrollRule.findUnique({
-    where: { stateCode: nextStateCode },
-  });
+  const invalidEmployee = cleanEmployees.find(
+    (employee) =>
+      (employee.hourlyRate !== undefined &&
+        (typeof employee.hourlyRate !== "number" ||
+          !Number.isFinite(employee.hourlyRate) ||
+          employee.hourlyRate < 0)) ||
+      !["W2", "1099"].includes(employee.workerType),
+  );
+  if (invalidEmployee) {
+    res.status(400).json({ error: "Employee entries must use a valid worker type and non-negative hourly rate." });
+    return;
+  }
 
   const currentCompany = await getCompanySettingsOrThrow();
   const updatedCompany = await prisma.company.update({
     where: { id: currentCompany.id },
     data: {
       companyName: companyName.trim(),
-      stateCode: nextStateCode,
-      payrollDisclaimerAcceptedAt: new Date(),
-      payrollDisclaimerAcceptedByUserId: req.auth!.userId,
-      payrollDisclaimerVersion: PAYROLL_DISCLAIMER_VERSION,
+      ownerName: ownerName?.trim() || null,
+      onboardingCompletedAt: new Date(),
+      onboardingCompletedByUserId: req.auth!.userId,
     },
     include: { payrollSettings: true },
   });
 
-  const nextSupportLevel = stateRule?.supportLevel ?? "UNSUPPORTED";
   const nextPayrollSettings = await prisma.companyPayrollSettings.update({
     where: { companyId: updatedCompany.id },
-    data: buildPayrollSettingsDefaults(nextStateCode, stateRule, {
-      defaultFederalWithholdingMode: nextFederalMode as "PERCENTAGE" | "MANUAL_OVERRIDE",
-      defaultFederalWithholdingValue,
-      defaultStateWithholdingMode: nextStateMode as "PERCENTAGE" | "MANUAL_OVERRIDE" | undefined,
-      defaultStateWithholdingValue,
-    }),
+    data: {
+      timeTrackingStyle: nextTimeTrackingStyle,
+      defaultLunchMinutes: lunchDeductionMinutes,
+      payType: nextPayType,
+      trackExpenses,
+    },
   });
 
-  const finalRule =
-    stateRule ??
-    (await prisma.statePayrollRule.create({
-      data: buildUnsupportedStateRuleData(nextStateCode),
-    }));
+  const defaultCrew = await prisma.crew.create({
+    data: {
+      name: "Main Crew",
+    },
+  });
 
-  if (initialCrewName?.trim()) {
-    const crew = await prisma.crew.create({
+  for (const employee of cleanEmployees) {
+    const nameParts = employee.displayName.split(" ").filter(Boolean);
+    const firstName = nameParts[0] ?? employee.displayName;
+    const lastName = nameParts.slice(1).join(" ") || "Crew";
+    const isContractor = employee.workerType === "1099";
+    const hourlyRateCents = Math.round((employee.hourlyRate ?? 0) * 100);
+
+    await prisma.employee.create({
       data: {
-        name: initialCrewName.trim(),
+        firstName,
+        lastName,
+        displayName: employee.displayName,
+        workerType: isContractor ? "CONTRACTOR_1099" : "EMPLOYEE",
+        hourlyRateCents,
+        overtimeRateCents: nextPayType === "HOURLY" ? hourlyRateCents : null,
+        defaultCrewId: defaultCrew.id,
+        usesCompanyFederalDefault: !isContractor,
+        usesCompanyStateDefault: !isContractor,
+        federalWithholdingPercent: isContractor ? 0 : nextPayrollSettings.defaultFederalWithholdingValue,
+        stateWithholdingPercent: isContractor ? 0 : nextPayrollSettings.defaultStateWithholdingValue,
       },
     });
-
-    for (const employee of cleanEmployees) {
-      const nameParts = employee.displayName.split(" ").filter(Boolean);
-      const firstName = nameParts[0] ?? employee.displayName;
-      const lastName = nameParts.slice(1).join(" ") || "Crew";
-
-      await prisma.employee.create({
-        data: {
-          firstName,
-          lastName,
-          displayName: employee.displayName,
-          hourlyRateCents: Math.round((employee.hourlyRate ?? 0) * 100),
-          defaultCrewId: crew.id,
-          usesCompanyFederalDefault: true,
-          usesCompanyStateDefault: true,
-          federalWithholdingPercent: nextPayrollSettings.defaultFederalWithholdingValue,
-          stateWithholdingPercent: nextPayrollSettings.defaultStateWithholdingValue,
-        },
-      });
-    }
   }
+
+  const currentWeekStart = parseWeekStart(undefined);
+  await ensureWeekData(currentWeekStart);
 
   const affectedTimesheets = await prisma.timesheetWeek.findMany({
     where: {
@@ -894,12 +989,8 @@ app.post("/api/company-setup", authenticate, async (req: AuthenticatedRequest, r
     await recalculateTimesheet(timesheet.id);
   }
 
-  res.json({
-    companySettings: serializeCompanySettings(
-      { ...updatedCompany, payrollSettings: nextPayrollSettings },
-      finalRule,
-    ),
-  });
+  const payload = await buildBootstrap(req.auth!.userId, req.auth!.role, currentWeekStart);
+  res.json(payload);
 });
 
 app.patch("/api/company-settings", authenticate, async (req: AuthenticatedRequest, res) => {
@@ -1136,7 +1227,16 @@ app.patch("/api/timesheets/:timesheetId/days/:dayEntryId", authenticate, async (
   await recalculateTimesheet(timesheet.id);
   const refreshed = await getAuthorizedTimesheet(req, timesheet.id);
   const auditUsersById = new Map([[req.auth!.userId, user.fullName]]);
-  res.json({ timesheet: serializeTimesheet(refreshed!, req.auth!.role, auditUsersById) });
+  const refreshedYtdSummaries = await buildYtdSummaries([refreshed!], refreshed!.weekStartDate);
+  res.json({
+    timesheet: serializeTimesheet(
+      refreshed!,
+      req.auth!.role,
+      auditUsersById,
+      refreshedYtdSummaries.get(refreshed!.employeeId) ??
+        createEmptyYtdSummary(asWorkerType(refreshed!.employee.workerType), refreshed!.weekStartDate.getFullYear()),
+    ),
+  });
 });
 
 app.post("/api/crews/:crewId/defaults", authenticate, async (req: AuthenticatedRequest, res) => {
@@ -1297,7 +1397,16 @@ app.patch("/api/timesheets/:timesheetId/adjustment", authenticate, async (req: A
   const refreshed = await getAuthorizedTimesheet(req, timesheet.id);
   const currentUser = await getCurrentUserOrThrow(req.auth!.userId);
   const auditUsersById = new Map([[req.auth!.userId, currentUser.fullName]]);
-  res.json({ timesheet: serializeTimesheet(refreshed!, req.auth!.role, auditUsersById) });
+  const refreshedYtdSummaries = await buildYtdSummaries([refreshed!], refreshed!.weekStartDate);
+  res.json({
+    timesheet: serializeTimesheet(
+      refreshed!,
+      req.auth!.role,
+      auditUsersById,
+      refreshedYtdSummaries.get(refreshed!.employeeId) ??
+        createEmptyYtdSummary(asWorkerType(refreshed!.employee.workerType), refreshed!.weekStartDate.getFullYear()),
+    ),
+  });
 });
 
 app.patch("/api/timesheets/:timesheetId/status", authenticate, async (req: AuthenticatedRequest, res) => {
@@ -1447,7 +1556,16 @@ app.patch("/api/timesheets/:timesheetId/status", authenticate, async (req: Authe
 
   const refreshed = await getAuthorizedTimesheet(req, timesheet.id);
   const auditUsersById = new Map([[auth.userId, user.fullName]]);
-  res.json({ timesheet: serializeTimesheet(refreshed!, auth.role, auditUsersById) });
+  const refreshedYtdSummaries = await buildYtdSummaries([refreshed!], refreshed!.weekStartDate);
+  res.json({
+    timesheet: serializeTimesheet(
+      refreshed!,
+      auth.role,
+      auditUsersById,
+      refreshedYtdSummaries.get(refreshed!.employeeId) ??
+        createEmptyYtdSummary(asWorkerType(refreshed!.employee.workerType), refreshed!.weekStartDate.getFullYear()),
+    ),
+  });
 });
 
 function authorizeAdmin(req: AuthenticatedRequest, res: express.Response): boolean {
