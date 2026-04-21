@@ -9,6 +9,7 @@ export type UserRole = "ADMIN" | "FOREMAN" | "EMPLOYEE";
 export interface AuthTokenPayload {
   userId: string;
   role: UserRole;
+  companyId: string;
 }
 
 export interface AuthenticatedRequest extends Request {

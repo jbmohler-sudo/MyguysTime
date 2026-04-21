@@ -39,6 +39,23 @@ const UNSUPPORTED_STATE_MESSAGE =
 app.use(cors({ origin: true, credentials: false }));
 app.use(express.json());
 
+function asyncHandler<Req extends express.Request = express.Request>(
+  handler: (req: Req, res: express.Response, next: express.NextFunction) => Promise<unknown>,
+) {
+  return (req: Req, res: express.Response, next: express.NextFunction) => {
+    void handler(req, res, next).catch((error) => {
+      console.error(error);
+
+      if (res.headersSent) {
+        next(error);
+        return;
+      }
+
+      res.status(500).json({ error: "Internal Server Error" });
+    });
+  };
+}
+
 function canManageCrew(role: UserRole) {
   return role === "ADMIN" || role === "FOREMAN";
 }
@@ -112,9 +129,9 @@ function createEmptyYtdSummary(workerType: WorkerType, calendarYear: number) {
   };
 }
 
-async function getCompanySettingsOrThrow() {
-  return prisma.company.findFirstOrThrow({
-    orderBy: { createdAt: "asc" },
+async function getCompanySettingsOrThrow(companyId: string) {
+  return prisma.company.findUniqueOrThrow({
+    where: { id: companyId },
     include: {
       payrollSettings: true,
     },
@@ -127,8 +144,8 @@ async function getStateRuleOrThrow(stateCode: string) {
   });
 }
 
-async function getCompanyContextOrThrow() {
-  const company = await getCompanySettingsOrThrow();
+async function getCompanyContextOrThrow(companyId: string) {
+  const company = await getCompanySettingsOrThrow(companyId);
   const payrollSettings = company.payrollSettings;
   if (!payrollSettings) {
     throw new Error("Company payroll settings are missing.");
@@ -312,27 +329,40 @@ function canAdminOrForemanEditStatus(status: TimesheetStatus) {
   return status !== "OFFICE_LOCKED";
 }
 
-async function getAccessibleCrewIds(userId: string, role: UserRole): Promise<string[] | null> {
+async function getAccessibleCrewIds(userId: string, role: UserRole, companyId: string): Promise<string[] | null> {
   if (role === "ADMIN") {
     return null;
   }
 
   if (role === "FOREMAN") {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { employee: { include: { foremanForCrew: true } } },
+    const crews = await prisma.crew.findMany({
+      where: { companyId: companyId, foremanId: await getEmployeeIdForUser(userId) },
+      select: { id: true },
     });
 
-    return user?.employee?.foremanForCrew.map((crew) => crew.id) ?? [];
+    return crews.map((crew) => crew.id);
   }
 
   return [];
 }
 
-async function ensureWeekData(weekStart: Date) {
-  const { company, payrollSettings, stateRule } = await getCompanyContextOrThrow();
+async function getEmployeeIdForUser(userId: string): Promise<string | null> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { employeeId: true },
+  });
+
+  return user?.employeeId ?? null;
+}
+
+async function ensureWeekData(companyId: string, weekStart?: Date) {
+  // Allow weekStart to be optional with a default value
+  if (!weekStart) {
+    weekStart = parseWeekStart(undefined);
+  }
+  const { company, payrollSettings, stateRule } = await getCompanyContextOrThrow(companyId);
   const employees = await prisma.employee.findMany({
-    where: { employmentStatus: "ACTIVE" },
+    where: { companyId, employmentStatus: "ACTIVE" },
     include: {
       defaultCrew: true,
       timesheets: {
@@ -406,12 +436,12 @@ async function ensureWeekData(weekStart: Date) {
       },
     });
 
-    await recalculateTimesheet(timesheet.id);
+    await recalculateTimesheet(timesheet.id, companyId);
   }
 }
 
-async function recalculateTimesheet(timesheetId: string) {
-  const { company, payrollSettings, stateRule } = await getCompanyContextOrThrow();
+async function recalculateTimesheet(timesheetId: string, companyId: string) {
+  const { company, payrollSettings, stateRule } = await getCompanyContextOrThrow(companyId);
   const timesheet = await prisma.timesheetWeek.findUniqueOrThrow({
     where: { id: timesheetId },
     include: {
@@ -491,7 +521,7 @@ async function getAuthorizedTimesheet(req: AuthenticatedRequest, timesheetId: st
   }
 
   if (auth.role === "FOREMAN") {
-    const crewIds = await getAccessibleCrewIds(auth.userId, auth.role);
+    const crewIds = await getAccessibleCrewIds(auth.userId, auth.role, auth.companyId);
     if (crewIds?.includes(timesheet.crewId)) {
       return timesheet;
     }
@@ -623,11 +653,11 @@ async function buildYtdSummaries(
   return fallbackSummaries;
 }
 
-async function buildBootstrap(userId: string, role: UserRole, weekStart: Date) {
-  await ensureWeekData(weekStart);
+async function buildBootstrap(userId: string, role: UserRole, companyId: string, weekStart: Date) {
+  await ensureWeekData(companyId, weekStart);
   const user = await getCurrentUserOrThrow(userId);
-  const { company, stateRule } = await getCompanyContextOrThrow();
-  const accessibleCrewIds = await getAccessibleCrewIds(userId, role);
+  const { company, stateRule } = await getCompanyContextOrThrow(companyId);
+  const accessibleCrewIds = await getAccessibleCrewIds(userId, role, companyId);
   const stateRules = await prisma.statePayrollRule.findMany({
     where: { isActive: true },
     orderBy: { stateCode: "asc" },
@@ -635,14 +665,15 @@ async function buildBootstrap(userId: string, role: UserRole, weekStart: Date) {
 
   const crewWhere =
     role === "ADMIN"
-      ? {}
+      ? { companyId }
       : role === "FOREMAN"
-        ? { id: { in: accessibleCrewIds ?? [] } }
+        ? { companyId, id: { in: accessibleCrewIds ?? [] } }
         : user.employeeId
           ? {
+              companyId,
               OR: [{ foremanId: user.employeeId }, { assignments: { some: { employeeId: user.employeeId } } }],
             }
-          : { id: { in: [] as string[] } };
+          : { companyId, id: { in: [] as string[] } };
 
   const crews = await prisma.crew.findMany({
     where: crewWhere,
@@ -658,7 +689,7 @@ async function buildBootstrap(userId: string, role: UserRole, weekStart: Date) {
 
   const timesheetWhere =
     role === "ADMIN"
-      ? { weekStartDate: weekStart }
+      ? { weekStartDate: weekStart, employee: { companyId: companyId } }
       : role === "FOREMAN"
         ? { weekStartDate: weekStart, crewId: { in: accessibleCrewIds ?? [] } }
         : { weekStartDate: weekStart, employeeId: user.employeeId ?? "" };
@@ -679,6 +710,7 @@ async function buildBootstrap(userId: string, role: UserRole, weekStart: Date) {
   const privateReports =
     role === "ADMIN"
       ? await prisma.privateReport.findMany({
+          where: { employee: { companyId: companyId } },
           include: {
             employee: true,
             crew: true,
@@ -691,7 +723,7 @@ async function buildBootstrap(userId: string, role: UserRole, weekStart: Date) {
   const archivedEmployees =
     role === "ADMIN"
       ? await prisma.employee.findMany({
-          where: { employmentStatus: "ARCHIVED" },
+          where: { companyId, employmentStatus: "ARCHIVED" },
           include: { defaultCrew: true },
           orderBy: { displayName: "asc" },
         })
@@ -788,11 +820,11 @@ function resetStatusOnEdit(currentStatus: TimesheetStatus): Partial<{
   };
 }
 
-app.get("/api/health", async (_req, res) => {
+app.get("/api/health", asyncHandler(async (_req, res) => {
   res.json({ ok: true });
-});
+}));
 
-app.post("/api/debug/sentry-test", authenticate, async (req: AuthenticatedRequest, res) => {
+app.post("/api/debug/sentry-test", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   if (!authorizeAdmin(req, res)) {
     return;
   }
@@ -813,9 +845,9 @@ app.post("/api/debug/sentry-test", authenticate, async (req: AuthenticatedReques
 
   await Sentry.flush(2000);
   res.status(202).json({ ok: true, eventId: eventId ?? null });
-});
+}));
 
-app.post("/api/auth/login", async (req, res) => {
+app.post("/api/auth/login", asyncHandler(async (req, res) => {
   const { email, password } = req.body as { email?: string; password?: string };
 
   if (!email || !password) {
@@ -825,6 +857,7 @@ app.post("/api/auth/login", async (req, res) => {
 
   const user = await prisma.user.findUnique({
     where: { email: email.toLowerCase() },
+    include: { employee: true },
   });
 
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
@@ -832,18 +865,27 @@ app.post("/api/auth/login", async (req, res) => {
     return;
   }
 
-  const token = issueToken({ userId: user.id, role: asUserRole(user.role) });
-  res.json({ token });
-});
+  if (!user.employee) {
+    res.status(401).json({ error: "User does not have an employee record." });
+    return;
+  }
 
-app.get("/api/auth/me", authenticate, async (req: AuthenticatedRequest, res) => {
+  const token = issueToken({
+    userId: user.id,
+    role: asUserRole(user.role),
+    companyId: user.employee.companyId,
+  });
+  res.json({ token });
+}));
+
+app.get("/api/auth/me", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   const auth = req.auth!;
   const weekStart = parseWeekStart(typeof req.query.weekStart === "string" ? req.query.weekStart : undefined);
-  const payload = await buildBootstrap(auth.userId, auth.role, weekStart);
+  const payload = await buildBootstrap(auth.userId, auth.role, auth.companyId, weekStart);
   res.json(payload);
-});
+}));
 
-app.post("/api/company-setup", authenticate, async (req: AuthenticatedRequest, res) => {
+app.post("/api/company-setup", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   if (req.auth!.role !== "ADMIN") {
     res.status(403).json({ error: "Only admin can complete company setup." });
     return;
@@ -920,7 +962,7 @@ app.post("/api/company-setup", authenticate, async (req: AuthenticatedRequest, r
     return;
   }
 
-  const currentCompany = await getCompanySettingsOrThrow();
+  const currentCompany = await getCompanySettingsOrThrow(req.auth!.companyId);
   const updatedCompany = await prisma.company.update({
     where: { id: currentCompany.id },
     data: {
@@ -945,6 +987,7 @@ app.post("/api/company-setup", authenticate, async (req: AuthenticatedRequest, r
   const defaultCrew = await prisma.crew.create({
     data: {
       name: "Main Crew",
+      companyId: req.auth!.companyId,
     },
   });
 
@@ -957,6 +1000,7 @@ app.post("/api/company-setup", authenticate, async (req: AuthenticatedRequest, r
 
     await prisma.employee.create({
       data: {
+        companyId: req.auth!.companyId,
         firstName,
         lastName,
         displayName: employee.displayName,
@@ -973,10 +1017,11 @@ app.post("/api/company-setup", authenticate, async (req: AuthenticatedRequest, r
   }
 
   const currentWeekStart = parseWeekStart(undefined);
-  await ensureWeekData(currentWeekStart);
+  await ensureWeekData(req.auth!.companyId, currentWeekStart);
 
   const affectedTimesheets = await prisma.timesheetWeek.findMany({
     where: {
+      employee: { companyId: req.auth!.companyId },
       OR: [
         { employee: { usesCompanyFederalDefault: true } },
         { employee: { usesCompanyStateDefault: true } },
@@ -986,20 +1031,20 @@ app.post("/api/company-setup", authenticate, async (req: AuthenticatedRequest, r
   });
 
   for (const timesheet of affectedTimesheets) {
-    await recalculateTimesheet(timesheet.id);
+    await recalculateTimesheet(timesheet.id, req.auth!.companyId);
   }
 
-  const payload = await buildBootstrap(req.auth!.userId, req.auth!.role, currentWeekStart);
+  const payload = await buildBootstrap(req.auth!.userId, req.auth!.role, req.auth!.companyId, currentWeekStart);
   res.json(payload);
-});
+}));
 
-app.patch("/api/company-settings", authenticate, async (req: AuthenticatedRequest, res) => {
+app.patch("/api/company-settings", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   if (req.auth!.role !== "ADMIN") {
     res.status(403).json({ error: "Only admin can update company settings." });
     return;
   }
 
-  const { company: currentCompany, payrollSettings: currentSettings } = await getCompanyContextOrThrow();
+  const { company: currentCompany, payrollSettings: currentSettings } = await getCompanyContextOrThrow(req.auth!.companyId);
   const {
     companyName,
     companyState,
@@ -1129,6 +1174,7 @@ app.patch("/api/company-settings", authenticate, async (req: AuthenticatedReques
 
   const affectedTimesheets = await prisma.timesheetWeek.findMany({
     where: {
+      employee: { companyId: req.auth!.companyId },
       OR: [
         { employee: { usesCompanyFederalDefault: true } },
         { employee: { usesCompanyStateDefault: true } },
@@ -1138,7 +1184,7 @@ app.patch("/api/company-settings", authenticate, async (req: AuthenticatedReques
   });
 
   for (const timesheet of affectedTimesheets) {
-    await recalculateTimesheet(timesheet.id);
+    await recalculateTimesheet(timesheet.id, req.auth!.companyId);
   }
 
   res.json({
@@ -1147,9 +1193,9 @@ app.patch("/api/company-settings", authenticate, async (req: AuthenticatedReques
       nextStateRule,
     ),
   });
-});
+}));
 
-app.patch("/api/timesheets/:timesheetId/days/:dayEntryId", authenticate, async (req: AuthenticatedRequest, res) => {
+app.patch("/api/timesheets/:timesheetId/days/:dayEntryId", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   const timesheetId = getParam(req.params.timesheetId);
   const dayEntryId = getParam(req.params.dayEntryId);
   const timesheet = await getAuthorizedTimesheet(req, timesheetId);
@@ -1224,7 +1270,7 @@ app.patch("/api/timesheets/:timesheetId/days/:dayEntryId", authenticate, async (
     );
   }
 
-  await recalculateTimesheet(timesheet.id);
+  await recalculateTimesheet(timesheet.id, req.auth!.companyId);
   const refreshed = await getAuthorizedTimesheet(req, timesheet.id);
   const auditUsersById = new Map([[req.auth!.userId, user.fullName]]);
   const refreshedYtdSummaries = await buildYtdSummaries([refreshed!], refreshed!.weekStartDate);
@@ -1237,9 +1283,9 @@ app.patch("/api/timesheets/:timesheetId/days/:dayEntryId", authenticate, async (
         createEmptyYtdSummary(asWorkerType(refreshed!.employee.workerType), refreshed!.weekStartDate.getFullYear()),
     ),
   });
-});
+}));
 
-app.post("/api/crews/:crewId/defaults", authenticate, async (req: AuthenticatedRequest, res) => {
+app.post("/api/crews/:crewId/defaults", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   if (!canManageCrew(req.auth!.role)) {
     res.status(403).json({ error: "Only foremen and admin can apply crew defaults." });
     return;
@@ -1258,7 +1304,7 @@ app.post("/api/crews/:crewId/defaults", authenticate, async (req: AuthenticatedR
   }
 
   const weekDate = parseWeekStart(weekStart);
-  const accessibleCrewIds = await getAccessibleCrewIds(req.auth!.userId, req.auth!.role);
+  const accessibleCrewIds = await getAccessibleCrewIds(req.auth!.userId, req.auth!.role, req.auth!.companyId);
   const crewId = getParam(req.params.crewId);
   if (req.auth!.role === "FOREMAN" && !accessibleCrewIds?.includes(crewId)) {
     res.status(403).json({ error: "You cannot manage this crew." });
@@ -1328,14 +1374,14 @@ app.post("/api/crews/:crewId/defaults", authenticate, async (req: AuthenticatedR
       );
     }
 
-    await recalculateTimesheet(timesheet.id);
+    await recalculateTimesheet(timesheet.id, req.auth!.companyId);
   }
 
-  const payload = await buildBootstrap(req.auth!.userId, req.auth!.role, weekDate);
+  const payload = await buildBootstrap(req.auth!.userId, req.auth!.role, req.auth!.companyId, weekDate);
   res.json(payload);
-});
+}));
 
-app.patch("/api/timesheets/:timesheetId/adjustment", authenticate, async (req: AuthenticatedRequest, res) => {
+app.patch("/api/timesheets/:timesheetId/adjustment", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   if (req.auth!.role !== "ADMIN") {
     res.status(403).json({ error: "Only office/admin can edit weekly adjustments." });
     return;
@@ -1393,7 +1439,7 @@ app.patch("/api/timesheets/:timesheetId/adjustment", authenticate, async (req: A
     );
   }
 
-  await recalculateTimesheet(timesheet.id);
+  await recalculateTimesheet(timesheet.id, req.auth!.companyId);
   const refreshed = await getAuthorizedTimesheet(req, timesheet.id);
   const currentUser = await getCurrentUserOrThrow(req.auth!.userId);
   const auditUsersById = new Map([[req.auth!.userId, currentUser.fullName]]);
@@ -1407,9 +1453,9 @@ app.patch("/api/timesheets/:timesheetId/adjustment", authenticate, async (req: A
         createEmptyYtdSummary(asWorkerType(refreshed!.employee.workerType), refreshed!.weekStartDate.getFullYear()),
     ),
   });
-});
+}));
 
-app.patch("/api/timesheets/:timesheetId/status", authenticate, async (req: AuthenticatedRequest, res) => {
+app.patch("/api/timesheets/:timesheetId/status", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   const timesheetId = getParam(req.params.timesheetId);
   const timesheet = await getAuthorizedTimesheet(req, timesheetId);
   if (!timesheet) {
@@ -1451,7 +1497,7 @@ app.patch("/api/timesheets/:timesheetId/status", authenticate, async (req: Authe
       return;
     }
     if (auth.role === "FOREMAN") {
-      const crewIds = await getAccessibleCrewIds(auth.userId, auth.role);
+      const crewIds = await getAccessibleCrewIds(auth.userId, auth.role, auth.companyId);
       if (!crewIds?.includes(timesheet.crewId)) {
         res.status(403).json({ error: "Foremen can only flag assigned crew weeks for revision." });
         return;
@@ -1484,7 +1530,7 @@ app.patch("/api/timesheets/:timesheetId/status", authenticate, async (req: Authe
       return;
     }
     if (auth.role === "FOREMAN") {
-      const crewIds = await getAccessibleCrewIds(auth.userId, auth.role);
+      const crewIds = await getAccessibleCrewIds(auth.userId, auth.role, auth.companyId);
       if (!crewIds?.includes(timesheet.crewId)) {
         res.status(403).json({ error: "Foremen can only approve assigned crew weeks." });
         return;
@@ -1566,7 +1612,7 @@ app.patch("/api/timesheets/:timesheetId/status", authenticate, async (req: Authe
         createEmptyYtdSummary(asWorkerType(refreshed!.employee.workerType), refreshed!.weekStartDate.getFullYear()),
     ),
   });
-});
+}));
 
 function authorizeAdmin(req: AuthenticatedRequest, res: express.Response): boolean {
   if (req.auth?.role !== "ADMIN") {
@@ -1576,7 +1622,7 @@ function authorizeAdmin(req: AuthenticatedRequest, res: express.Response): boole
   return true;
 }
 
-app.post("/api/private-reports", authenticate, async (req: AuthenticatedRequest, res) => {
+app.post("/api/private-reports", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   if (!["FOREMAN", "ADMIN"].includes(req.auth!.role)) {
     res.status(403).json({ error: "Only foremen and admin can submit private reports." });
     return;
@@ -1598,7 +1644,7 @@ app.post("/api/private-reports", authenticate, async (req: AuthenticatedRequest,
   }
 
   if (req.auth!.role === "FOREMAN") {
-    const crewIds = await getAccessibleCrewIds(req.auth!.userId, req.auth!.role);
+    const crewIds = await getAccessibleCrewIds(req.auth!.userId, req.auth!.role, req.auth!.companyId);
     if (!crewIds?.includes(crewId)) {
       res.status(403).json({ error: "You cannot submit reports for this crew." });
       return;
@@ -1619,7 +1665,7 @@ app.post("/api/private-reports", authenticate, async (req: AuthenticatedRequest,
   });
 
   res.status(201).json({ ok: true });
-});
+}));
 
 function createCsvRow(values: Array<string | number>) {
   return values.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",");
@@ -1647,13 +1693,13 @@ async function markLockedWeeksExported(weekStart: Date, exportedByUserId: string
   });
 }
 
-app.get("/api/exports/payroll-summary.csv", authenticate, async (req: AuthenticatedRequest, res) => {
+app.get("/api/exports/payroll-summary.csv", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   if (!authorizeAdmin(req, res)) {
     return;
   }
 
   const weekStart = parseWeekStart(typeof req.query.weekStart === "string" ? req.query.weekStart : undefined);
-  const payload = await buildBootstrap(req.auth!.userId, req.auth!.role, weekStart);
+  const payload = await buildBootstrap(req.auth!.userId, req.auth!.role, req.auth!.companyId, weekStart);
   await markLockedWeeksExported(weekStart, req.auth!.userId);
   const rows = [
     createCsvRow([
@@ -1691,15 +1737,15 @@ app.get("/api/exports/payroll-summary.csv", authenticate, async (req: Authentica
   res.setHeader("Content-Type", "text/csv; charset=utf-8");
   res.setHeader("Content-Disposition", `attachment; filename="payroll-summary-${payload.weekStart}.csv"`);
   res.send(rows.join("\n"));
-});
+}));
 
-app.get("/api/exports/time-detail.csv", authenticate, async (req: AuthenticatedRequest, res) => {
+app.get("/api/exports/time-detail.csv", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   if (!authorizeAdmin(req, res)) {
     return;
   }
 
   const weekStart = parseWeekStart(typeof req.query.weekStart === "string" ? req.query.weekStart : undefined);
-  const payload = await buildBootstrap(req.auth!.userId, req.auth!.role, weekStart);
+  const payload = await buildBootstrap(req.auth!.userId, req.auth!.role, req.auth!.companyId, weekStart);
   await markLockedWeeksExported(weekStart, req.auth!.userId);
   const rows = [
     createCsvRow(["Employee", "Crew", "Date", "Start", "End", "Lunch Minutes", "Hours", "Job Tag", "Daily Confirmed"]),
@@ -1726,15 +1772,15 @@ app.get("/api/exports/time-detail.csv", authenticate, async (req: AuthenticatedR
   res.setHeader("Content-Type", "text/csv; charset=utf-8");
   res.setHeader("Content-Disposition", `attachment; filename="time-detail-${payload.weekStart}.csv"`);
   res.send(rows.join("\n"));
-});
+}));
 
-app.get("/api/exports/weekly-summary", authenticate, async (req: AuthenticatedRequest, res) => {
+app.get("/api/exports/weekly-summary", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   if (!authorizeAdmin(req, res)) {
     return;
   }
 
   const weekStart = parseWeekStart(typeof req.query.weekStart === "string" ? req.query.weekStart : undefined);
-  const payload = await buildBootstrap(req.auth!.userId, req.auth!.role, weekStart);
+  const payload = await buildBootstrap(req.auth!.userId, req.auth!.role, req.auth!.companyId, weekStart);
   await markLockedWeeksExported(weekStart, req.auth!.userId);
   const payrollReminder = payload.companySettings?.payrollReminder ?? EXPORT_REMINDER;
   const cards = payload.employeeWeeks
@@ -1833,7 +1879,7 @@ app.get("/api/exports/weekly-summary", authenticate, async (req: AuthenticatedRe
         ${cards}
       </body>
     </html>`);
-});
+}));
 
 if (sentryEnabled) {
   Sentry.setupExpressErrorHandler(app);
