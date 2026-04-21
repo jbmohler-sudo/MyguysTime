@@ -214,15 +214,16 @@ export async function seedDatabase() {
     });
 
     const masonryCrew = await prisma.crew.create({
-      data: { name: "Masonry Crew" },
+      data: { name: "Masonry Crew", companyId: company.id },
     });
 
     const roofingCrew = await prisma.crew.create({
-      data: { name: "Roofing Crew" },
+      data: { name: "Roofing Crew", companyId: company.id },
     });
 
     const luis = await prisma.employee.create({
       data: {
+        companyId: company.id,
         firstName: "Luis",
         lastName: "Ortega",
         displayName: "Luis Ortega",
@@ -237,6 +238,7 @@ export async function seedDatabase() {
 
     const marco = await prisma.employee.create({
       data: {
+        companyId: company.id,
         firstName: "Marco",
         lastName: "Diaz",
         displayName: "Marco Diaz",
@@ -251,6 +253,7 @@ export async function seedDatabase() {
 
     const troy = await prisma.employee.create({
       data: {
+        companyId: company.id,
         firstName: "Troy",
         lastName: "Bennett",
         displayName: "Troy Bennett",
@@ -265,6 +268,7 @@ export async function seedDatabase() {
 
     const evan = await prisma.employee.create({
       data: {
+        companyId: company.id,
         firstName: "Evan",
         lastName: "Brooks",
         displayName: "Evan Brooks",
