@@ -1,0 +1,181 @@
+import type { BootstrapPayload, CompanySettingsSummary, PrivateReportInput, TimesheetStatus } from "../domain/models";
+
+export const API_BASE = "http://localhost:3001/api";
+
+async function request<T>(path: string, options: RequestInit = {}, token?: string | null): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(payload?.error ?? "Request failed.");
+  }
+
+  return response.json() as Promise<T>;
+}
+
+export async function login(email: string, password: string) {
+  return request<{ token: string }>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export async function fetchBootstrap(token: string, weekStart?: string) {
+  const query = weekStart ? `?weekStart=${encodeURIComponent(weekStart)}` : "";
+  return request<BootstrapPayload>(`/auth/me${query}`, {}, token);
+}
+
+export async function updateDayEntry(
+  token: string,
+  timesheetId: string,
+  dayEntryId: string,
+  payload: Record<string, unknown>,
+) {
+  return request<{ timesheet: BootstrapPayload["employeeWeeks"][number] }>(
+    `/timesheets/${timesheetId}/days/${dayEntryId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export async function applyCrewDefaults(
+  token: string,
+  crewId: string,
+  payload: { weekStart: string; dayIndex: number; start: string; end: string },
+) {
+  return request<BootstrapPayload>(
+    `/crews/${crewId}/defaults`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export async function updateTimesheetStatus(
+  token: string,
+  timesheetId: string,
+  status: TimesheetStatus,
+  extra?: { note?: string; reopenTo?: TimesheetStatus },
+) {
+  return request<{ timesheet: BootstrapPayload["employeeWeeks"][number] }>(
+    `/timesheets/${timesheetId}/status`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ status, ...extra }),
+    },
+    token,
+  );
+}
+
+export async function updateAdjustment(
+  token: string,
+  timesheetId: string,
+  payload: {
+    gasReimbursement?: number;
+    pettyCashReimbursement?: number;
+    deductionAdvance?: number;
+    notes?: string;
+  },
+) {
+  return request<{ timesheet: BootstrapPayload["employeeWeeks"][number] }>(
+    `/timesheets/${timesheetId}/adjustment`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export async function submitPrivateReport(token: string, payload: PrivateReportInput) {
+  return request<{ ok: boolean }>(
+    "/private-reports",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export async function updateCompanySettings(
+  token: string,
+  payload: {
+    companyName?: string;
+    companyState?: string;
+    defaultFederalWithholdingMode?: string;
+    defaultFederalWithholdingValue?: number;
+    defaultStateWithholdingMode?: string;
+    defaultStateWithholdingValue?: number;
+    payrollPrepDisclaimer?: string;
+    pfmlEnabled?: boolean;
+    pfmlEmployeeRate?: number;
+  },
+) {
+  return request<{ companySettings: CompanySettingsSummary }>(
+    "/company-settings",
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export async function completeCompanySetup(
+  token: string,
+  payload: {
+    companyName: string;
+    companyState: string;
+    acknowledgementAccepted: boolean;
+    defaultFederalWithholdingMode?: string;
+    defaultFederalWithholdingValue?: number;
+    defaultStateWithholdingMode?: string;
+    defaultStateWithholdingValue?: number;
+    initialCrewName?: string;
+    initialEmployees?: Array<{ displayName: string; hourlyRate: number }>;
+  },
+) {
+  return request<{ companySettings: CompanySettingsSummary }>(
+    "/company-setup",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export async function downloadExport(token: string, path: string) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error("Export failed.");
+  }
+
+  return response;
+}
+
+export async function triggerBackendSentryVerification(token: string) {
+  return request<{ ok: boolean; eventId: string | null }>(
+    "/debug/sentry-test",
+    {
+      method: "POST",
+    },
+    token,
+  );
+}
