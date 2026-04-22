@@ -27,7 +27,11 @@ export async function seedDatabase() {
   const prisma = new PrismaClient();
 
   try {
-    await prisma.statePayrollRule.createMany({
+    // Check if state payroll rules already exist
+    const existingRules = await prisma.statePayrollRule.count();
+
+    if (existingRules === 0) {
+      await prisma.statePayrollRule.createMany({
       data: [
         {
           stateCode: "AK",
@@ -179,39 +183,54 @@ export async function seedDatabase() {
           sourceUrl: "https://www.ftb.ca.gov/",
         },
       ],
+      });
+    }
+
+    // Find or create the test company
+    let company = await prisma.company.findFirst({
+      where: { companyName: "Crew Time Masonry & Roofing" },
     });
 
-    const company = await prisma.company.create({
-      data: {
-        companyName: "Crew Time Masonry & Roofing",
-        ownerName: "Dana Office",
-        stateCode: "MA",
-      },
-    });
+    if (!company) {
+      company = await prisma.company.create({
+        data: {
+          companyName: "Crew Time Masonry & Roofing",
+          ownerName: "Dana Office",
+          stateCode: "MA",
+        },
+      });
+    }
 
     const companyRule = await prisma.statePayrollRule.findUniqueOrThrow({
       where: { stateCode: company.stateCode },
     });
 
-    await prisma.companyPayrollSettings.create({
-      data: {
-        companyId: company.id,
-        defaultFederalWithholdingMode: "PERCENTAGE",
-        defaultFederalWithholdingValue: 0.1,
-        defaultStateWithholdingMode: companyRule.defaultStateWithholdingMode,
-        defaultStateWithholdingValue: companyRule.defaultStateWithholdingValue,
-        timeTrackingStyle: "FOREMAN",
-        defaultLunchMinutes: 30,
-        payType: "HOURLY_OVERTIME",
-        trackExpenses: true,
-        payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
-        pfmlEnabled: companyRule.defaultPfmlEnabled,
-        pfmlEmployeeRate: companyRule.defaultPfmlEmployeeRate,
-        extraWithholdingLabel: companyRule.extraWithholdingTypes === "PFML" ? "PFML" : "Manual state withholding",
-        extraWithholdingRate: companyRule.extraWithholdingTypes === "PFML" ? companyRule.defaultPfmlEmployeeRate : null,
-        supportLevelSnapshot: companyRule.supportLevel,
-      },
+    // Check if payroll settings already exist for this company
+    const existingSettings = await prisma.companyPayrollSettings.findUnique({
+      where: { companyId: company.id },
     });
+
+    if (!existingSettings) {
+      await prisma.companyPayrollSettings.create({
+        data: {
+          companyId: company.id,
+          defaultFederalWithholdingMode: "PERCENTAGE",
+          defaultFederalWithholdingValue: 0.1,
+          defaultStateWithholdingMode: companyRule.defaultStateWithholdingMode,
+          defaultStateWithholdingValue: companyRule.defaultStateWithholdingValue,
+          timeTrackingStyle: "FOREMAN",
+          defaultLunchMinutes: 30,
+          payType: "HOURLY_OVERTIME",
+          trackExpenses: true,
+          payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
+          pfmlEnabled: companyRule.defaultPfmlEnabled,
+          pfmlEmployeeRate: companyRule.defaultPfmlEmployeeRate,
+          extraWithholdingLabel: companyRule.extraWithholdingTypes === "PFML" ? "PFML" : "Manual state withholding",
+          extraWithholdingRate: companyRule.extraWithholdingTypes === "PFML" ? companyRule.defaultPfmlEmployeeRate : null,
+          supportLevelSnapshot: companyRule.supportLevel,
+        },
+      });
+    }
 
     const masonryCrew = await prisma.crew.create({
       data: { name: "Masonry Crew", companyId: company.id },
