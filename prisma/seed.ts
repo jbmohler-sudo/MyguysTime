@@ -309,6 +309,25 @@ export async function seedDatabase() {
       });
     }
 
+    // Create admin employee record if it doesn't exist
+    let adminEmployee = await prisma.employee.findFirst({
+      where: { displayName: "Dana Office", companyId: company.id },
+    });
+
+    if (!adminEmployee) {
+      adminEmployee = await prisma.employee.create({
+        data: {
+          companyId: company.id,
+          firstName: "Dana",
+          lastName: "Office",
+          displayName: "Dana Office",
+          hourlyRateCents: 0, // Office admin, no hourly rate
+          usesCompanyFederalDefault: true,
+          usesCompanyStateDefault: true,
+        },
+      });
+    }
+
     // Find or create admin user
     let adminUser = await prisma.user.findUnique({
       where: { email: "admin@crewtime.local" },
@@ -321,6 +340,7 @@ export async function seedDatabase() {
           fullName: "Dana Office",
           passwordHash: await hashPassword("admin123"),
           role: "ADMIN",
+          employeeId: adminEmployee.id,
         },
       });
     }
