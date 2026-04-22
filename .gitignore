@@ -6,3 +6,4 @@ dist-server
 *.tsbuildinfo
 .tmp-*.log
 prisma/migration_lock.toml
+prisma/migrations/
