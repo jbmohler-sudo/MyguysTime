@@ -525,12 +525,171 @@ export async function seedDatabase() {
       ],
     });
 
+    // ===== CREATE SECOND TEST COMPANY: ApexRoofing, Inc =====
+    let apexCompany = await prisma.company.findFirst({
+      where: { companyName: "ApexRoofing, Inc" },
+    });
+
+    if (!apexCompany) {
+      apexCompany = await prisma.company.create({
+        data: {
+          companyName: "ApexRoofing, Inc",
+          ownerName: "Jake Martinez",
+          stateCode: "TX",
+        },
+      });
+
+      const apexRule = await prisma.statePayrollRule.findUniqueOrThrow({
+        where: { stateCode: apexCompany.stateCode },
+      });
+
+      await prisma.companyPayrollSettings.create({
+        data: {
+          companyId: apexCompany.id,
+          defaultFederalWithholdingMode: "PERCENTAGE",
+          defaultFederalWithholdingValue: 0.1,
+          defaultStateWithholdingMode: apexRule.defaultStateWithholdingMode,
+          defaultStateWithholdingValue: apexRule.defaultStateWithholdingValue,
+          timeTrackingStyle: "FOREMAN",
+          defaultLunchMinutes: 30,
+          payType: "HOURLY_OVERTIME",
+          trackExpenses: true,
+          payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
+          pfmlEnabled: apexRule.defaultPfmlEnabled,
+          pfmlEmployeeRate: apexRule.defaultPfmlEmployeeRate,
+          extraWithholdingLabel: apexRule.extraWithholdingTypes === "PFML" ? "PFML" : "Manual state withholding",
+          extraWithholdingRate: apexRule.extraWithholdingTypes === "PFML" ? apexRule.defaultPfmlEmployeeRate : null,
+          supportLevelSnapshot: apexRule.supportLevel,
+        },
+      });
+
+      // Create ApexRoofing crews
+      const apexRoofingCrew = await prisma.crew.create({
+        data: { name: "Residential Roofing", companyId: apexCompany.id },
+      });
+
+      const apexCommercialCrew = await prisma.crew.create({
+        data: { name: "Commercial Roofing", companyId: apexCompany.id },
+      });
+
+      // Create ApexRoofing employees
+      const jakeEmployee = await prisma.employee.create({
+        data: {
+          companyId: apexCompany.id,
+          firstName: "Jake",
+          lastName: "Martinez",
+          displayName: "Jake Martinez",
+          hourlyRateCents: 4500,
+          defaultCrewId: apexRoofingCrew.id,
+          usesCompanyFederalDefault: false,
+          usesCompanyStateDefault: false,
+          federalWithholdingPercent: 0.12,
+          stateWithholdingPercent: 0,
+        },
+      });
+
+      const sarahEmployee = await prisma.employee.create({
+        data: {
+          companyId: apexCompany.id,
+          firstName: "Sarah",
+          lastName: "Chen",
+          displayName: "Sarah Chen",
+          hourlyRateCents: 3800,
+          defaultCrewId: apexCommercialCrew.id,
+          usesCompanyFederalDefault: true,
+          usesCompanyStateDefault: true,
+        },
+      });
+
+      const mikeEmployee = await prisma.employee.create({
+        data: {
+          companyId: apexCompany.id,
+          firstName: "Mike",
+          lastName: "Johnson",
+          displayName: "Mike Johnson",
+          hourlyRateCents: 3200,
+          defaultCrewId: apexRoofingCrew.id,
+          usesCompanyFederalDefault: true,
+          usesCompanyStateDefault: true,
+        },
+      });
+
+      // Set foreman and create crew assignments
+      await prisma.crew.update({
+        where: { id: apexRoofingCrew.id },
+        data: { foremanId: jakeEmployee.id },
+      });
+
+      await prisma.crewAssignment.createMany({
+        data: [
+          { crewId: apexRoofingCrew.id, employeeId: jakeEmployee.id, startsOn: new Date("2026-01-01T00:00:00") },
+          { crewId: apexRoofingCrew.id, employeeId: mikeEmployee.id, startsOn: new Date("2026-02-01T00:00:00") },
+          { crewId: apexCommercialCrew.id, employeeId: sarahEmployee.id, startsOn: new Date("2026-01-15T00:00:00") },
+        ],
+      });
+
+      // Create ApexRoofing admin and foreman users
+      const apexAdminEmployee = await prisma.employee.create({
+        data: {
+          companyId: apexCompany.id,
+          firstName: "Jake",
+          lastName: "Martinez (Admin)",
+          displayName: "Jake Martinez (Admin)",
+          hourlyRateCents: 0,
+          usesCompanyFederalDefault: true,
+          usesCompanyStateDefault: true,
+        },
+      });
+
+      await prisma.user.create({
+        data: {
+          email: "admin@apexroofing.local",
+          fullName: "Jake Martinez",
+          passwordHash: await hashPassword("apex_admin123"),
+          role: "ADMIN",
+          employeeId: apexAdminEmployee.id,
+        },
+      });
+
+      await prisma.user.create({
+        data: {
+          email: "jake@apexroofing.local",
+          fullName: "Jake Martinez",
+          passwordHash: await hashPassword("apex_foreman123"),
+          role: "FOREMAN",
+          employeeId: jakeEmployee.id,
+        },
+      });
+
+      await prisma.user.create({
+        data: {
+          email: "sarah@apexroofing.local",
+          fullName: "Sarah Chen",
+          passwordHash: await hashPassword("apex_employee123"),
+          role: "EMPLOYEE",
+          employeeId: sarahEmployee.id,
+        },
+      });
+
+      await prisma.company.update({
+        where: { id: apexCompany.id },
+        data: {
+          onboardingCompletedAt: new Date("2026-04-20T09:00:00"),
+          onboardingCompletedByUserId: apexAdminEmployee.id,
+          payrollDisclaimerAcceptedAt: new Date("2026-04-20T09:00:00"),
+          payrollDisclaimerAcceptedByUserId: apexAdminEmployee.id,
+          payrollDisclaimerVersion: PAYROLL_DISCLAIMER_VERSION,
+        },
+      });
+    }
+
     return {
       adminUser,
       foremanUser,
       employeeUser,
       archivedEmployee: evan,
       companyId: company.id,
+      apexCompanyId: apexCompany.id,
     };
   } finally {
     await prisma.$disconnect();
@@ -540,11 +699,16 @@ export async function seedDatabase() {
 async function main() {
   const result = await seedDatabase();
   console.log("Seed complete.");
+  console.log("\n=== COMPANY 1: Crew Time Masonry & Roofing (MA) ===");
   console.log("Admin login: admin@crewtime.local / admin123");
   console.log("Foreman login: luis@crewtime.local / foreman123");
   console.log("Employee login: marco@crewtime.local / employee123");
-  console.log(`Created company id: ${result.companyId}`);
-  console.log(`Created extra user ids: ${result.employeeUser.id}, ${result.archivedEmployee.id}`);
+  console.log(`Company ID: ${result.companyId}`);
+  console.log("\n=== COMPANY 2: ApexRoofing, Inc (TX) ===");
+  console.log("Admin login: admin@apexroofing.local / apex_admin123");
+  console.log("Foreman login: jake@apexroofing.local / apex_foreman123");
+  console.log("Employee login: sarah@apexroofing.local / apex_employee123");
+  console.log(`Company ID: ${result.apexCompanyId}`);
 }
 
 const entryUrl = process.argv[1] ? pathToFileURL(process.argv[1]).href : "";
