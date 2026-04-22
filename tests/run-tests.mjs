@@ -27,12 +27,22 @@ async function bootApp() {
     return (await response.json()).token;
   }
 
+  async function signup(fullName, companyName, email, password) {
+    const response = await api("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fullName, companyName, email, password }),
+    });
+    assert.equal(response.status, 201);
+    return (await response.json()).token;
+  }
+
   async function shutdown() {
     await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve(undefined))));
     await prisma.$disconnect();
   }
 
-  return { api, login, shutdown };
+  return { api, login, signup, shutdown };
 }
 
 async function runCase(name, fn) {
@@ -109,6 +119,411 @@ await runCase("admin bootstrap includes YTD reporting totals", async () => {
     assert.equal(firstWeek.ytdSummary.calendarYear, 2026);
     assert.ok(firstWeek.ytdSummary.grossPayments >= firstWeek.payrollEstimate.grossPay);
     assert.ok(firstWeek.ytdSummary.netEstimate >= firstWeek.payrollEstimate.netCheckEstimate);
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("new admin signup returns a valid bootstrap with setup incomplete", async () => {
+  const app = await bootApp();
+  try {
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const token = await app.signup(
+      "Rosa Field",
+      "Rosa Demo Contracting",
+      `rosa+${uniqueSuffix}@crewtime.local`,
+      "signup123",
+    );
+    const response = await app.api(`/api/auth/me?weekStart=${WEEK_START}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const payload = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.equal(payload.viewer.role, "admin");
+    assert.equal(payload.companySettings.companyName, "Rosa Demo Contracting");
+    assert.equal(payload.companySettings.ownerName, "Rosa Field");
+    assert.equal(payload.companySettings.setupComplete, false);
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("new admin can complete onboarding after signup", async () => {
+  const app = await bootApp();
+  try {
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const token = await app.signup(
+      "Noah Builder",
+      "Noah Demo Builders",
+      `noah+${uniqueSuffix}@crewtime.local`,
+      "signup123",
+    );
+
+    const setupResponse = await app.api("/api/company-setup", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        companyName: "Noah Demo Builders",
+        ownerName: "Noah Builder",
+        employees: [{ displayName: "Crew One", hourlyRate: 28, workerType: "w2" }],
+        timeTrackingStyle: "foreman",
+        lunchDeductionMinutes: 30,
+        payType: "hourly_overtime",
+        trackExpenses: true,
+      }),
+    });
+    const setupPayload = await setupResponse.json();
+
+    assert.equal(setupResponse.status, 200);
+    assert.equal(setupPayload.companySettings.setupComplete, true);
+    assert.equal(setupPayload.employeeWeeks.length, 1);
+    assert.equal(setupPayload.employeeWeeks[0].employeeName, "Crew One");
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("admin can list active employees for own company", async () => {
+  const app = await bootApp();
+  try {
+    const token = await app.login("admin@crewtime.local", "admin123");
+    const response = await app.api("/api/employees", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const payload = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.ok(payload.employees.length >= 3);
+    assert.ok(payload.employees.every((employee) => employee.active === true));
+    assert.ok(payload.employees.some((employee) => employee.displayName === "Luis Ortega"));
+    assert.ok(payload.employees.every((employee) => employee.displayName !== "Jake Martinez"));
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("foreman and employee cannot access employee management endpoints", async () => {
+  const app = await bootApp();
+  try {
+    const foremanToken = await app.login("luis@crewtime.local", "foreman123");
+    const employeeToken = await app.login("marco@crewtime.local", "employee123");
+
+    const foremanResponse = await app.api("/api/employees", {
+      headers: { Authorization: `Bearer ${foremanToken}` },
+    });
+    const employeeResponse = await app.api("/api/employees", {
+      headers: { Authorization: `Bearer ${employeeToken}` },
+    });
+
+    assert.equal(foremanResponse.status, 403);
+    assert.equal(employeeResponse.status, 403);
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("admin can add employee without creating a user login", async () => {
+  const app = await bootApp();
+  try {
+    const token = await app.login("admin@crewtime.local", "admin123");
+    const response = await app.api("/api/employees", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        firstName: "Pedro",
+        lastName: "Stone",
+        displayName: "Pedro Stone",
+        workerType: "employee",
+        hourlyRate: 26.5,
+        defaultCrewId: null,
+        active: true,
+      }),
+    });
+    const payload = await response.json();
+
+    assert.equal(response.status, 201);
+    assert.equal(payload.employee.displayName, "Pedro Stone");
+    assert.equal(payload.employee.hasLoginAccess, false);
+    assert.equal(payload.employee.active, true);
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("admin can edit employee details", async () => {
+  const app = await bootApp();
+  try {
+    const token = await app.login("admin@crewtime.local", "admin123");
+    const listResponse = await app.api("/api/employees", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const listPayload = await listResponse.json();
+    const employee = listPayload.employees.find((entry) => entry.displayName === "Troy Bennett");
+
+    const updateResponse = await app.api(`/api/employees/${employee.id}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        firstName: "Troy",
+        lastName: "Bennett",
+        displayName: "Troy Bennett Sr.",
+        workerType: "contractor_1099",
+        hourlyRate: 33,
+        defaultCrewId: employee.defaultCrewId,
+        active: true,
+      }),
+    });
+    const updatePayload = await updateResponse.json();
+
+    assert.equal(updateResponse.status, 200);
+    assert.equal(updatePayload.employee.displayName, "Troy Bennett Sr.");
+    assert.equal(updatePayload.employee.workerType, "contractor_1099");
+    assert.equal(updatePayload.employee.hourlyRate, 33);
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("admin cannot edit employee records from another company", async () => {
+  const app = await bootApp();
+  try {
+    const crewTimeAdminToken = await app.login("admin@crewtime.local", "admin123");
+    const apexAdminToken = await app.login("admin@apexroofing.local", "apex_admin123");
+    const apexListResponse = await app.api("/api/employees", {
+      headers: { Authorization: `Bearer ${apexAdminToken}` },
+    });
+    const apexListPayload = await apexListResponse.json();
+    const apexEmployee = apexListPayload.employees[0];
+
+    const crossCompanyResponse = await app.api(`/api/employees/${apexEmployee.id}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${crewTimeAdminToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        firstName: apexEmployee.firstName,
+        lastName: apexEmployee.lastName,
+        displayName: apexEmployee.displayName,
+        workerType: apexEmployee.workerType,
+        hourlyRate: apexEmployee.hourlyRate,
+        defaultCrewId: apexEmployee.defaultCrewId,
+        active: true,
+      }),
+    });
+
+    assert.equal(crossCompanyResponse.status, 404);
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("admin can create and list invite for employee in same company", async () => {
+  const app = await bootApp();
+  try {
+    const token = await app.login("admin@crewtime.local", "admin123");
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const employeeCreateResponse = await app.api("/api/employees", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        firstName: "Invite",
+        lastName: "List",
+        displayName: "Invite List",
+        workerType: "employee",
+        hourlyRate: 27,
+        defaultCrewId: null,
+        active: true,
+      }),
+    });
+    const employeeCreatePayload = await employeeCreateResponse.json();
+    const employee = employeeCreatePayload.employee;
+    const inviteEmail = `invite-list-${uniqueSuffix}@crewtime.local`;
+
+    const inviteResponse = await app.api("/api/company/invites", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        employeeId: employee.id,
+        email: inviteEmail,
+        role: "employee",
+      }),
+    });
+    const invitePayload = await inviteResponse.json();
+
+    assert.equal(inviteResponse.status, 201);
+    assert.equal(invitePayload.invite.employeeId, employee.id);
+    assert.equal(invitePayload.invite.email, inviteEmail);
+    assert.equal(invitePayload.invite.status, "pending");
+    assert.match(invitePayload.inviteUrl, /\?invite=/);
+
+    const listResponse = await app.api("/api/company/invites", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const listPayload = await listResponse.json();
+
+    assert.equal(listResponse.status, 200);
+    assert.ok(listPayload.invites.some((invite) => invite.email === inviteEmail));
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("cross-company employee invite by guessed id is blocked", async () => {
+  const app = await bootApp();
+  try {
+    const crewTimeAdminToken = await app.login("admin@crewtime.local", "admin123");
+    const apexAdminToken = await app.login("admin@apexroofing.local", "apex_admin123");
+    const apexEmployeesResponse = await app.api("/api/employees", {
+      headers: { Authorization: `Bearer ${apexAdminToken}` },
+    });
+    const apexEmployeesPayload = await apexEmployeesResponse.json();
+    const apexEmployee = apexEmployeesPayload.employees[0];
+
+    const inviteResponse = await app.api("/api/company/invites", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${crewTimeAdminToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        employeeId: apexEmployee.id,
+        email: "wrong-company@crewtime.local",
+        role: "employee",
+      }),
+    });
+
+    assert.equal(inviteResponse.status, 404);
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("foreman and employee cannot create or list invites", async () => {
+  const app = await bootApp();
+  try {
+    const foremanToken = await app.login("luis@crewtime.local", "foreman123");
+    const employeeToken = await app.login("marco@crewtime.local", "employee123");
+
+    const foremanList = await app.api("/api/company/invites", {
+      headers: { Authorization: `Bearer ${foremanToken}` },
+    });
+    const employeeList = await app.api("/api/company/invites", {
+      headers: { Authorization: `Bearer ${employeeToken}` },
+    });
+    const foremanCreate = await app.api("/api/company/invites", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${foremanToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: "blocked@crewtime.local",
+        role: "employee",
+      }),
+    });
+
+    assert.equal(foremanList.status, 403);
+    assert.equal(employeeList.status, 403);
+    assert.equal(foremanCreate.status, 403);
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("accepting invite creates linked login and bootstrap works", async () => {
+  const app = await bootApp();
+  try {
+    const adminToken = await app.login("admin@crewtime.local", "admin123");
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const employeeCreateResponse = await app.api("/api/employees", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        firstName: "Invite",
+        lastName: "Target",
+        displayName: "Invite Target",
+        workerType: "employee",
+        hourlyRate: 29,
+        defaultCrewId: null,
+        active: true,
+      }),
+    });
+    const employeeCreatePayload = await employeeCreateResponse.json();
+    const employee = employeeCreatePayload.employee;
+    const inviteEmail = `invite-accepted-${uniqueSuffix}@crewtime.local`;
+
+    const inviteResponse = await app.api("/api/company/invites", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        employeeId: employee.id,
+        email: inviteEmail,
+        role: "employee",
+      }),
+    });
+    const invitePayload = await inviteResponse.json();
+    assert.equal(inviteResponse.status, 201);
+    const inviteToken = new URL(invitePayload.inviteUrl).searchParams.get("invite");
+
+    const acceptResponse = await app.api("/api/auth/accept-invite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token: inviteToken,
+        password: "invitepass123",
+      }),
+    });
+    const acceptPayload = await acceptResponse.json();
+
+    assert.equal(acceptResponse.status, 200);
+    assert.ok(acceptPayload.token);
+
+    const bootstrapResponse = await app.api(`/api/auth/me?weekStart=${WEEK_START}`, {
+      headers: { Authorization: `Bearer ${acceptPayload.token}` },
+    });
+    const bootstrapPayload = await bootstrapResponse.json();
+
+    assert.equal(bootstrapResponse.status, 200);
+    assert.equal(bootstrapPayload.viewer.role, "employee");
+    assert.equal(bootstrapPayload.viewer.employeeId, employee.id);
+
+    const loginToken = await app.login(inviteEmail, "invitepass123");
+    const reloginBootstrap = await app.api(`/api/auth/me?weekStart=${WEEK_START}`, {
+      headers: { Authorization: `Bearer ${loginToken}` },
+    });
+    assert.equal(reloginBootstrap.status, 200);
+
+    const refreshedEmployeesResponse = await app.api("/api/employees", {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const refreshedEmployeesPayload = await refreshedEmployeesResponse.json();
+    const refreshedEmployee = refreshedEmployeesPayload.employees.find((entry) => entry.id === employee.id);
+
+    assert.equal(refreshedEmployee.hasLoginAccess, true);
+    assert.equal(refreshedEmployee.displayName, "Invite Target");
   } finally {
     await app.shutdown();
   }

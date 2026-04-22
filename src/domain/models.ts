@@ -128,6 +128,54 @@ export interface ArchivedEmployee {
   archiveNotes: string;
 }
 
+export interface ManagedEmployee {
+  id: string;
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  workerType: WorkerType;
+  hourlyRate: number;
+  active: boolean;
+  defaultCrewId: string | null;
+  defaultCrewName: string | null;
+  hasLoginAccess: boolean;
+}
+
+export interface InviteSummary {
+  id: string;
+  employeeId: string | null;
+  employeeName: string | null;
+  email: string;
+  role: "foreman" | "employee";
+  acceptedAt: string | null;
+  expiresAt: string;
+  createdAt: string;
+  invitedByFullName: string;
+  status: "pending" | "accepted" | "expired";
+}
+
+export interface InviteInput {
+  employeeId?: string | null;
+  email: string;
+  role: "foreman" | "employee";
+}
+
+export interface EmployeeInput {
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  workerType: "employee" | "contractor_1099";
+  hourlyRate: number;
+  defaultCrewId?: string | null;
+  active: boolean;
+}
+
+export interface AcceptInviteInput {
+  token: string;
+  password: string;
+  fullName?: string;
+}
+
 export interface CompanySettingsSummary {
   id: string;
   companyName: string;

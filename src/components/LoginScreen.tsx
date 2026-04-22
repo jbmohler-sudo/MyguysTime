@@ -2,10 +2,11 @@ import { FormEvent, useState } from "react";
 
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => Promise<void>;
+  onShowSignup: () => void;
   error?: string;
 }
 
-export function LoginScreen({ onLogin, error }: LoginScreenProps) {
+export function LoginScreen({ onLogin, onShowSignup, error }: LoginScreenProps) {
   const [email, setEmail] = useState("admin@crewtime.local");
   const [password, setPassword] = useState("admin123");
   const [submitting, setSubmitting] = useState(false);
@@ -52,6 +53,12 @@ export function LoginScreen({ onLogin, error }: LoginScreenProps) {
           </button>
         </form>
         {localError || error ? <p className="error-banner">{localError || error}</p> : null}
+        <div className="auth-switch">
+          <span>Starting a new company?</span>
+          <button className="button-muted" onClick={onShowSignup} type="button">
+            Create admin account
+          </button>
+        </div>
         <div className="demo-logins">
           <strong>Seeded logins</strong>
           <p style={{ marginTop: "8px", fontWeight: "500" }}>Crew Time Masonry & Roofing (MA)</p>

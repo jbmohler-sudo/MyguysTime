@@ -1,18 +1,5 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Truck, Eye, BarChart3, FileText, ArrowRight, Check } from 'lucide-react';
-import { useLocation } from 'wouter';
-
-/**
- * Design Philosophy: Modern Minimalist with Progressive Disclosure
- * Applied across entire marketing homepage for "My Guys Time"
- * - Staggered left-right layout for workflow steps
- * - Progressive disclosure: details reveal on interaction
- * - Scroll-triggered animations feel natural and purposeful
- * - Construction orange accent (#FF6B35) ties to industry
- * - Minimal color palette (off-white, slate, orange) feels premium
- * - Product preview mock-up integrated seamlessly
- * - SEO-optimized with keyword-rich content and proper heading hierarchy
- */
 
 interface WorkflowStep {
   number: number;
@@ -158,18 +145,15 @@ function ProductPreview() {
   );
 }
 
-export default function PublicHomepage() {
+export function PublicHomepage() {
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
   const [visibleSteps, setVisibleSteps] = useState<Set<number>>(new Set());
   const [visibleFeatures, setVisibleFeatures] = useState<Set<number>>(new Set());
-  const [, navigate] = useLocation();
 
-  // Set page title and meta tags dynamically for SEO
   useEffect(() => {
     document.title = 'Contractor Hour Tracking App | My Guys Time';
   }, []);
 
-  // Intersection observer for scroll-triggered animations
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -195,7 +179,7 @@ export default function PublicHomepage() {
   }, []);
 
   const handleStartClick = () => {
-    navigate('/login');
+    window.location.href = '/login';
   };
 
   return (
@@ -210,4 +194,310 @@ export default function PublicHomepage() {
             <h1 className="text-2xl font-bold text-slate-900">My Guys Time</h1>
           </div>
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#workflow" className="text-slate-
+            <a href="#workflow" className="text-slate-600 hover:text-orange-500 transition-colors text-sm font-medium">
+              How It Works
+            </a>
+            <a href="#features" className="text-slate-600 hover:text-orange-500 transition-colors text-sm font-medium">
+              Features
+            </a>
+            <button
+              onClick={handleStartClick}
+              className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105">
+              Start your week
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="max-w-6xl mx-auto px-6 py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Left: Copy */}
+          <div className="space-y-6">
+            <div>
+              <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Simple Construction Payroll Prep</span>
+              <h1 className="text-5xl md:text-6xl font-bold text-slate-900 leading-tight mt-3">
+                Track Crew Hours &amp; Prep Payroll in Seconds—Built for Contractors
+              </h1>
+            </div>
+
+            <p className="text-lg text-slate-600 leading-relaxed">
+              My Guys Time is a simple <strong>contractor hour tracking app</strong> built for small crews. Track your guys' hours, review the week, and export clean totals for your accountant. Perfect for roofing, masonry, landscaping, and other trades.
+            </p>
+            <p className="text-lg font-semibold text-orange-600 leading-relaxed">
+              Stop using crinkled notebooks or scraps of wood from the jobsite to track hours.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={handleStartClick}
+                className="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2">
+                Start your week
+                <ArrowRight className="w-5 h-5" />
+              </button>
+              <a
+                href="#workflow"
+                className="px-8 py-4 border-2 border-slate-300 hover:border-orange-500 text-slate-900 hover:text-orange-500 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                See how it works
+              </a>
+            </div>
+
+            <p className="text-sm text-slate-600 pt-4">
+              Contractor hour tracking app for roofing, masonry, landscaping, and other small crews that need simple construction payroll prep without full payroll software.
+            </p>
+          </div>
+
+          {/* Right: Product Preview */}
+          <div className="hidden lg:block">
+            <ProductPreview />
+          </div>
+        </div>
+
+        {/* Mobile Product Preview */}
+        <div className="lg:hidden mt-12">
+          <ProductPreview />
+        </div>
+      </section>
+
+      {/* Bridge Section */}
+      <section className="bg-gradient-to-r from-orange-50 to-orange-50/50 py-16 border-y border-orange-200/50">
+        <div className="max-w-3xl mx-auto px-6 text-center space-y-6">
+          <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Why crews use it</span>
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
+            The bridge between the job site and your accountant—no bloat, just payroll prep
+          </h2>
+          <p className="text-lg text-slate-600 leading-relaxed">
+            This is the missing middle. Not full payroll. Not a heavy office system. Just a clean way to check hours, review the week, and hand off payroll-ready totals.
+          </p>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-6 py-20">
+        {/* Workflow Section */}
+        <section id="workflow" className="mb-32">
+          <div className="mb-20">
+            <div className="inline-block mb-4">
+              <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">How it works</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
+              Simple weekly workflow for crews and office—from field to accountant
+            </h2>
+          </div>
+
+          {/* Workflow Steps */}
+          <div className="space-y-12 md:space-y-16">
+            {workflowSteps.map((step, index) => {
+              const isVisible = visibleSteps.has(step.number);
+              const isExpanded = expandedStep === step.number;
+              const isLeft = index % 2 === 0;
+
+              return (
+                <div
+                  key={step.number}
+                  data-step={step.number}
+                  className={`transition-all duration-700 ${
+                    isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                  }`}
+                >
+                  <div className={`flex gap-8 md:gap-12 items-stretch ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
+                    {/* Left Side - Step Indicator */}
+                    <div className="flex flex-col items-center flex-shrink-0">
+                      <div className="relative">
+                        {/* Step Circle */}
+                        <div
+                          className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-500 ${
+                            isExpanded
+                              ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 scale-110'
+                              : 'bg-white border-2 border-slate-200 text-slate-900 shadow-sm'
+                          }`}
+                        >
+                          {step.number}
+                        </div>
+                        {/* Connecting Line */}
+                        {index < workflowSteps.length - 1 && (
+                          <div
+                            className={`absolute top-16 left-1/2 -translate-x-1/2 w-1 h-20 md:h-24 transition-all duration-700 ${
+                              isExpanded ? 'bg-orange-500' : 'bg-slate-200'
+                            }`}
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right Side - Content Card */}
+                    <div className="flex-1 pt-2">
+                      <button
+                        onClick={() => setExpandedStep(isExpanded ? null : step.number)}
+                        className="w-full text-left transition-all duration-500 group"
+                      >
+                        <div
+                          className={`p-6 md:p-8 rounded-xl border-2 transition-all duration-500 ${
+                            isExpanded
+                              ? 'border-orange-500 bg-orange-50 shadow-lg'
+                              : 'border-slate-200 bg-white shadow-sm hover:shadow-md hover:border-slate-300'
+                          }`}
+                        >
+                          {/* Step Label */}
+                          <div className="flex items-start justify-between mb-3">
+                            <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">
+                              Step {step.number}
+                            </span>
+                            <div
+                              className={`text-slate-400 transition-transform duration-500 ${
+                                isExpanded ? 'text-orange-500 rotate-90' : 'group-hover:text-slate-600'
+                              }`}
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
+                          </div>
+
+                          {/* Icon and Title */}
+                          <div className="flex items-start gap-4 mb-3">
+                            <div
+                              className={`p-3 rounded-lg transition-all duration-500 ${
+                                isExpanded
+                                  ? 'bg-orange-500 text-white'
+                                  : 'bg-slate-100 text-slate-600 group-hover:bg-slate-200'
+                              }`}
+                            >
+                              {step.icon}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-xl md:text-2xl font-bold text-slate-900 mb-1">
+                                {step.title}
+                              </h3>
+                              <p className="text-slate-600 text-sm md:text-base leading-relaxed">
+                                {step.description}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Expanded Details */}
+                          <div
+                            className={`overflow-hidden transition-all duration-500 ${
+                              isExpanded ? 'max-h-48 opacity-100 mt-4 pt-4 border-t border-orange-200' : 'max-h-0 opacity-0'
+                            }`}
+                          >
+                            <p className="text-slate-600 leading-relaxed">
+                              {step.details}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section id="features" className="mb-32">
+          <div className="mb-16">
+            <div className="inline-block mb-4">
+              <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Feature snapshot</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
+              Small feature list, focused on weekly work—no bloat
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {features.map((feature, index) => {
+              const isVisible = visibleFeatures.has(index);
+              return (
+                <div
+                  key={index}
+                  data-feature={index}
+                  className={`flex items-start gap-4 p-6 rounded-lg border-2 border-slate-200 bg-white hover:border-orange-500 hover:bg-orange-50/30 transition-all duration-500 ${
+                    isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                  }`}
+                  style={{
+                    transitionDelay: isVisible ? `${index * 100}ms` : '0ms',
+                  }}
+                >
+                  <Check className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-slate-700 font-medium leading-relaxed">{feature}</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Trust Section */}
+        <section className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-12 md:p-16 text-center text-white">
+          <div className="max-w-3xl mx-auto">
+            <span className="text-xs font-semibold tracking-widest text-orange-400 uppercase">Payroll Prep Reminder</span>
+            <h2 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
+              Built for payroll preparation, not payroll processing
+            </h2>
+            <p className="text-lg text-slate-300 leading-relaxed">
+              My Guys Time helps you track hours, review totals, and estimate paychecks and withholdings. Always verify numbers before issuing checks or finalizing payroll. This app is designed to prepare data for your accountant, not to process payroll directly.
+            </p>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-200 bg-slate-50 mt-20">
+        <div className="max-w-6xl mx-auto px-6 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            <div>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-white" />
+                </div>
+                <h4 className="font-bold text-slate-900">My Guys Time</h4>
+              </div>
+              <p className="text-sm text-slate-600">
+                Simple contractor hour tracking and payroll prep for small and multiple crews.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-slate-900 mb-4">Product</h4>
+              <ul className="space-y-2 text-sm text-slate-600">
+                <li>
+                  <a href="#workflow" className="hover:text-orange-500 transition-colors">
+                    Features
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-slate-900 mb-4">Company</h4>
+              <ul className="space-y-2 text-sm text-slate-600">
+                <li>
+                  <a href="#" className="hover:text-orange-500 transition-colors">
+                    About
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-slate-900 mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm text-slate-600">
+                <li>
+                  <a href="#" className="hover:text-orange-500 transition-colors">
+                    Privacy
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="pt-12 border-t border-slate-200 text-center text-sm text-slate-600">
+            <p>&copy; 2026 My Guys Time. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}

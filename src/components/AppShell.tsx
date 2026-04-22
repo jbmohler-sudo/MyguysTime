@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import type { BootstrapPayload, PrivateReportInput, TimesheetStatus } from "../domain/models";
+import type { BootstrapPayload, EmployeeInput, InviteInput, InviteSummary, ManagedEmployee, PrivateReportInput, TimesheetStatus } from "../domain/models";
 import { prettyStatus } from "../domain/permissions";
 import { ArchivePanel } from "./ArchivePanel";
 import { CompanySettingsPanel } from "./CompanySettingsPanel";
 import { Logo } from "./Logo";
 import { OfficeDashboard } from "./OfficeDashboard";
 import { PrivateReportsPanel } from "./PrivateReportsPanel";
+import { TeamManagementPanel } from "./TeamManagementPanel";
 import { WeeklyCrewBoard } from "./WeeklyCrewBoard";
 
 type UiMode = "truck" | "office";
-type AppPage = "dashboard" | "company-settings" | "archive";
+type AppPage = "dashboard" | "team" | "company-settings" | "archive";
 
 interface AppShellProps {
   data: BootstrapPayload;
@@ -48,6 +49,11 @@ interface AppShellProps {
     pfmlEnabled?: boolean;
     pfmlEmployeeRate?: number;
   }) => Promise<void>;
+  onListEmployees: () => Promise<ManagedEmployee[]>;
+  onCreateEmployee: (payload: EmployeeInput) => Promise<ManagedEmployee>;
+  onUpdateEmployee: (employeeId: string, payload: EmployeeInput) => Promise<ManagedEmployee>;
+  onListInvites: () => Promise<InviteSummary[]>;
+  onCreateInvite: (payload: InviteInput) => Promise<{ invite: InviteSummary; inviteUrl?: string }>;
 }
 
 export function AppShell({
@@ -63,6 +69,11 @@ export function AppShell({
   onSubmitPrivateReport,
   onExport,
   onUpdateCompanySettings,
+  onListEmployees,
+  onCreateEmployee,
+  onUpdateEmployee,
+  onListInvites,
+  onCreateInvite,
 }: AppShellProps) {
   const truckViewportQuery = "(max-width: 720px)";
   const [selectedCrewId, setSelectedCrewId] = useState<string>("all");
@@ -110,14 +121,16 @@ export function AppShell({
   }, [data.viewer.role, isMobileViewport, modeOverride]);
   const canViewCompanySettings = data.viewer.role === "admin" && Boolean(data.companySettings);
   const canViewArchive = data.viewer.role === "admin";
+  const canViewTeam = data.viewer.role === "admin";
   const navItems = useMemo(
     () =>
       [
         { key: "dashboard", label: "Dashboard", visible: true },
+        { key: "team", label: "Team", visible: canViewTeam },
         { key: "company-settings", label: "Company Settings", visible: canViewCompanySettings },
         { key: "archive", label: "Archive", visible: canViewArchive },
       ] as Array<{ key: AppPage; label: string; visible: boolean }>,
-    [canViewArchive, canViewCompanySettings],
+    [canViewArchive, canViewCompanySettings, canViewTeam],
   );
 
   useEffect(() => {
@@ -155,10 +168,13 @@ export function AppShell({
     if (activePage === "company-settings" && !canViewCompanySettings) {
       setActivePage("dashboard");
     }
+    if (activePage === "team" && !canViewTeam) {
+      setActivePage("dashboard");
+    }
     if (activePage === "archive" && !canViewArchive) {
       setActivePage("dashboard");
     }
-  }, [activePage, canViewArchive, canViewCompanySettings]);
+  }, [activePage, canViewArchive, canViewCompanySettings, canViewTeam]);
 
   return (
     <div className={`app-shell app-shell--${uiMode}`}>
@@ -170,6 +186,8 @@ export function AppShell({
               <h1>
                 {uiMode === "truck"
                   ? "Current-week crew timecards for the truck."
+                  : activePage === "team"
+                    ? "Active employee records and default crew setup."
                   : activePage === "company-settings"
                     ? "Company profile and payroll-prep defaults."
                     : activePage === "archive"
@@ -193,8 +211,10 @@ export function AppShell({
               ? uiMode === "truck"
                 ? "Mobile-first time entry for foremen and employees, focused on today and the active work week."
                 : "Keep the weekly board, payroll-prep review, exports, and next-step workflow in one focused dashboard."
-              : activePage === "company-settings"
-                ? "Update company identity, state support, payroll-prep defaults, and the standing disclaimer without cluttering the weekly dashboard."
+              : activePage === "team"
+                ? "Manage employee records, keep worker details current, and send login invites only when someone needs app access."
+                : activePage === "company-settings"
+                  ? "Update company identity, state support, payroll-prep defaults, and the standing disclaimer without cluttering the weekly dashboard."
                 : "Archived employees stay on file for office reference instead of being deleted."}
           </p>
 
@@ -248,7 +268,7 @@ export function AppShell({
         <span>
           {uiMode === "truck"
             ? "Dashboard stays centered on the current week, Today, and fast field entry. Company settings and archive stay out of the way."
-            : "Dashboard handles weekly review, payroll-prep, exports, and office-only reporting. Settings and archive live in dedicated pages."}
+            : "Dashboard handles weekly review, payroll-prep, exports, and office-only reporting. Team, settings, and archive live in dedicated pages."}
         </span>
       </section>
 
@@ -300,6 +320,17 @@ export function AppShell({
             companySettings={data.companySettings}
             stateRules={data.stateRules}
             onSave={onUpdateCompanySettings}
+          />
+        ) : null}
+
+        {activePage === "team" && canViewTeam ? (
+          <TeamManagementPanel
+            crews={data.crews}
+            onLoadEmployees={onListEmployees}
+            onCreateEmployee={onCreateEmployee}
+            onUpdateEmployee={onUpdateEmployee}
+            onLoadInvites={onListInvites}
+            onCreateInvite={onCreateInvite}
           />
         ) : null}
 

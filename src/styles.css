@@ -123,11 +123,32 @@ label {
   max-width: 760px;
 }
 
+.auth-card {
+  max-width: 560px;
+}
+
 .login-form,
 .report-form {
   display: grid;
   gap: 0.9rem;
   margin-top: var(--space-16);
+}
+
+.auth-grid {
+  margin-bottom: 0;
+}
+
+.auth-switch {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: var(--space-16);
+}
+
+.auth-switch span {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
 }
 
 .demo-logins {
@@ -1456,6 +1477,89 @@ th {
   padding: 0.9rem;
 }
 
+.team-summary-grid,
+.team-card__details {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.team-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.team-card {
+  gap: 0.8rem;
+}
+
+.team-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+.team-card__meta,
+.team-card__details {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.team-card__meta {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.team-card__meta span,
+.team-card__details span {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.team-card__details strong {
+  color: var(--color-text-primary);
+  display: block;
+  margin-top: 0.15rem;
+}
+
+.team-editor {
+  margin: 1rem 0;
+}
+
+.team-invites-section {
+  margin-top: 1rem;
+}
+
+.invite-status {
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-bold);
+  padding: 0.35rem 0.7rem;
+  text-transform: capitalize;
+}
+
+.invite-status--pending {
+  background: var(--color-status-info-soft);
+  color: var(--brand-dark);
+}
+
+.invite-status--accepted {
+  background: var(--color-status-success-soft);
+  color: var(--success);
+}
+
+.invite-status--expired {
+  background: color-mix(in srgb, var(--color-bg-subtle) 70%, var(--color-bg-surface) 30%);
+  color: var(--text-muted);
+}
+
+.invite-link-banner {
+  gap: 0.7rem;
+}
+
+.invite-link-banner a {
+  color: var(--brand-dark);
+  font-weight: var(--font-weight-semibold);
+}
+
 .empty-state {
   color: var(--text-muted);
   padding: 1rem 0;
@@ -1929,8 +2033,27 @@ th {
     grid-template-columns: 1fr;
   }
 
+  .team-summary-grid,
+  .team-card__meta,
+  .team-card__details {
+    grid-template-columns: 1fr;
+  }
+
+  .team-card__actions {
+    justify-content: stretch;
+  }
+
+  .team-card__actions button {
+    width: 100%;
+  }
+
   .setup-employee-row {
     grid-template-columns: 1fr;
+  }
+
+  .auth-switch {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .quick-action-row {

@@ -23,6 +23,48 @@ async function hashPassword(password: string) {
   return bcrypt.hash(password, 10);
 }
 
+async function createOrUpdateUserAccount(
+  prisma: PrismaClient,
+  input: {
+    email: string;
+    fullName: string;
+    password: string;
+    role: "ADMIN" | "FOREMAN" | "EMPLOYEE";
+    companyId: string;
+    employeeId: string;
+  },
+) {
+  const existingUser = await prisma.user.findUnique({
+    where: { email: input.email },
+  });
+
+  const passwordHash = existingUser?.passwordHash ?? await hashPassword(input.password);
+
+  return prisma.user.upsert({
+    where: { email: input.email },
+    update: {
+      companyId: input.companyId,
+      fullName: input.fullName,
+      role: input.role,
+      employeeId: input.employeeId,
+      passwordHash,
+      status: "ACTIVE",
+      acceptedAt: existingUser?.acceptedAt ?? existingUser?.createdAt ?? new Date(),
+      deactivatedAt: null,
+    },
+    create: {
+      companyId: input.companyId,
+      email: input.email,
+      fullName: input.fullName,
+      passwordHash,
+      role: input.role,
+      employeeId: input.employeeId,
+      status: "ACTIVE",
+      acceptedAt: new Date(),
+    },
+  });
+}
+
 export async function seedDatabase() {
   const prisma = new PrismaClient();
 
@@ -329,55 +371,34 @@ export async function seedDatabase() {
     }
 
     // Find or create admin user
-    let adminUser = await prisma.user.findUnique({
-      where: { email: "admin@crewtime.local" },
+    const adminUser = await createOrUpdateUserAccount(prisma, {
+      email: "admin@crewtime.local",
+      fullName: "Dana Office",
+      password: "admin123",
+      role: "ADMIN",
+      companyId: company.id,
+      employeeId: adminEmployee.id,
     });
-
-    if (!adminUser) {
-      adminUser = await prisma.user.create({
-        data: {
-          email: "admin@crewtime.local",
-          fullName: "Dana Office",
-          passwordHash: await hashPassword("admin123"),
-          role: "ADMIN",
-          employeeId: adminEmployee.id,
-        },
-      });
-    }
 
     // Find or create foreman user
-    let foremanUser = await prisma.user.findUnique({
-      where: { email: "luis@crewtime.local" },
+    const foremanUser = await createOrUpdateUserAccount(prisma, {
+      email: "luis@crewtime.local",
+      fullName: "Luis Ortega",
+      password: "foreman123",
+      role: "FOREMAN",
+      companyId: company.id,
+      employeeId: luis.id,
     });
-
-    if (!foremanUser) {
-      foremanUser = await prisma.user.create({
-        data: {
-          email: "luis@crewtime.local",
-          fullName: "Luis Ortega",
-          passwordHash: await hashPassword("foreman123"),
-          role: "FOREMAN",
-          employeeId: luis.id,
-        },
-      });
-    }
 
     // Find or create employee user
-    let employeeUser = await prisma.user.findUnique({
-      where: { email: "marco@crewtime.local" },
+    const employeeUser = await createOrUpdateUserAccount(prisma, {
+      email: "marco@crewtime.local",
+      fullName: "Marco Diaz",
+      password: "employee123",
+      role: "EMPLOYEE",
+      companyId: company.id,
+      employeeId: marco.id,
     });
-
-    if (!employeeUser) {
-      employeeUser = await prisma.user.create({
-        data: {
-          email: "marco@crewtime.local",
-          fullName: "Marco Diaz",
-          passwordHash: await hashPassword("employee123"),
-          role: "EMPLOYEE",
-          employeeId: marco.id,
-        },
-      });
-    }
 
     await prisma.company.update({
       where: { id: company.id },
@@ -664,34 +685,31 @@ export async function seedDatabase() {
         },
       });
 
-      await prisma.user.create({
-        data: {
-          email: "admin@apexroofing.local",
-          fullName: "Jake Martinez",
-          passwordHash: await hashPassword("apex_admin123"),
-          role: "ADMIN",
-          employeeId: apexAdminEmployee.id,
-        },
+      await createOrUpdateUserAccount(prisma, {
+        email: "admin@apexroofing.local",
+        fullName: "Jake Martinez",
+        password: "apex_admin123",
+        role: "ADMIN",
+        companyId: apexCompany.id,
+        employeeId: apexAdminEmployee.id,
       });
 
-      await prisma.user.create({
-        data: {
-          email: "jake@apexroofing.local",
-          fullName: "Jake Martinez",
-          passwordHash: await hashPassword("apex_foreman123"),
-          role: "FOREMAN",
-          employeeId: jakeEmployee.id,
-        },
+      await createOrUpdateUserAccount(prisma, {
+        email: "jake@apexroofing.local",
+        fullName: "Jake Martinez",
+        password: "apex_foreman123",
+        role: "FOREMAN",
+        companyId: apexCompany.id,
+        employeeId: jakeEmployee.id,
       });
 
-      await prisma.user.create({
-        data: {
-          email: "sarah@apexroofing.local",
-          fullName: "Sarah Chen",
-          passwordHash: await hashPassword("apex_employee123"),
-          role: "EMPLOYEE",
-          employeeId: sarahEmployee.id,
-        },
+      await createOrUpdateUserAccount(prisma, {
+        email: "sarah@apexroofing.local",
+        fullName: "Sarah Chen",
+        password: "apex_employee123",
+        role: "EMPLOYEE",
+        companyId: apexCompany.id,
+        employeeId: sarahEmployee.id,
       });
 
       await prisma.company.update({

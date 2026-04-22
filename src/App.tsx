@@ -3,20 +3,28 @@ import { AppShell } from "./components/AppShell";
 import { CompanySetupScreen } from "./components/CompanySetupScreen";
 import { LoginScreen } from "./components/LoginScreen";
 import { PublicHomepage } from "./components/PublicHomepage";
+import { SignupScreen } from "./components/SignupScreen";
 import type { BootstrapPayload, CompanyOnboardingInput, PrivateReportInput, TimesheetStatus } from "./domain/models";
 import {
   applyCrewDefaults,
   completeCompanySetup,
+  createEmployee,
+  createInvite,
   downloadExport,
   fetchBootstrap,
+  listEmployees,
+  listInvites,
   login,
+  signup,
   submitPrivateReport,
   updateCompanySettings,
   updateAdjustment,
   updateDayEntry,
+  updateEmployee,
   updateTimesheetStatus,
 } from "./lib/api";
-import { getCurrentHostname, getPreferredAppUrl, isPublicHomepageHost } from "./lib/host";
+import type { EmployeeInput, InviteInput } from "./domain/models";
+import { getCurrentHostname, isPublicHomepageHost } from "./lib/host";
 
 const TOKEN_STORAGE_KEY = "crew-timecard-token";
 
@@ -32,11 +40,11 @@ function getCurrentWeekStart(date: Date) {
 function App() {
   const hostname = getCurrentHostname();
   const showPublicHomepage = isPublicHomepageHost(hostname);
-  const appUrl = getPreferredAppUrl(hostname);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_STORAGE_KEY));
   const [data, setData] = useState<BootstrapPayload | null>(null);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(Boolean(token));
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [openedAt] = useState(() => new Date());
   const defaultWeekStart = getCurrentWeekStart(openedAt);
 
@@ -213,6 +221,36 @@ function App() {
     setData(response);
   }
 
+  async function handleListEmployees() {
+    if (!token) return [];
+    const response = await listEmployees(token);
+    return response.employees;
+  }
+
+  async function handleCreateEmployee(payload: EmployeeInput) {
+    if (!token) throw new Error("Not authenticated");
+    const response = await createEmployee(token, payload);
+    return response.employee;
+  }
+
+  async function handleUpdateEmployee(employeeId: string, payload: EmployeeInput) {
+    if (!token) throw new Error("Not authenticated");
+    const response = await updateEmployee(token, employeeId, payload);
+    return response.employee;
+  }
+
+  async function handleListInvites() {
+    if (!token) return [];
+    const response = await listInvites(token);
+    return response.invites;
+  }
+
+  async function handleCreateInvite(payload: InviteInput) {
+    if (!token) throw new Error("Not authenticated");
+    const response = await createInvite(token, payload);
+    return { invite: response.invite, inviteUrl: response.inviteUrl };
+  }
+
   async function handleExport(kind: "payroll-summary" | "time-detail" | "weekly-summary") {
     if (!token || !data) {
       return;
@@ -245,11 +283,19 @@ function App() {
   }
 
   if (showPublicHomepage) {
-    return <PublicHomepage appUrl={appUrl} />;
+    return <PublicHomepage />;
   }
 
   if (!token) {
-    return <LoginScreen onLogin={handleLogin} error={error} />;
+    if (authMode === "signup") {
+      async function handleSignup(fullName: string, companyName: string, email: string, password: string) {
+        const response = await signup(fullName, companyName, email, password);
+        localStorage.setItem(TOKEN_STORAGE_KEY, response.token);
+        setToken(response.token);
+      }
+      return <SignupScreen onSignup={handleSignup} onShowLogin={() => setAuthMode("login")} error={error} />;
+    }
+    return <LoginScreen onLogin={handleLogin} onShowSignup={() => setAuthMode("signup")} error={error} />;
   }
 
   if (loading || !data) {
@@ -283,6 +329,11 @@ function App() {
       onSubmitPrivateReport={handleSubmitPrivateReport}
       onExport={handleExport}
       onUpdateCompanySettings={handleUpdateCompanySettings}
+      onListEmployees={handleListEmployees}
+      onCreateEmployee={handleCreateEmployee}
+      onUpdateEmployee={handleUpdateEmployee}
+      onListInvites={handleListInvites}
+      onCreateInvite={handleCreateInvite}
     />
   );
 }

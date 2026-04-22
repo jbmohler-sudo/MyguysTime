@@ -1,7 +1,12 @@
 import type {
+  AcceptInviteInput,
   BootstrapPayload,
   CompanyOnboardingInput,
   CompanySettingsSummary,
+  EmployeeInput,
+  InviteInput,
+  InviteSummary,
+  ManagedEmployee,
   PrivateReportInput,
   TimesheetStatus,
 } from "../domain/models";
@@ -46,6 +51,20 @@ export async function login(email: string, password: string) {
   return request<{ token: string }>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
+  });
+}
+
+export async function signup(fullName: string, companyName: string, email: string, password: string) {
+  return request<{ token: string }>("/auth/signup", {
+    method: "POST",
+    body: JSON.stringify({ fullName, companyName, email, password }),
+  });
+}
+
+export async function acceptInvite(payload: AcceptInviteInput) {
+  return request<{ token: string }>("/auth/accept-invite", {
+    method: "POST",
+    body: JSON.stringify(payload),
   });
 }
 
@@ -159,6 +178,55 @@ export async function updateCompanySettings(
 export async function completeCompanySetup(token: string, payload: CompanyOnboardingInput) {
   return request<BootstrapPayload>(
     "/company-setup",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export async function listEmployees(token: string) {
+  return request<{ employees: ManagedEmployee[] }>(
+    "/employees",
+    {},
+    token,
+  );
+}
+
+export async function createEmployee(token: string, payload: EmployeeInput) {
+  return request<{ employee: ManagedEmployee }>(
+    "/employees",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export async function updateEmployee(token: string, employeeId: string, payload: EmployeeInput) {
+  return request<{ employee: ManagedEmployee }>(
+    `/employees/${employeeId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export async function listInvites(token: string) {
+  return request<{ invites: InviteSummary[] }>(
+    "/company/invites",
+    {},
+    token,
+  );
+}
+
+export async function createInvite(token: string, payload: InviteInput) {
+  return request<{ invite: InviteSummary; inviteUrl?: string; deliveryMode: "dev_link" }>(
+    "/company/invites",
     {
       method: "POST",
       body: JSON.stringify(payload),

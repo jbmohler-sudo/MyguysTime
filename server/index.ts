@@ -2,8 +2,9 @@ import "dotenv/config";
 import { Sentry, sentryEnabled, sentryVerificationEnabled } from "./sentry.js";
 import express from "express";
 import cors from "cors";
+import { createHash, randomBytes } from "node:crypto";
 import { pathToFileURL } from "node:url";
-import { authenticate, getCurrentUserOrThrow, issueToken, verifyPassword, type AuthenticatedRequest, type UserRole } from "./auth.js";
+import { authenticate, getCurrentUserOrThrow, hashPassword, issueToken, verifyPassword, type AuthenticatedRequest, type UserRole } from "./auth.js";
 import { prisma } from "./db.js";
 import { calculateDayTotalMinutes, calculatePayrollEstimate } from "./payroll.js";
 import {
@@ -35,6 +36,8 @@ By continuing, you acknowledge that you are responsible for verifying payroll am
 const EXPORT_REMINDER = "Estimates only — verify before issuing checks.";
 const UNSUPPORTED_STATE_MESSAGE =
   "We do not yet support accurate state-specific withholding calculations for this state. You can still use the app for time tracking and payroll prep, but please confirm state-specific withholding with your accountant or official state resources.";
+const SIGNUP_DEFAULT_STATE_CODE = "TX";
+const INVITE_EXPIRY_HOURS = 72;
 
 app.use(cors({ origin: true, credentials: false }));
 app.use(express.json());
@@ -297,6 +300,131 @@ function serializeCompanySettings(
     sourceLabel: stateRule.sourceLabel ?? "",
     sourceUrl: stateRule.sourceUrl ?? "",
   };
+}
+
+function normalizeManagedEmployeeWorkerType(value: string | undefined) {
+  const normalized = value?.trim().toLowerCase() ?? "";
+
+  if (normalized === "employee" || normalized === "w2") {
+    return "EMPLOYEE" as const;
+  }
+
+  if (normalized === "contractor_1099" || normalized === "1099") {
+    return "CONTRACTOR_1099" as const;
+  }
+
+  return null;
+}
+
+function serializeManagedEmployee(
+  employee: Awaited<ReturnType<typeof prisma.employee.findFirstOrThrow>> & {
+    defaultCrew: { id: string; name: string } | null;
+    user: { id: string } | null;
+  },
+) {
+  return {
+    id: employee.id,
+    firstName: employee.firstName,
+    lastName: employee.lastName,
+    displayName: employee.displayName,
+    workerType: workerTypeToClient(asWorkerType(employee.workerType)),
+    hourlyRate: currencyFromCents(employee.hourlyRateCents),
+    active: employee.employmentStatus === "ACTIVE",
+    defaultCrewId: employee.defaultCrewId,
+    defaultCrewName: employee.defaultCrew?.name ?? null,
+    hasLoginAccess: Boolean(employee.user),
+  };
+}
+
+async function getCompanyCrewOrThrow(companyId: string, crewId: string) {
+  const crew = await prisma.crew.findFirst({
+    where: { id: crewId, companyId },
+    select: { id: true, name: true },
+  });
+
+  if (!crew) {
+    throw new Error("Select a valid crew for this company.");
+  }
+
+  return crew;
+}
+
+async function refreshEmployeeCurrentWeek(employeeId: string, companyId: string) {
+  const currentWeekStart = parseWeekStart(undefined);
+  await ensureWeekData(companyId, currentWeekStart);
+
+  const currentWeek = await prisma.timesheetWeek.findUnique({
+    where: {
+      employeeId_weekStartDate: {
+        employeeId,
+        weekStartDate: currentWeekStart,
+      },
+    },
+    select: { id: true },
+  });
+
+  if (currentWeek) {
+    await recalculateTimesheet(currentWeek.id, companyId);
+  }
+}
+
+function normalizeInviteRole(value: string | undefined) {
+  const normalized = value?.trim().toUpperCase() ?? "";
+
+  if (normalized === "FOREMAN" || normalized === "EMPLOYEE") {
+    return normalized;
+  }
+
+  return null;
+}
+
+function hashInviteToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+function createInviteToken() {
+  return randomBytes(32).toString("hex");
+}
+
+function serializeInviteSummary(
+  invite: {
+    id: string;
+    employeeId: string | null;
+    email: string | null;
+    role: string;
+    acceptedAt: Date | null;
+    expiresAt: Date;
+    createdAt: Date;
+    employee: { displayName: string } | null;
+    invitedByUser: { fullName: string };
+  },
+) {
+  const now = new Date();
+  const status =
+    invite.acceptedAt
+      ? "accepted"
+      : invite.expiresAt <= now
+        ? "expired"
+        : "pending";
+
+  return {
+    id: invite.id,
+    employeeId: invite.employeeId,
+    employeeName: invite.employee?.displayName ?? null,
+    email: invite.email ?? "",
+    role: invite.role.toLowerCase() as "foreman" | "employee",
+    acceptedAt: invite.acceptedAt?.toISOString() ?? null,
+    expiresAt: invite.expiresAt.toISOString(),
+    createdAt: invite.createdAt.toISOString(),
+    invitedByFullName: invite.invitedByUser.fullName,
+    status,
+  };
+}
+
+function buildInviteUrl(req: express.Request, token: string) {
+  const origin = req.get("origin")?.trim();
+  const baseUrl = origin || `${req.protocol}://${req.get("host")}`;
+  return `${baseUrl}/?invite=${encodeURIComponent(token)}`;
 }
 
 function isFiniteNonNegativeNumber(value: unknown): value is number {
@@ -865,17 +993,252 @@ app.post("/api/auth/login", asyncHandler(async (req, res) => {
     return;
   }
 
-  if (!user.employee) {
-    res.status(401).json({ error: "User does not have an employee record." });
+  if (user.status !== "ACTIVE" || user.deactivatedAt) {
+    res.status(403).json({ error: "This login is not active." });
     return;
   }
 
   const token = issueToken({
     userId: user.id,
     role: asUserRole(user.role),
-    companyId: user.employee.companyId,
+    companyId: user.companyId,
   });
   res.json({ token });
+}));
+
+app.post("/api/auth/signup", asyncHandler(async (req, res) => {
+  const { fullName, companyName, email, password } = req.body as {
+    fullName?: string;
+    companyName?: string;
+    email?: string;
+    password?: string;
+  };
+
+  const cleanFullName = fullName?.trim() ?? "";
+  const cleanCompanyName = companyName?.trim() ?? "";
+  const normalizedEmail = email?.trim().toLowerCase() ?? "";
+
+  if (!cleanFullName || !cleanCompanyName || !normalizedEmail || !password) {
+    res.status(400).json({ error: "Full name, company name, email, and password are required." });
+    return;
+  }
+
+  if (!normalizedEmail.includes("@")) {
+    res.status(400).json({ error: "Enter a valid email address." });
+    return;
+  }
+
+  if (password.length < 8) {
+    res.status(400).json({ error: "Password must be at least 8 characters." });
+    return;
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+    select: { id: true },
+  });
+
+  if (existingUser) {
+    res.status(409).json({ error: "An account with that email already exists." });
+    return;
+  }
+
+  const signupStateRule = await getStateRuleOrThrow(SIGNUP_DEFAULT_STATE_CODE);
+  const passwordHash = await hashPassword(password);
+  const nameParts = cleanFullName.split(/\s+/).filter(Boolean);
+  const firstName = nameParts[0] ?? cleanFullName;
+  const lastName = nameParts.slice(1).join(" ") || "Admin";
+  const now = new Date();
+
+  const createdUser = await prisma.$transaction(async (tx) => {
+    const company = await tx.company.create({
+      data: {
+        companyName: cleanCompanyName,
+        ownerName: cleanFullName,
+        stateCode: SIGNUP_DEFAULT_STATE_CODE,
+      },
+    });
+
+    await tx.companyPayrollSettings.create({
+      data: {
+        companyId: company.id,
+        ...buildPayrollSettingsDefaults(SIGNUP_DEFAULT_STATE_CODE, signupStateRule),
+      },
+    });
+
+    const employee = await tx.employee.create({
+      data: {
+        companyId: company.id,
+        firstName,
+        lastName,
+        displayName: cleanFullName,
+        hourlyRateCents: 0,
+        usesCompanyFederalDefault: true,
+        usesCompanyStateDefault: true,
+      },
+    });
+
+    return tx.user.create({
+      data: {
+        companyId: company.id,
+        email: normalizedEmail,
+        fullName: cleanFullName,
+        passwordHash,
+        role: "ADMIN",
+        employeeId: employee.id,
+        status: "ACTIVE",
+        acceptedAt: now,
+      },
+    });
+  });
+
+  const token = issueToken({
+    userId: createdUser.id,
+    role: "ADMIN",
+    companyId: createdUser.companyId,
+  });
+
+  res.status(201).json({ token });
+}));
+
+app.post("/api/auth/accept-invite", asyncHandler(async (req, res) => {
+  const { token, password, fullName } = req.body as {
+    token?: string;
+    password?: string;
+    fullName?: string;
+  };
+
+  const inviteToken = token?.trim() ?? "";
+  const cleanFullName = fullName?.trim() ?? "";
+
+  if (!inviteToken || !password) {
+    res.status(400).json({ error: "Invite token and password are required." });
+    return;
+  }
+
+  if (password.length < 8) {
+    res.status(400).json({ error: "Password must be at least 8 characters." });
+    return;
+  }
+
+  const invite = await prisma.userInvite.findUnique({
+    where: { tokenHash: hashInviteToken(inviteToken) },
+    include: {
+      employee: {
+        include: {
+          user: true,
+        },
+      },
+    },
+  });
+
+  if (!invite) {
+    res.status(404).json({ error: "Invite not found." });
+    return;
+  }
+
+  if (invite.acceptedAt) {
+    res.status(409).json({ error: "This invite has already been accepted." });
+    return;
+  }
+
+  if (invite.expiresAt <= new Date()) {
+    res.status(410).json({ error: "This invite has expired." });
+    return;
+  }
+
+  const normalizedEmail = invite.email?.trim().toLowerCase() ?? "";
+  if (!normalizedEmail) {
+    res.status(400).json({ error: "This invite is missing an email address." });
+    return;
+  }
+
+  if (invite.employeeId && (!invite.employee || invite.employee.companyId !== invite.companyId)) {
+    res.status(409).json({ error: "This invite no longer points to a valid employee." });
+    return;
+  }
+
+  if (invite.employee?.user) {
+    res.status(409).json({ error: "This employee already has login access." });
+    return;
+  }
+
+  const passwordHash = await hashPassword(password);
+  const displayName =
+    invite.employee?.displayName ||
+    cleanFullName ||
+    normalizedEmail.split("@")[0];
+
+  const acceptedUser = await prisma.$transaction(async (tx) => {
+    const existingUser = await tx.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (existingUser && existingUser.companyId !== invite.companyId) {
+      throw new Error("That email already belongs to a different company account.");
+    }
+
+    if (
+      invite.employeeId &&
+      existingUser?.employeeId &&
+      existingUser.employeeId !== invite.employeeId
+    ) {
+      throw new Error("That email is already linked to a different employee.");
+    }
+
+    const now = new Date();
+    const user =
+      existingUser
+        ? await tx.user.update({
+            where: { id: existingUser.id },
+            data: {
+              companyId: invite.companyId,
+              fullName: cleanFullName || existingUser.fullName || displayName,
+              passwordHash,
+              role: invite.role,
+              employeeId: invite.employeeId ?? existingUser.employeeId,
+              status: "ACTIVE",
+              invitedAt: existingUser.invitedAt ?? invite.createdAt,
+              acceptedAt: now,
+              deactivatedAt: null,
+            },
+          })
+        : await tx.user.create({
+            data: {
+              companyId: invite.companyId,
+              email: normalizedEmail,
+              fullName: cleanFullName || displayName,
+              passwordHash,
+              role: invite.role,
+              employeeId: invite.employeeId,
+              status: "ACTIVE",
+              invitedAt: invite.createdAt,
+              acceptedAt: now,
+            },
+          });
+
+    await tx.userInvite.update({
+      where: { id: invite.id },
+      data: { acceptedAt: now },
+    });
+
+    return user;
+  }).catch((error: unknown) => {
+    res.status(409).json({ error: error instanceof Error ? error.message : "Unable to accept invite." });
+    return null;
+  });
+
+  if (!acceptedUser) {
+    return;
+  }
+
+  const authToken = issueToken({
+    userId: acceptedUser.id,
+    role: asUserRole(acceptedUser.role),
+    companyId: acceptedUser.companyId,
+  });
+
+  res.json({ token: authToken });
 }));
 
 app.get("/api/auth/me", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
@@ -1192,6 +1555,395 @@ app.patch("/api/company-settings", authenticate, asyncHandler(async (req: Authen
       { ...updatedCompany, payrollSettings: updatedSettings },
       nextStateRule,
     ),
+  });
+}));
+
+app.get("/api/employees", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  if (req.auth!.role !== "ADMIN") {
+    res.status(403).json({ error: "Only admin can manage employees." });
+    return;
+  }
+
+  const employees = await prisma.employee.findMany({
+    where: {
+      companyId: req.auth!.companyId,
+      employmentStatus: "ACTIVE",
+    },
+    include: {
+      defaultCrew: {
+        select: { id: true, name: true },
+      },
+      user: {
+        select: { id: true },
+      },
+    },
+    orderBy: { displayName: "asc" },
+  });
+
+  res.json({
+    employees: employees.map((employee) => serializeManagedEmployee(employee)),
+  });
+}));
+
+app.post("/api/employees", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  if (req.auth!.role !== "ADMIN") {
+    res.status(403).json({ error: "Only admin can manage employees." });
+    return;
+  }
+
+  const { firstName, lastName, displayName, workerType, hourlyRate, defaultCrewId, active } = req.body as {
+    firstName?: string;
+    lastName?: string;
+    displayName?: string;
+    workerType?: string;
+    hourlyRate?: number;
+    defaultCrewId?: string | null;
+    active?: boolean;
+  };
+
+  const cleanFirstName = firstName?.trim() ?? "";
+  const cleanLastName = lastName?.trim() ?? "";
+  const cleanDisplayName = displayName?.trim() ?? `${cleanFirstName} ${cleanLastName}`.trim();
+  const normalizedWorkerType = normalizeManagedEmployeeWorkerType(workerType);
+
+  if (!cleanFirstName || !cleanLastName || !cleanDisplayName) {
+    res.status(400).json({ error: "First name, last name, and display name are required." });
+    return;
+  }
+
+  if (!normalizedWorkerType) {
+    res.status(400).json({ error: "Worker type must be employee or 1099 contractor." });
+    return;
+  }
+
+  if (!isFiniteNonNegativeNumber(hourlyRate)) {
+    res.status(400).json({ error: "Hourly rate must be a non-negative number." });
+    return;
+  }
+
+  if (typeof active !== "boolean") {
+    res.status(400).json({ error: "Active must be yes or no." });
+    return;
+  }
+
+  const { payrollSettings } = await getCompanyContextOrThrow(req.auth!.companyId);
+  const cleanDefaultCrewId = defaultCrewId?.trim() ? defaultCrewId.trim() : null;
+
+  if (cleanDefaultCrewId) {
+    try {
+      await getCompanyCrewOrThrow(req.auth!.companyId, cleanDefaultCrewId);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Select a valid crew." });
+      return;
+    }
+  }
+
+  const isContractor = normalizedWorkerType === "CONTRACTOR_1099";
+  const hourlyRateCents = Math.round(hourlyRate * 100);
+  const createdEmployee = await prisma.employee.create({
+    data: {
+      companyId: req.auth!.companyId,
+      firstName: cleanFirstName,
+      lastName: cleanLastName,
+      displayName: cleanDisplayName,
+      workerType: normalizedWorkerType,
+      employmentStatus: active ? "ACTIVE" : "ARCHIVED",
+      hourlyRateCents,
+      overtimeRateCents: payrollSettings.payType === "HOURLY" ? hourlyRateCents : null,
+      defaultCrewId: cleanDefaultCrewId,
+      usesCompanyFederalDefault: !isContractor,
+      usesCompanyStateDefault: !isContractor,
+      federalWithholdingPercent: isContractor ? 0 : payrollSettings.defaultFederalWithholdingValue,
+      stateWithholdingPercent: isContractor ? 0 : payrollSettings.defaultStateWithholdingValue,
+      archivedAt: active ? null : new Date(),
+    },
+    include: {
+      defaultCrew: {
+        select: { id: true, name: true },
+      },
+      user: {
+        select: { id: true },
+      },
+    },
+  });
+
+  if (active) {
+    await refreshEmployeeCurrentWeek(createdEmployee.id, req.auth!.companyId);
+  }
+
+  res.status(201).json({
+    employee: serializeManagedEmployee(createdEmployee),
+  });
+}));
+
+app.patch("/api/employees/:employeeId", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  if (req.auth!.role !== "ADMIN") {
+    res.status(403).json({ error: "Only admin can manage employees." });
+    return;
+  }
+
+  const employeeId = getParam(req.params.employeeId);
+  const currentEmployee = await prisma.employee.findFirst({
+    where: {
+      id: employeeId,
+      companyId: req.auth!.companyId,
+    },
+  });
+
+  if (!currentEmployee) {
+    res.status(404).json({ error: "Employee not found." });
+    return;
+  }
+
+  const { firstName, lastName, displayName, workerType, hourlyRate, defaultCrewId, active } = req.body as {
+    firstName?: string;
+    lastName?: string;
+    displayName?: string;
+    workerType?: string;
+    hourlyRate?: number;
+    defaultCrewId?: string | null;
+    active?: boolean;
+  };
+
+  const cleanFirstName = firstName?.trim() ?? "";
+  const cleanLastName = lastName?.trim() ?? "";
+  const cleanDisplayName = displayName?.trim() ?? `${cleanFirstName} ${cleanLastName}`.trim();
+  const normalizedWorkerType = normalizeManagedEmployeeWorkerType(workerType);
+
+  if (!cleanFirstName || !cleanLastName || !cleanDisplayName) {
+    res.status(400).json({ error: "First name, last name, and display name are required." });
+    return;
+  }
+
+  if (!normalizedWorkerType) {
+    res.status(400).json({ error: "Worker type must be employee or 1099 contractor." });
+    return;
+  }
+
+  if (!isFiniteNonNegativeNumber(hourlyRate)) {
+    res.status(400).json({ error: "Hourly rate must be a non-negative number." });
+    return;
+  }
+
+  if (typeof active !== "boolean") {
+    res.status(400).json({ error: "Active must be yes or no." });
+    return;
+  }
+
+  const { payrollSettings } = await getCompanyContextOrThrow(req.auth!.companyId);
+  const cleanDefaultCrewId = defaultCrewId?.trim() ? defaultCrewId.trim() : null;
+
+  if (cleanDefaultCrewId) {
+    try {
+      await getCompanyCrewOrThrow(req.auth!.companyId, cleanDefaultCrewId);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Select a valid crew." });
+      return;
+    }
+  }
+
+  const isContractor = normalizedWorkerType === "CONTRACTOR_1099";
+  const hourlyRateCents = Math.round(hourlyRate * 100);
+  const nextEmploymentStatus = active ? "ACTIVE" : "ARCHIVED";
+  const reactivated = currentEmployee.employmentStatus !== "ACTIVE" && active;
+  const archivedNow = currentEmployee.employmentStatus === "ACTIVE" && !active;
+
+  const updatedEmployee = await prisma.employee.update({
+    where: { id: currentEmployee.id },
+    data: {
+      firstName: cleanFirstName,
+      lastName: cleanLastName,
+      displayName: cleanDisplayName,
+      workerType: normalizedWorkerType,
+      employmentStatus: nextEmploymentStatus,
+      hourlyRateCents,
+      overtimeRateCents: payrollSettings.payType === "HOURLY" ? hourlyRateCents : null,
+      defaultCrewId: cleanDefaultCrewId,
+      usesCompanyFederalDefault: !isContractor,
+      usesCompanyStateDefault: !isContractor,
+      federalWithholdingPercent: isContractor ? 0 : payrollSettings.defaultFederalWithholdingValue,
+      stateWithholdingPercent: isContractor ? 0 : payrollSettings.defaultStateWithholdingValue,
+      archivedAt: active ? null : archivedNow ? new Date() : currentEmployee.archivedAt,
+      rehiredAt: reactivated ? new Date() : currentEmployee.rehiredAt,
+    },
+    include: {
+      defaultCrew: {
+        select: { id: true, name: true },
+      },
+      user: {
+        select: { id: true },
+      },
+    },
+  });
+
+  if (active) {
+    await refreshEmployeeCurrentWeek(updatedEmployee.id, req.auth!.companyId);
+  }
+
+  res.json({
+    employee: serializeManagedEmployee(updatedEmployee),
+  });
+}));
+
+app.get("/api/company/invites", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  if (!authorizeAdmin(req, res)) {
+    return;
+  }
+
+  const invites = await prisma.userInvite.findMany({
+    where: { companyId: req.auth!.companyId },
+    include: {
+      employee: {
+        select: { displayName: true },
+      },
+      invitedByUser: {
+        select: { fullName: true },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 25,
+  });
+
+  res.json({
+    invites: invites.map((invite) => serializeInviteSummary(invite)),
+  });
+}));
+
+app.post("/api/company/invites", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  if (!authorizeAdmin(req, res)) {
+    return;
+  }
+
+  const { employeeId, email, role } = req.body as {
+    employeeId?: string | null;
+    email?: string;
+    role?: string;
+  };
+
+  const normalizedEmail = email?.trim().toLowerCase() ?? "";
+  const normalizedRole = normalizeInviteRole(role);
+  const cleanEmployeeId = employeeId?.trim() || null;
+
+  if (!normalizedEmail) {
+    res.status(400).json({ error: "Email is required for this invite." });
+    return;
+  }
+
+  if (!normalizedEmail.includes("@")) {
+    res.status(400).json({ error: "Enter a valid email address." });
+    return;
+  }
+
+  if (!normalizedRole) {
+    res.status(400).json({ error: "Invite role must be foreman or employee." });
+    return;
+  }
+
+  let employee:
+    | (Awaited<ReturnType<typeof prisma.employee.findFirst>> & { user: { id: string } | null })
+    | null = null;
+
+  if (cleanEmployeeId) {
+    employee = await prisma.employee.findFirst({
+      where: {
+        id: cleanEmployeeId,
+        companyId: req.auth!.companyId,
+      },
+      include: {
+        user: {
+          select: { id: true },
+        },
+      },
+    });
+
+    if (!employee) {
+      res.status(404).json({ error: "Employee not found for this company." });
+      return;
+    }
+
+    if (employee.user) {
+      res.status(409).json({ error: "This employee already has login access." });
+      return;
+    }
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+    select: {
+      id: true,
+      companyId: true,
+      employeeId: true,
+      status: true,
+      deactivatedAt: true,
+    },
+  });
+
+  if (existingUser && existingUser.companyId !== req.auth!.companyId) {
+    res.status(409).json({ error: "That email already belongs to another company account." });
+    return;
+  }
+
+  if (
+    existingUser &&
+    existingUser.companyId === req.auth!.companyId &&
+    existingUser.status === "ACTIVE" &&
+    !existingUser.deactivatedAt
+  ) {
+    res.status(409).json({ error: "That email already has active login access." });
+    return;
+  }
+
+  if (cleanEmployeeId && existingUser?.employeeId && existingUser.employeeId !== cleanEmployeeId) {
+    res.status(409).json({ error: "That email is already linked to a different employee." });
+    return;
+  }
+
+  const activeInvite = await prisma.userInvite.findFirst({
+    where: {
+      companyId: req.auth!.companyId,
+      acceptedAt: null,
+      expiresAt: { gt: new Date() },
+      OR: [
+        ...(cleanEmployeeId ? [{ employeeId: cleanEmployeeId }] : []),
+        { email: normalizedEmail },
+      ],
+    },
+  });
+
+  if (activeInvite) {
+    res.status(409).json({ error: "A pending invite already exists for this worker or email." });
+    return;
+  }
+
+  const rawToken = createInviteToken();
+  const expiresAt = new Date(Date.now() + INVITE_EXPIRY_HOURS * 60 * 60 * 1000);
+  const createdInvite = await prisma.userInvite.create({
+    data: {
+      companyId: req.auth!.companyId,
+      employeeId: cleanEmployeeId,
+      email: normalizedEmail,
+      role: normalizedRole,
+      tokenHash: hashInviteToken(rawToken),
+      expiresAt,
+      invitedByUserId: req.auth!.userId,
+    },
+    include: {
+      employee: {
+        select: { displayName: true },
+      },
+      invitedByUser: {
+        select: { fullName: true },
+      },
+    },
+  });
+
+  const inviteUrl = buildInviteUrl(req, rawToken);
+  console.log(`[invite:dev-link] ${normalizedEmail} -> ${inviteUrl}`);
+
+  res.status(201).json({
+    invite: serializeInviteSummary(createdInvite),
+    inviteUrl,
+    deliveryMode: "dev_link",
   });
 }));
 
