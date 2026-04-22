@@ -44,12 +44,7 @@ const features = [
   'Contractor hour tracking app built for small crews',
   'Simple construction payroll prep workflow',
   'Export timesheets to CSV for accountant handoff',
-  'Verified labor hour logs for weekly review',
-  'Small crew management (2–15 workers)',
   'Manage multiple crews on different jobs seamlessly',
-  'Subcontractor 1099 and W-2 tracking in one board',
-  'Perfect for roofers, masons, landscapers, and construction crews',
-  'Fast load time, mobile-first design for job sites',
 ];
 
 function ProductPreview() {
