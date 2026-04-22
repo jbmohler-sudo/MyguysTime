@@ -54,9 +54,14 @@ export function LoginScreen({ onLogin, error }: LoginScreenProps) {
         {localError || error ? <p className="error-banner">{localError || error}</p> : null}
         <div className="demo-logins">
           <strong>Seeded logins</strong>
+          <p style={{ marginTop: "8px", fontWeight: "500" }}>Crew Time Masonry & Roofing (MA)</p>
           <span>`admin@crewtime.local / admin123`</span>
           <span>`luis@crewtime.local / foreman123`</span>
           <span>`marco@crewtime.local / employee123`</span>
+          <p style={{ marginTop: "12px", marginBottom: "0", fontWeight: "500" }}>ApexRoofing, Inc (TX)</p>
+          <span>`admin@apexroofing.local / apex_admin123`</span>
+          <span>`jake@apexroofing.local / apex_foreman123`</span>
+          <span>`sarah@apexroofing.local / apex_employee123`</span>
         </div>
       </section>
     </div>
