@@ -1,241 +1,213 @@
-import { useEffect } from "react";
-import { Logo } from "./Logo";
+import { useState, useEffect } from 'react';
+import { CheckCircle2, Truck, Eye, BarChart3, FileText, ArrowRight, Check } from 'lucide-react';
+import { useLocation } from 'wouter';
 
-interface PublicHomepageProps {
-  appUrl: string;
+/**
+ * Design Philosophy: Modern Minimalist with Progressive Disclosure
+ * Applied across entire marketing homepage for "My Guys Time"
+ * - Staggered left-right layout for workflow steps
+ * - Progressive disclosure: details reveal on interaction
+ * - Scroll-triggered animations feel natural and purposeful
+ * - Construction orange accent (#FF6B35) ties to industry
+ * - Minimal color palette (off-white, slate, orange) feels premium
+ * - Product preview mock-up integrated seamlessly
+ * - SEO-optimized with keyword-rich content and proper heading hierarchy
+ */
+
+interface WorkflowStep {
+  number: number;
+  title: string;
+  description: string;
+  details: string;
+  icon: React.ReactNode;
 }
 
-const SOFTWARE_APPLICATION_SCHEMA = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "My Guys Time",
-  category: "BusinessApplication",
-  applicationCategory: "FinanceApplication",
-  operatingSystem: "Web",
-  description: "Contractor hour tracking and payroll-prep tool for small crews",
-  url: "https://www.myguystime.com",
-};
+const workflowSteps: WorkflowStep[] = [
+  {
+    number: 1,
+    title: 'Enter hours in the truck',
+    description: 'Fast, simple hour tracking for contractors in the field.',
+    details: 'Built for real job sites, not office desks. Your crew logs hours directly from the field with an intuitive mobile-first interface.',
+    icon: <Truck className="w-8 h-8" />,
+  },
+  {
+    number: 2,
+    title: 'Review the week in the office',
+    description: 'See your entire crew in one place. Perfect for small crew timecard management.',
+    details: 'It works as a small crew timecard app with clear weekly status and day-by-day review. Catch discrepancies before they become payroll issues.',
+    icon: <Eye className="w-8 h-8" />,
+  },
+  {
+    number: 3,
+    title: 'Adjust and finalize',
+    description: 'Handle reimbursements, deductions, and mixed crews. Works as a simple subcontractor 1099 tracker.',
+    details: 'It also works as a simple subcontractor 1099 tracker when you need clean weekly review. Manage all the details that matter to your bottom line.',
+    icon: <BarChart3 className="w-8 h-8" />,
+  },
+  {
+    number: 4,
+    title: 'Export checks',
+    description: 'Export timesheets to CSV for your accountant. No payroll system required.',
+    details: 'No payroll system required, just verified labor hour logs and a practical weekly handoff. Your accountant gets exactly what they need.',
+    icon: <FileText className="w-8 h-8" />,
+  },
+];
+
+const features = [
+  'Contractor hour tracking app built for small crews',
+  'Simple construction payroll prep workflow',
+  'Export timesheets to CSV for accountant handoff',
+  'Verified labor hour logs for weekly review',
+  'Small crew management (2–15 workers)',
+  'Manage multiple crews on different jobs seamlessly',
+  'Subcontractor 1099 and W-2 tracking in one board',
+  'Perfect for roofers, masons, landscapers, and construction crews',
+  'Fast load time, mobile-first design for job sites',
+];
 
 function ProductPreview() {
   return (
-    <div className="homepage-shot" aria-label="My Guys Time product screenshot">
-      <div className="homepage-shot__topbar">
-        <div>
-          <Logo size="preview" />
-          <h3>Weekly crew board</h3>
-        </div>
-        <span className="homepage-shot__badge">Payroll-prep ready</span>
-      </div>
-      <div className="homepage-shot__stats">
-        <div>
-          <span>Weeks to review</span>
-          <strong>3</strong>
-        </div>
-        <div>
-          <span>Net estimate</span>
-          <strong>$4,982</strong>
-        </div>
-        <div>
-          <span>Missing confirmations</span>
-          <strong>2</strong>
-        </div>
-      </div>
-      <div className="homepage-shot__board">
-        <article className="homepage-shot__card">
-          <div className="homepage-shot__card-header">
-            <div>
-              <strong>Luis Ortega</strong>
-              <span>Masonry Crew</span>
-            </div>
-            <span className="pill pill--approved">Foreman Approved</span>
+    <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200/50 hover:shadow-3xl transition-shadow duration-500">
+      {/* Top Bar */}
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
+            <CheckCircle2 className="w-5 h-5 text-white" />
           </div>
-          <div className="homepage-shot__days">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => (
-              <div className={index === 2 ? "homepage-shot__day homepage-shot__day--today" : "homepage-shot__day"} key={day}>
-                <strong>{day}</strong>
-                <span>{index < 5 ? "7:00 - 3:30" : "--"}</span>
-                <small>{index < 5 ? "7.5h" : "0h"}</small>
+          <div>
+            <h3 className="font-semibold text-slate-900 text-sm">Weekly crew board</h3>
+          </div>
+        </div>
+        <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">
+          Payroll-prep ready
+        </span>
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-3 gap-4 px-6 py-4 border-b border-slate-200 bg-slate-50">
+        <div className="text-center">
+          <p className="text-xs text-slate-600 mb-1">Weeks to review</p>
+          <p className="text-2xl font-bold text-slate-900">3</p>
+        </div>
+        <div className="text-center border-l border-r border-slate-200">
+          <p className="text-xs text-slate-600 mb-1">Net estimate</p>
+          <p className="text-2xl font-bold text-slate-900">$4,982</p>
+        </div>
+        <div className="text-center">
+          <p className="text-xs text-slate-600 mb-1">Missing confirmations</p>
+          <p className="text-2xl font-bold text-slate-900">2</p>
+        </div>
+      </div>
+
+      {/* Crew Cards */}
+      <div className="p-6 space-y-4">
+        {/* Primary Card */}
+        <div className="border border-slate-200 rounded-lg p-4 hover:border-orange-300 hover:bg-orange-50/30 transition-all duration-300">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <p className="font-semibold text-slate-900">Luis Ortega</p>
+              <p className="text-sm text-slate-600">Masonry Crew</p>
+            </div>
+            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded">
+              Foreman Approved
+            </span>
+          </div>
+
+          {/* Days Grid */}
+          <div className="grid grid-cols-7 gap-2 mb-4">
+            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
+              <div
+                key={day}
+                className={`text-center p-2 rounded border transition-all duration-300 ${
+                  index === 2
+                    ? 'border-orange-500 bg-orange-50'
+                    : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                }`}
+              >
+                <p className="text-xs font-semibold text-slate-900">{day}</p>
+                <p className="text-xs text-slate-600 mt-1">{index < 5 ? '7:00 - 3:30' : '--'}</p>
+                <p className="text-xs font-bold text-slate-900 mt-1">{index < 5 ? '7.5h' : '0h'}</p>
               </div>
             ))}
           </div>
-          <div className="homepage-shot__footer">
-            <span className="alert-chip alert-chip--ok">Adjusted</span>
-            <strong>Net check estimate: $1,248</strong>
-          </div>
-        </article>
 
-        <article className="homepage-shot__card homepage-shot__card--secondary">
-          <div className="homepage-shot__card-header">
-            <div>
-              <strong>Office review</strong>
-              <span>Checks, exports, and accountant handoff</span>
-            </div>
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">
+              Adjusted
+            </span>
+            <p className="font-semibold text-slate-900">Net check: $1,248</p>
           </div>
-          <ul className="homepage-shot__list">
-            <li>Payroll summary CSV</li>
-            <li>Time detail CSV</li>
-            <li>Reimbursements and deductions</li>
-            <li>Private office-only reports</li>
+        </div>
+
+        {/* Secondary Card */}
+        <div className="border border-slate-200 rounded-lg p-4 bg-slate-50 hover:bg-slate-100 transition-all duration-300">
+          <p className="font-semibold text-slate-900 mb-3">Office review</p>
+          <p className="text-sm text-slate-600 mb-3">Checks, exports, and accountant handoff</p>
+          <ul className="space-y-2">
+            {['Payroll summary CSV', 'Time detail CSV', 'Reimbursements and deductions', 'Private office-only reports'].map((item) => (
+              <li key={item} className="flex items-center gap-2 text-sm text-slate-600">
+                <Check className="w-4 h-4 text-orange-500" />
+                {item}
+              </li>
+            ))}
           </ul>
-        </article>
+        </div>
       </div>
     </div>
   );
 }
 
-export function PublicHomepage({ appUrl }: PublicHomepageProps) {
+export default function PublicHomepage() {
+  const [expandedStep, setExpandedStep] = useState<number | null>(null);
+  const [visibleSteps, setVisibleSteps] = useState<Set<number>>(new Set());
+  const [visibleFeatures, setVisibleFeatures] = useState<Set<number>>(new Set());
+  const [, navigate] = useLocation();
+
+  // Set page title and meta tags dynamically for SEO
   useEffect(() => {
-    document.title = "Contractor Hour Tracking App | My Guys Time";
-
-    let meta = document.querySelector('meta[name="description"]');
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.setAttribute("name", "description");
-      document.head.appendChild(meta);
-    }
-    meta.setAttribute(
-      "content",
-      "Track crew hours, review the week, and export payroll-ready totals. Simple time tracking for contractors and small crews.",
-    );
-
-    const scriptId = "my-guys-time-schema";
-    let schema = document.getElementById(scriptId) as HTMLScriptElement | null;
-    if (!schema) {
-      schema = document.createElement("script");
-      schema.id = scriptId;
-      schema.type = "application/ld+json";
-      document.head.appendChild(schema);
-    }
-    schema.textContent = JSON.stringify(SOFTWARE_APPLICATION_SCHEMA);
-
-    return () => {
-      const schemaNode = document.getElementById(scriptId);
-      if (schemaNode) {
-        schemaNode.remove();
-      }
-    };
+    document.title = 'Contractor Hour Tracking App | My Guys Time';
   }, []);
 
+  // Intersection observer for scroll-triggered animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const stepNumber = parseInt(entry.target.getAttribute('data-step') || '0');
+            if (stepNumber > 0) {
+              setVisibleSteps((prev) => new Set([...prev, stepNumber]));
+            }
+
+            const featureIndex = parseInt(entry.target.getAttribute('data-feature') || '-1');
+            if (featureIndex >= 0) {
+              setVisibleFeatures((prev) => new Set([...prev, featureIndex]));
+            }
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    document.querySelectorAll('[data-step], [data-feature]').forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  const handleStartClick = () => {
+    navigate('/login');
+  };
+
   return (
-    <div className="marketing-shell">
-      <div className="marketing-header">
-        <Logo className="marketing-header__logo" size="marketing" />
-      </div>
-      <header className="marketing-hero">
-        <div className="marketing-hero__copy">
-          <h1>Track Crew Hours &amp; Prep Payroll in Seconds, Built for Contractors</h1>
-          <p className="marketing-lead">
-            My Guys Time is a simple contractor hour tracking app built for small crews. Track your
-            guys&apos; hours, review the week, and export clean totals for your accountant.
-          </p>
-          <div className="marketing-actions">
-            <a className="button-strong marketing-link-button" href={appUrl}>
-              Start your week
-            </a>
-            <a className="marketing-link" href="#workflow">
-              See how it works
-            </a>
-          </div>
-          <p className="marketing-note">
-            Contractor hour tracking app for roofing, masonry, landscaping, and other small crews
-            that need simple construction payroll prep without full payroll software.
-          </p>
-        </div>
-        <ProductPreview />
-      </header>
-
-      <main className="marketing-main">
-        <section className="marketing-section marketing-section--bridge">
-          <p className="eyebrow">Why crews use it</p>
-          <h2>The bridge between the job site and your accountant</h2>
-          <p>
-            This is the missing middle. Not full payroll. Not a heavy office system. Just a clean
-            way to check hours, review the week, and hand off payroll-ready totals.
-          </p>
-        </section>
-
-        <section className="marketing-section" id="workflow">
-          <p className="eyebrow">How It Works</p>
-          <h2>Simple weekly workflow for crews and office</h2>
-          <div className="marketing-steps">
-            <article className="marketing-step">
-              <span>Step 1</span>
-              <h3>Enter hours in the truck</h3>
-              <p>
-                Fast, simple hour tracking for contractors in the field. Built for real job sites,
-                not office desks.
-              </p>
-            </article>
-            <article className="marketing-step">
-              <span>Step 2</span>
-              <h3>Review the week in the office</h3>
-              <p>
-                See your entire crew in one place. It works as a small crew timecard app with clear
-                weekly status and day-by-day review.
-              </p>
-            </article>
-            <article className="marketing-step">
-              <span>Step 3</span>
-              <h3>Adjust and finalize</h3>
-              <p>
-                Handle gas, petty cash, deductions, and mixed crews. It also works as a simple
-                subcontractor 1099 tracker when you need clean weekly review.
-              </p>
-            </article>
-            <article className="marketing-step">
-              <span>Step 4</span>
-              <h3>Export checks</h3>
-              <p>
-                Export timesheets to CSV for your accountant. No payroll system required, just
-                verified labor hour logs and a practical weekly handoff.
-              </p>
-            </article>
-          </div>
-        </section>
-
-        <section className="marketing-section">
-          <p className="eyebrow">Why It&apos;s Different</p>
-          <h2>Built for small crews, not generic SaaS workflows</h2>
-          <div className="marketing-columns">
-            <div className="marketing-card">
-              <h3>Made for the way contractors actually work</h3>
-              <p>
-                Your foreman and your office do not need another bloated system. My Guys Time keeps
-                the weekly flow direct, practical, and easy to trust.
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      {/* Header */}
+      <header className="border-b border-slate-200/50 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
+              <CheckCircle2 className="w-6 h-6 text-white" />
             </div>
-            <div className="marketing-card">
-              <h3>Payroll-prep positioning stays clear</h3>
-              <p>
-                You can run payroll prep, review deductions, and export totals without pretending
-                this is a full compliance engine.
-              </p>
-            </div>
+            <h1 className="text-2xl font-bold text-slate-900">My Guys Time</h1>
           </div>
-        </section>
-
-        <section className="marketing-section">
-          <p className="eyebrow">Feature Snapshot</p>
-          <h2>Small feature list, focused on weekly work</h2>
-          <ul className="marketing-feature-list">
-            <li>Contractor hour tracking app built for crews</li>
-            <li>Simple construction payroll prep workflow</li>
-            <li>Export timesheets to CSV for accountant handoff</li>
-            <li>Verified labor hour logs for weekly review</li>
-            <li>Small crew management for roughly 2 to 15 workers</li>
-            <li>Subcontractor and W-2 tracking support in one weekly board</li>
-          </ul>
-        </section>
-
-        <section className="marketing-section marketing-section--trust">
-          <p className="eyebrow">Payroll Prep Reminder</p>
-          <h2>Built for payroll preparation, not payroll processing</h2>
-          <p>
-            My Guys Time helps you track hours, review totals, and estimate pay and withholdings.
-            Always verify numbers before issuing checks or finalizing payroll.
-          </p>
-        </section>
-      </main>
-    </div>
-  );
-}
+          <nav className="hidden md:flex items-center gap-8">
+            <a href="#workflow" className="text-slate-
