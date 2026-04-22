@@ -426,6 +426,15 @@ export async function seedDatabase() {
     });
 
     for (const employee of [luis, marco, troy]) {
+      // Check if timesheet already exists for this employee/week
+      const existingTimesheet = await prisma.timesheetWeek.findFirst({
+        where: { employeeId: employee.id, weekStartDate: weekStart },
+      });
+
+      if (existingTimesheet) {
+        continue; // Skip if already created
+      }
+
       const createdTimesheet = await prisma.timesheetWeek.create({
         data: {
           employeeId: employee.id,
@@ -490,40 +499,54 @@ export async function seedDatabase() {
       });
     }
 
-    await prisma.crewDayDefault.createMany({
-      data: [
-        { crewId: masonryCrew.id, weekStartDate: weekStart, dayIndex: 0, startTimeMinutes: 420, endTimeMinutes: 930 },
-        { crewId: masonryCrew.id, weekStartDate: weekStart, dayIndex: 1, startTimeMinutes: 420, endTimeMinutes: 930 },
-        { crewId: masonryCrew.id, weekStartDate: weekStart, dayIndex: 2, startTimeMinutes: 420, endTimeMinutes: 930 },
-        { crewId: masonryCrew.id, weekStartDate: weekStart, dayIndex: 3, startTimeMinutes: 420, endTimeMinutes: 960 },
-        { crewId: masonryCrew.id, weekStartDate: weekStart, dayIndex: 4, startTimeMinutes: 420, endTimeMinutes: 915 },
-      ],
+    // Create crew day defaults if they don't exist
+    const existingDefaults = await prisma.crewDayDefault.findFirst({
+      where: { crewId: masonryCrew.id, weekStartDate: weekStart },
     });
 
-    await prisma.privateReport.createMany({
-      data: [
-        {
-          employeeId: troy.id,
-          crewId: masonryCrew.id,
-          reportDate: new Date("2026-04-16T00:00:00"),
-          jobTag: "Church steps",
-          category: "tardiness",
-          severity: "medium",
-          factualDescription: "Arrived 22 minutes late after start time and did not call ahead.",
-          createdByUserId: foremanUser.id,
-        },
-        {
-          employeeId: marco.id,
-          crewId: masonryCrew.id,
-          reportDate: new Date("2026-04-18T00:00:00"),
-          jobTag: "Cleanup",
-          category: "safety issue",
-          severity: "low",
-          factualDescription: "Worked on cleanup without eye protection until corrected by foreman.",
-          createdByUserId: adminUser.id,
-        },
-      ],
+    if (!existingDefaults) {
+      await prisma.crewDayDefault.createMany({
+        data: [
+          { crewId: masonryCrew.id, weekStartDate: weekStart, dayIndex: 0, startTimeMinutes: 420, endTimeMinutes: 930 },
+          { crewId: masonryCrew.id, weekStartDate: weekStart, dayIndex: 1, startTimeMinutes: 420, endTimeMinutes: 930 },
+          { crewId: masonryCrew.id, weekStartDate: weekStart, dayIndex: 2, startTimeMinutes: 420, endTimeMinutes: 930 },
+          { crewId: masonryCrew.id, weekStartDate: weekStart, dayIndex: 3, startTimeMinutes: 420, endTimeMinutes: 960 },
+          { crewId: masonryCrew.id, weekStartDate: weekStart, dayIndex: 4, startTimeMinutes: 420, endTimeMinutes: 915 },
+        ],
+      });
+    }
+
+    // Create private reports if they don't exist
+    const existingReports = await prisma.privateReport.findFirst({
+      where: { crewId: masonryCrew.id },
     });
+
+    if (!existingReports) {
+      await prisma.privateReport.createMany({
+        data: [
+          {
+            employeeId: troy.id,
+            crewId: masonryCrew.id,
+            reportDate: new Date("2026-04-16T00:00:00"),
+            jobTag: "Church steps",
+            category: "tardiness",
+            severity: "medium",
+            factualDescription: "Arrived 22 minutes late after start time and did not call ahead.",
+            createdByUserId: foremanUser.id,
+          },
+          {
+            employeeId: marco.id,
+            crewId: masonryCrew.id,
+            reportDate: new Date("2026-04-18T00:00:00"),
+            jobTag: "Cleanup",
+            category: "safety issue",
+            severity: "low",
+            factualDescription: "Worked on cleanup without eye protection until corrected by foreman.",
+            createdByUserId: adminUser.id,
+          },
+        ],
+      });
+    }
 
     // ===== CREATE SECOND TEST COMPANY: ApexRoofing, Inc =====
     let apexCompany = await prisma.company.findFirst({
