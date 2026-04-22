@@ -33,6 +33,7 @@ export async function seedDatabase() {
     if (existingRules === 0) {
       await prisma.statePayrollRule.createMany({
       data: [
+        // States with no state income tax (functional)
         {
           stateCode: "AK",
           stateName: "Alaska",
@@ -41,10 +42,10 @@ export async function seedDatabase() {
           hasExtraEmployeeWithholdings: false,
           defaultStateWithholdingMode: "PERCENTAGE",
           defaultStateWithholdingValue: 0,
-          notes: "No state income tax withholding. Allow manual extra withholding entry if office needs it.",
-          lastReviewedAt: new Date("2026-04-20T09:00:00"),
+          notes: "No state income tax withholding.",
+          lastReviewedAt: new Date("2026-04-22T09:00:00"),
           sourceLabel: "Internal payroll-prep baseline",
-          sourceUrl: "https://www.mass.gov/info-details/paid-family-and-medical-leave-employer-contribution-rates-and-calculator",
+          sourceUrl: "https://www.irs.gov/",
         },
         {
           stateCode: "FL",
@@ -54,8 +55,8 @@ export async function seedDatabase() {
           hasExtraEmployeeWithholdings: false,
           defaultStateWithholdingMode: "PERCENTAGE",
           defaultStateWithholdingValue: 0,
-          notes: "No state income tax withholding. Allow manual extra withholding entry if office needs it.",
-          lastReviewedAt: new Date("2026-04-20T09:00:00"),
+          notes: "No state income tax withholding.",
+          lastReviewedAt: new Date("2026-04-22T09:00:00"),
           sourceLabel: "Internal payroll-prep baseline",
           sourceUrl: "https://www.irs.gov/",
         },
@@ -67,47 +68,8 @@ export async function seedDatabase() {
           hasExtraEmployeeWithholdings: false,
           defaultStateWithholdingMode: "PERCENTAGE",
           defaultStateWithholdingValue: 0,
-          notes: "No state income tax withholding. Allow manual extra withholding entry if office needs it.",
-          lastReviewedAt: new Date("2026-04-20T09:00:00"),
-          sourceLabel: "Internal payroll-prep baseline",
-          sourceUrl: "https://www.irs.gov/",
-        },
-        {
-          stateCode: "NH",
-          stateName: "New Hampshire",
-          supportLevel: "FULL",
-          hasStateIncomeTax: false,
-          hasExtraEmployeeWithholdings: false,
-          defaultStateWithholdingMode: "PERCENTAGE",
-          defaultStateWithholdingValue: 0,
-          notes: "No state income tax withholding. Allow manual extra withholding entry if office needs it.",
-          lastReviewedAt: new Date("2026-04-20T09:00:00"),
-          sourceLabel: "Internal payroll-prep baseline",
-          sourceUrl: "https://www.irs.gov/",
-        },
-        {
-          stateCode: "SD",
-          stateName: "South Dakota",
-          supportLevel: "FULL",
-          hasStateIncomeTax: false,
-          hasExtraEmployeeWithholdings: false,
-          defaultStateWithholdingMode: "PERCENTAGE",
-          defaultStateWithholdingValue: 0,
-          notes: "No state income tax withholding. Allow manual extra withholding entry if office needs it.",
-          lastReviewedAt: new Date("2026-04-20T09:00:00"),
-          sourceLabel: "Internal payroll-prep baseline",
-          sourceUrl: "https://www.irs.gov/",
-        },
-        {
-          stateCode: "TN",
-          stateName: "Tennessee",
-          supportLevel: "FULL",
-          hasStateIncomeTax: false,
-          hasExtraEmployeeWithholdings: false,
-          defaultStateWithholdingMode: "PERCENTAGE",
-          defaultStateWithholdingValue: 0,
-          notes: "No state income tax withholding. Allow manual extra withholding entry if office needs it.",
-          lastReviewedAt: new Date("2026-04-20T09:00:00"),
+          notes: "No state income tax withholding.",
+          lastReviewedAt: new Date("2026-04-22T09:00:00"),
           sourceLabel: "Internal payroll-prep baseline",
           sourceUrl: "https://www.irs.gov/",
         },
@@ -119,37 +81,12 @@ export async function seedDatabase() {
           hasExtraEmployeeWithholdings: false,
           defaultStateWithholdingMode: "PERCENTAGE",
           defaultStateWithholdingValue: 0,
-          notes: "No state income tax withholding. Allow manual extra withholding entry if office needs it.",
-          lastReviewedAt: new Date("2026-04-20T09:00:00"),
+          notes: "No state income tax withholding.",
+          lastReviewedAt: new Date("2026-04-22T09:00:00"),
           sourceLabel: "Internal payroll-prep baseline",
           sourceUrl: "https://www.irs.gov/",
         },
-        {
-          stateCode: "WA",
-          stateName: "Washington",
-          supportLevel: "FULL",
-          hasStateIncomeTax: false,
-          hasExtraEmployeeWithholdings: false,
-          defaultStateWithholdingMode: "PERCENTAGE",
-          defaultStateWithholdingValue: 0,
-          notes: "No state income tax withholding. Allow manual extra withholding entry if office needs it.",
-          lastReviewedAt: new Date("2026-04-20T09:00:00"),
-          sourceLabel: "Internal payroll-prep baseline",
-          sourceUrl: "https://www.irs.gov/",
-        },
-        {
-          stateCode: "WY",
-          stateName: "Wyoming",
-          supportLevel: "FULL",
-          hasStateIncomeTax: false,
-          hasExtraEmployeeWithholdings: false,
-          defaultStateWithholdingMode: "PERCENTAGE",
-          defaultStateWithholdingValue: 0,
-          notes: "No state income tax withholding. Allow manual extra withholding entry if office needs it.",
-          lastReviewedAt: new Date("2026-04-20T09:00:00"),
-          sourceLabel: "Internal payroll-prep baseline",
-          sourceUrl: "https://www.irs.gov/",
-        },
+        // Massachusetts - with state withholding support
         {
           stateCode: "MA",
           stateName: "Massachusetts",
@@ -164,23 +101,9 @@ export async function seedDatabase() {
           notes: "Massachusetts payroll-prep support includes state withholding estimate plus PFML shown as a separate line.",
           disclaimerText:
             "Massachusetts payroll-prep support includes separate PFML handling. Review all withholding amounts before issuing checks.",
-          lastReviewedAt: new Date("2026-04-20T09:00:00"),
+          lastReviewedAt: new Date("2026-04-22T09:00:00"),
           sourceLabel: "Massachusetts payroll-prep review",
           sourceUrl: "https://www.mass.gov/info-details/paid-family-and-medical-leave-employer-contribution-rates-and-calculator",
-        },
-        {
-          stateCode: "CA",
-          stateName: "California",
-          supportLevel: "UNSUPPORTED",
-          hasStateIncomeTax: true,
-          hasExtraEmployeeWithholdings: false,
-          defaultStateWithholdingMode: "MANUAL_OVERRIDE",
-          defaultStateWithholdingValue: 0,
-          notes: UNSUPPORTED_STATE_MESSAGE,
-          disclaimerText: UNSUPPORTED_STATE_MESSAGE,
-          lastReviewedAt: new Date("2026-04-20T09:00:00"),
-          sourceLabel: "Internal unsupported-state fallback",
-          sourceUrl: "https://www.ftb.ca.gov/",
         },
       ],
       });
@@ -232,116 +155,209 @@ export async function seedDatabase() {
       });
     }
 
-    const masonryCrew = await prisma.crew.create({
-      data: { name: "Masonry Crew", companyId: company.id },
+    // Find or create test crews
+    let masonryCrew = await prisma.crew.findFirst({
+      where: { name: "Masonry Crew", companyId: company.id },
     });
 
-    const roofingCrew = await prisma.crew.create({
-      data: { name: "Roofing Crew", companyId: company.id },
+    if (!masonryCrew) {
+      masonryCrew = await prisma.crew.create({
+        data: { name: "Masonry Crew", companyId: company.id },
+      });
+    }
+
+    let roofingCrew = await prisma.crew.findFirst({
+      where: { name: "Roofing Crew", companyId: company.id },
     });
 
-    const luis = await prisma.employee.create({
-      data: {
-        companyId: company.id,
-        firstName: "Luis",
-        lastName: "Ortega",
-        displayName: "Luis Ortega",
-        hourlyRateCents: 3400,
-        defaultCrewId: masonryCrew.id,
-        usesCompanyFederalDefault: false,
-        usesCompanyStateDefault: false,
-        federalWithholdingPercent: 0.11,
-        stateWithholdingPercent: 0.04,
-      },
+    if (!roofingCrew) {
+      roofingCrew = await prisma.crew.create({
+        data: { name: "Roofing Crew", companyId: company.id },
+      });
+    }
+
+    // Find or create Luis
+    let luis = await prisma.employee.findFirst({
+      where: { displayName: "Luis Ortega", companyId: company.id },
     });
 
-    const marco = await prisma.employee.create({
-      data: {
-        companyId: company.id,
-        firstName: "Marco",
-        lastName: "Diaz",
-        displayName: "Marco Diaz",
-        hourlyRateCents: 2900,
-        defaultCrewId: masonryCrew.id,
-        usesCompanyFederalDefault: false,
-        usesCompanyStateDefault: false,
-        federalWithholdingPercent: 0.11,
-        stateWithholdingPercent: 0.04,
-      },
+    if (!luis) {
+      luis = await prisma.employee.create({
+        data: {
+          companyId: company.id,
+          firstName: "Luis",
+          lastName: "Ortega",
+          displayName: "Luis Ortega",
+          hourlyRateCents: 3400,
+          defaultCrewId: masonryCrew.id,
+          usesCompanyFederalDefault: false,
+          usesCompanyStateDefault: false,
+          federalWithholdingPercent: 0.11,
+          stateWithholdingPercent: 0.04,
+        },
+      });
+    }
+
+    // Find or create Marco
+    let marco = await prisma.employee.findFirst({
+      where: { displayName: "Marco Diaz", companyId: company.id },
     });
 
-    const troy = await prisma.employee.create({
-      data: {
-        companyId: company.id,
-        firstName: "Troy",
-        lastName: "Bennett",
-        displayName: "Troy Bennett",
-        hourlyRateCents: 2300,
-        defaultCrewId: masonryCrew.id,
-        usesCompanyFederalDefault: true,
-        usesCompanyStateDefault: true,
-        federalWithholdingPercent: 0.1,
-        stateWithholdingPercent: companyRule.defaultStateWithholdingValue,
-      },
+    if (!marco) {
+      marco = await prisma.employee.create({
+        data: {
+          companyId: company.id,
+          firstName: "Marco",
+          lastName: "Diaz",
+          displayName: "Marco Diaz",
+          hourlyRateCents: 2900,
+          defaultCrewId: masonryCrew.id,
+          usesCompanyFederalDefault: false,
+          usesCompanyStateDefault: false,
+          federalWithholdingPercent: 0.11,
+          stateWithholdingPercent: 0.04,
+        },
+      });
+    }
+
+    // Find or create Troy
+    let troy = await prisma.employee.findFirst({
+      where: { displayName: "Troy Bennett", companyId: company.id },
     });
 
-    const evan = await prisma.employee.create({
-      data: {
-        companyId: company.id,
-        firstName: "Evan",
-        lastName: "Brooks",
-        displayName: "Evan Brooks",
-        hourlyRateCents: 3100,
-        defaultCrewId: roofingCrew.id,
-        employmentStatus: "ARCHIVED",
-        archiveReason: "Seasonal layoff",
-        archiveNotes: "Eligible for rehire when residential roofing volume returns.",
-        archivedAt: new Date("2026-04-10T12:00:00"),
-      },
+    if (!troy) {
+      troy = await prisma.employee.create({
+        data: {
+          companyId: company.id,
+          firstName: "Troy",
+          lastName: "Bennett",
+          displayName: "Troy Bennett",
+          hourlyRateCents: 2300,
+          defaultCrewId: masonryCrew.id,
+          usesCompanyFederalDefault: true,
+          usesCompanyStateDefault: true,
+          federalWithholdingPercent: 0.1,
+          stateWithholdingPercent: companyRule.defaultStateWithholdingValue,
+        },
+      });
+    }
+
+    // Find or create Evan
+    let evan = await prisma.employee.findFirst({
+      where: { displayName: "Evan Brooks", companyId: company.id },
     });
 
-    await prisma.crew.update({
-      where: { id: masonryCrew.id },
-      data: { foremanId: luis.id },
+    if (!evan) {
+      evan = await prisma.employee.create({
+        data: {
+          companyId: company.id,
+          firstName: "Evan",
+          lastName: "Brooks",
+          displayName: "Evan Brooks",
+          hourlyRateCents: 3100,
+          defaultCrewId: roofingCrew.id,
+          employmentStatus: "ARCHIVED",
+          archiveReason: "Seasonal layoff",
+          archiveNotes: "Eligible for rehire when residential roofing volume returns.",
+          archivedAt: new Date("2026-04-10T12:00:00"),
+        },
+      });
+    }
+
+    // Update crew foreman if not already set
+    if (!masonryCrew.foremanId) {
+      await prisma.crew.update({
+        where: { id: masonryCrew.id },
+        data: { foremanId: luis.id },
+      });
+    }
+
+    // Create crew assignments if they don't exist
+    const luisAssignment = await prisma.crewAssignment.findFirst({
+      where: { crewId: masonryCrew.id, employeeId: luis.id },
+    });
+    if (!luisAssignment) {
+      await prisma.crewAssignment.create({
+        data: { crewId: masonryCrew.id, employeeId: luis.id, startsOn: new Date("2026-01-01T00:00:00") },
+      });
+    }
+
+    const marcoAssignment = await prisma.crewAssignment.findFirst({
+      where: { crewId: masonryCrew.id, employeeId: marco.id },
+    });
+    if (!marcoAssignment) {
+      await prisma.crewAssignment.create({
+        data: { crewId: masonryCrew.id, employeeId: marco.id, startsOn: new Date("2026-01-01T00:00:00") },
+      });
+    }
+
+    const troyAssignment = await prisma.crewAssignment.findFirst({
+      where: { crewId: masonryCrew.id, employeeId: troy.id },
+    });
+    if (!troyAssignment) {
+      await prisma.crewAssignment.create({
+        data: { crewId: masonryCrew.id, employeeId: troy.id, startsOn: new Date("2026-01-01T00:00:00") },
+      });
+    }
+
+    const evanAssignment = await prisma.crewAssignment.findFirst({
+      where: { crewId: roofingCrew.id, employeeId: evan.id },
+    });
+    if (!evanAssignment) {
+      await prisma.crewAssignment.create({
+        data: { crewId: roofingCrew.id, employeeId: evan.id, startsOn: new Date("2025-11-01T00:00:00"), endsOn: new Date("2026-04-10T00:00:00") },
+      });
+    }
+
+    // Find or create admin user
+    let adminUser = await prisma.user.findUnique({
+      where: { email: "admin@crewtime.local" },
     });
 
-    await prisma.crewAssignment.createMany({
-      data: [
-        { crewId: masonryCrew.id, employeeId: luis.id, startsOn: new Date("2026-01-01T00:00:00") },
-        { crewId: masonryCrew.id, employeeId: marco.id, startsOn: new Date("2026-01-01T00:00:00") },
-        { crewId: masonryCrew.id, employeeId: troy.id, startsOn: new Date("2026-01-01T00:00:00") },
-        { crewId: roofingCrew.id, employeeId: evan.id, startsOn: new Date("2025-11-01T00:00:00"), endsOn: new Date("2026-04-10T00:00:00") },
-      ],
+    if (!adminUser) {
+      adminUser = await prisma.user.create({
+        data: {
+          email: "admin@crewtime.local",
+          fullName: "Dana Office",
+          passwordHash: await hashPassword("admin123"),
+          role: "ADMIN",
+        },
+      });
+    }
+
+    // Find or create foreman user
+    let foremanUser = await prisma.user.findUnique({
+      where: { email: "luis@crewtime.local" },
     });
 
-    const adminUser = await prisma.user.create({
-      data: {
-        email: "admin@crewtime.local",
-        fullName: "Dana Office",
-        passwordHash: await hashPassword("admin123"),
-        role: "ADMIN",
-      },
+    if (!foremanUser) {
+      foremanUser = await prisma.user.create({
+        data: {
+          email: "luis@crewtime.local",
+          fullName: "Luis Ortega",
+          passwordHash: await hashPassword("foreman123"),
+          role: "FOREMAN",
+          employeeId: luis.id,
+        },
+      });
+    }
+
+    // Find or create employee user
+    let employeeUser = await prisma.user.findUnique({
+      where: { email: "marco@crewtime.local" },
     });
 
-    const foremanUser = await prisma.user.create({
-      data: {
-        email: "luis@crewtime.local",
-        fullName: "Luis Ortega",
-        passwordHash: await hashPassword("foreman123"),
-        role: "FOREMAN",
-        employeeId: luis.id,
-      },
-    });
-
-    const employeeUser = await prisma.user.create({
-      data: {
-        email: "marco@crewtime.local",
-        fullName: "Marco Diaz",
-        passwordHash: await hashPassword("employee123"),
-        role: "EMPLOYEE",
-        employeeId: marco.id,
-      },
-    });
+    if (!employeeUser) {
+      employeeUser = await prisma.user.create({
+        data: {
+          email: "marco@crewtime.local",
+          fullName: "Marco Diaz",
+          passwordHash: await hashPassword("employee123"),
+          role: "EMPLOYEE",
+          employeeId: marco.id,
+        },
+      });
+    }
 
     await prisma.company.update({
       where: { id: company.id },
