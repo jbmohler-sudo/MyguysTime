@@ -83,6 +83,63 @@ function DayEditor({
     await save({ end: nextValue });
   }
 
+  const startField = (
+    <label className={activeField === "start" ? "day-field day-field--active" : "day-field"}>
+      Start
+      <input
+        disabled={!editable}
+        type="time"
+        value={start}
+        onClick={() => setActiveField("start")}
+        onChange={(event) => setStart(event.target.value)}
+        onFocus={() => setActiveField("start")}
+        onBlur={() => void save({ start })}
+      />
+    </label>
+  );
+
+  const endField = (
+    <label className={activeField === "end" ? "day-field day-field--active" : "day-field"}>
+      End
+      <input
+        disabled={!editable}
+        type="time"
+        value={end}
+        onClick={() => setActiveField("end")}
+        onChange={(event) => setEnd(event.target.value)}
+        onFocus={() => setActiveField("end")}
+        onBlur={() => void save({ end })}
+      />
+    </label>
+  );
+
+  const lunchField = (
+    <label className={uiMode === "truck" ? "day-field day-field--truck-detail" : undefined}>
+      Lunch
+      <input
+        disabled={!editable}
+        min={0}
+        type="number"
+        value={lunchMinutes}
+        onChange={(event) => setLunchMinutes(Number(event.target.value))}
+        onBlur={() => void save({ lunchMinutes })}
+      />
+    </label>
+  );
+
+  const jobTagField = (
+    <label className={uiMode === "truck" ? "day-field day-field--truck-detail" : undefined}>
+      Job tag
+      <input
+        disabled={!editable}
+        type="text"
+        value={jobTag}
+        onChange={(event) => setJobTag(event.target.value)}
+        onBlur={() => void save({ jobTag })}
+      />
+    </label>
+  );
+
   return (
     <div
       className={`${isToday ? "day-cell day-cell--today" : "day-cell"} ${uiMode === "truck" ? "day-cell--truck" : ""}`}
@@ -106,30 +163,8 @@ function DayEditor({
         </div>
         <span>{entry.totalHours.toFixed(2)}h</span>
       </div>
-      <label className={activeField === "start" ? "day-field day-field--active" : "day-field"}>
-        Start
-        <input
-          disabled={!editable}
-          type="time"
-          value={start}
-          onClick={() => setActiveField("start")}
-          onChange={(event) => setStart(event.target.value)}
-          onFocus={() => setActiveField("start")}
-          onBlur={() => void save({ start })}
-        />
-      </label>
-      <label className={activeField === "end" ? "day-field day-field--active" : "day-field"}>
-        End
-        <input
-          disabled={!editable}
-          type="time"
-          value={end}
-          onClick={() => setActiveField("end")}
-          onChange={(event) => setEnd(event.target.value)}
-          onFocus={() => setActiveField("end")}
-          onBlur={() => void save({ end })}
-        />
-      </label>
+      {uiMode === "truck" ? <div className="truck-time-pair">{startField}{endField}</div> : startField}
+      {uiMode === "truck" ? null : endField}
       <div className="adjust-row">
         <button disabled={!editable} onClick={() => void adjustActiveTime(-5)} type="button">
           -5m
@@ -174,27 +209,8 @@ function DayEditor({
           </button>
         </div>
       ) : null}
-      <label>
-        Lunch
-        <input
-          disabled={!editable}
-          min={0}
-          type="number"
-          value={lunchMinutes}
-          onChange={(event) => setLunchMinutes(Number(event.target.value))}
-          onBlur={() => void save({ lunchMinutes })}
-        />
-      </label>
-      <label>
-        Job tag
-        <input
-          disabled={!editable}
-          type="text"
-          value={jobTag}
-          onChange={(event) => setJobTag(event.target.value)}
-          onBlur={() => void save({ jobTag })}
-        />
-      </label>
+      {uiMode === "truck" ? <div className="truck-detail-pair">{lunchField}{jobTagField}</div> : lunchField}
+      {uiMode === "truck" ? null : jobTagField}
       {uiMode === "office" ? (
         <label className="checkbox-row">
           <input

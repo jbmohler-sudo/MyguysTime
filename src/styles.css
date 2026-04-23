@@ -510,7 +510,26 @@ button:disabled {
 }
 
 .employee-card--truck {
-  padding: 0.9rem;
+  padding: 0.75rem;
+}
+
+.employee-card--truck .employee-card__header h3 {
+  font-size: 0.98rem;
+}
+
+.employee-card--truck .employee-card__header p {
+  font-size: 0.8rem;
+  margin-top: 0.15rem;
+}
+
+.employee-card--truck .employee-card__alerts {
+  gap: 0.4rem;
+  margin-bottom: 0.65rem;
+}
+
+.employee-card--truck .alert-chip {
+  font-size: 0.74rem;
+  padding: 0.32rem 0.6rem;
 }
 
 .employee-card__header,
@@ -665,14 +684,14 @@ button:disabled {
 }
 
 .day-grid--truck {
-  gap: 0.9rem;
+  gap: 0.7rem;
   grid-auto-columns: minmax(100%, 100%);
   grid-auto-flow: column;
   grid-template-columns: none;
-  margin-bottom: 0.5rem;
+  margin: 0.7rem 0 0.35rem;
   overflow-x: auto;
   overscroll-behavior-x: contain;
-  padding-bottom: 0.4rem;
+  padding-bottom: 0.25rem;
   scroll-padding-inline: 0;
   scroll-snap-type: x mandatory;
 }
@@ -694,8 +713,10 @@ button:disabled {
 }
 
 .day-cell--truck {
-  gap: 0.7rem;
+  border-radius: 16px;
+  gap: 0.55rem;
   min-height: 0;
+  padding: 0.7rem;
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
@@ -714,6 +735,19 @@ button:disabled {
   gap: 0.18rem;
 }
 
+.day-cell--truck .day-cell__top {
+  align-items: start;
+}
+
+.day-cell--truck .day-cell__top strong {
+  font-size: 0.95rem;
+}
+
+.day-cell--truck .day-cell__top > span {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .today-badge {
   background: color-mix(in srgb, var(--color-brand-primary) 18%, transparent);
   border-radius: var(--radius-pill);
@@ -725,14 +759,19 @@ button:disabled {
   padding: 0.22rem 0.6rem;
 }
 
+.day-cell--truck .today-badge {
+  font-size: 0.68rem;
+  padding: 0.18rem 0.48rem;
+}
+
 .truck-day-nav {
   display: grid;
-  gap: 0.6rem;
-  grid-auto-columns: minmax(120px, 1fr);
+  gap: 0.45rem;
+  grid-auto-columns: minmax(104px, 1fr);
   grid-auto-flow: column;
-  margin-bottom: 0.1rem;
+  margin-bottom: 0;
   overflow-x: auto;
-  padding-bottom: 0.2rem;
+  padding-bottom: 0.1rem;
 }
 
 .truck-day-nav__button {
@@ -743,17 +782,22 @@ button:disabled {
   display: grid;
   gap: 0.12rem;
   justify-items: start;
-  min-height: 48px;
-  padding: 0.7rem 0.85rem;
+  min-height: 0;
+  padding: 0.55rem 0.72rem;
+}
+
+.truck-day-nav__button span {
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .truck-day-nav__button strong {
-  font-size: 0.92rem;
+  font-size: 0.82rem;
 }
 
 .truck-day-nav__button em {
   color: var(--brand);
-  font-size: 0.75rem;
+  font-size: 0.67rem;
   font-style: normal;
   font-weight: 700;
 }
@@ -770,8 +814,18 @@ button:disabled {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.day-cell--truck .quick-action-row {
+  gap: 0.35rem;
+}
+
 .quick-action-row button {
   padding: 0.7rem 0.55rem;
+}
+
+.day-cell--truck .quick-action-row button {
+  font-size: 0.8rem;
+  min-height: 42px;
+  padding: 0.58rem 0.3rem;
 }
 
 .adjust-row button {
@@ -782,6 +836,42 @@ button:disabled {
 .app-shell--truck .adjust-row button {
   min-height: 48px;
   padding: 0.72rem 0.8rem;
+}
+
+.day-cell--truck .adjust-row {
+  gap: 0.35rem;
+}
+
+.day-cell--truck .adjust-row button {
+  min-height: 40px;
+  padding: 0.5rem 0.45rem;
+}
+
+.truck-time-pair {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.truck-detail-pair {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: minmax(92px, 112px) minmax(0, 1fr);
+}
+
+.day-cell--truck label,
+.day-cell--truck .day-confirmation-label {
+  font-size: 0.74rem;
+}
+
+.day-cell--truck input {
+  min-height: 40px;
+  padding: 0.5rem 0.65rem;
+}
+
+.day-field--truck-detail {
+  margin: 0;
+  padding: 0;
 }
 
 .checkbox-row {
@@ -2093,12 +2183,27 @@ th {
     grid-template-columns: 1fr;
   }
 
+  .day-cell--truck .quick-action-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .truck-week-actions {
     width: 100%;
   }
 
   .truck-week-actions .button-strong,
   .truck-week-actions button {
+    width: 100%;
+  }
+
+  .employee-card--truck .truck-week-actions {
+    display: grid;
+    gap: 0.45rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .employee-card--truck .truck-week-actions .button-strong,
+  .employee-card--truck .truck-week-actions button {
     width: 100%;
   }
 
