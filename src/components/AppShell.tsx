@@ -29,6 +29,11 @@ const BRAND_DARK = "#1A1A1B";
 const BRAND_LIGHT = "#F8F9FA";
 const ACCENT_TEAL = "#00BCD4";
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+}
+
 type UiMode = "truck" | "office";
 type AppPage = "dashboard" | "team" | "company-settings" | "archive";
 
@@ -123,6 +128,9 @@ export function AppShell({
   const [showPayrollModal, setShowPayrollModal] = useState(false);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [inviteSuccessUrl, setInviteSuccessUrl] = useState<string | null>(null);
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isInstallReady, setIsInstallReady] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   const visibleWeeks = useMemo(
     () =>
@@ -252,6 +260,66 @@ export function AppShell({
   }, [isMobileViewport]);
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const standaloneQuery =
+      typeof window.matchMedia === "function" ? window.matchMedia("(display-mode: standalone)") : null;
+
+    const syncInstalledState = () => {
+      const installed =
+        standaloneQuery?.matches === true ||
+        (typeof navigator !== "undefined" &&
+          "standalone" in navigator &&
+          Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
+      setIsInstalled(installed);
+      if (installed) {
+        setDeferredInstallPrompt(null);
+        setIsInstallReady(false);
+      }
+    };
+
+    syncInstalledState();
+
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setDeferredInstallPrompt(event as BeforeInstallPromptEvent);
+      setIsInstallReady(true);
+    };
+
+    const handleInstalled = () => {
+      setDeferredInstallPrompt(null);
+      setIsInstallReady(false);
+      setIsInstalled(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleInstalled);
+
+    if (standaloneQuery) {
+      if (typeof standaloneQuery.addEventListener === "function") {
+        standaloneQuery.addEventListener("change", syncInstalledState);
+      } else {
+        standaloneQuery.addListener(syncInstalledState);
+      }
+    }
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleInstalled);
+
+      if (standaloneQuery) {
+        if (typeof standaloneQuery.removeEventListener === "function") {
+          standaloneQuery.removeEventListener("change", syncInstalledState);
+        } else {
+          standaloneQuery.removeListener(syncInstalledState);
+        }
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (uiMode === "truck" && data.weekStart !== currentWeekStart) {
       void onRefresh(currentWeekStart);
     }
@@ -300,6 +368,20 @@ export function AppShell({
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     console.log(`✓ Exported ${fileName}`);
+  };
+
+  const handleInstallApp = async () => {
+    if (!deferredInstallPrompt) {
+      return;
+    }
+
+    await deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    setDeferredInstallPrompt(null);
+    setIsInstallReady(false);
+    if (choice.outcome === "accepted") {
+      setIsInstalled(true);
+    }
   };
 
   const pageTitle: Record<AppPage, string> = {
@@ -646,10 +728,59 @@ export function AppShell({
                       >
                         Export payroll
                       </button>
+                      {isInstallReady && !isInstalled ? (
+                        <button
+                          onClick={() => void handleInstallApp()}
+                          style={{
+                            backgroundColor: "#F3F4F6",
+                            color: BRAND_DARK,
+                            border: "1px solid #D7DEE8",
+                            borderRadius: "14px",
+                            fontSize: "0.9rem",
+                            fontWeight: 700,
+                            width: "100%",
+                          }}
+                          type="button"
+                        >
+                          Install app
+                        </button>
+                      ) : null}
                     </div>
                   ) : (
-                    <div style={{ color: "#6B7280", fontSize: "0.86rem", lineHeight: 1.45 }}>
-                      Open the menu only when you need another page. The truck screen stays centered on this week.
+                    <div style={{ display: "grid", gap: "0.7rem" }}>
+                      <div style={{ color: "#6B7280", fontSize: "0.86rem", lineHeight: 1.45 }}>
+                        Open the menu only when you need another page. The truck screen stays centered on this week.
+                      </div>
+                      {isInstallReady && !isInstalled ? (
+                        <button
+                          onClick={() => void handleInstallApp()}
+                          style={{
+                            backgroundColor: BRAND_ORANGE,
+                            color: "white",
+                            border: "none",
+                            borderRadius: "14px",
+                            fontSize: "0.95rem",
+                            fontWeight: 700,
+                            width: "100%",
+                          }}
+                          type="button"
+                        >
+                          Install on this phone
+                        </button>
+                      ) : isInstalled ? (
+                        <div
+                          style={{
+                            backgroundColor: "#F3F4F6",
+                            color: "#4B5563",
+                            padding: "0.7rem 0.85rem",
+                            borderRadius: "14px",
+                            fontSize: "0.84rem",
+                            fontWeight: 600,
+                          }}
+                        >
+                          App is already installed on this device.
+                        </div>
+                      ) : null}
                     </div>
                   )
                 ) : (

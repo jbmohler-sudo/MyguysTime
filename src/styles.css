@@ -685,7 +685,7 @@ button:disabled {
 
 .day-grid--truck {
   gap: 0.7rem;
-  grid-auto-columns: minmax(calc(100vw - 3rem), calc(100vw - 3rem));
+  grid-auto-columns: 100%;
   grid-auto-flow: column;
   grid-template-columns: none;
   margin: 0.7rem 0 0.35rem;
@@ -716,8 +716,8 @@ button:disabled {
 .day-cell--truck {
   border-radius: 16px;
   gap: 0.55rem;
-  inline-size: min(calc(100vw - 3rem), 100%);
-  min-inline-size: min(calc(100vw - 3rem), 100%);
+  inline-size: 100%;
+  min-inline-size: 0;
   min-height: 0;
   padding: 0.7rem;
   scroll-snap-align: start;
