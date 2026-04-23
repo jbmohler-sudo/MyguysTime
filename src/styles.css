@@ -2098,3 +2098,292 @@ th {
     text-align: left;
   }
 }
+
+/* ── Invite Status Badges ── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge--pending {
+  background-color: rgba(255, 140, 0, 0.08);
+  color: #FF8C00;
+  border: 1px solid #FF8C00;
+}
+
+.badge--pending::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background-color: #FF8C00;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse-dot 1.5s infinite;
+}
+
+.badge--active {
+  background-color: #FF8C00;
+  color: white;
+  border: none;
+}
+
+.badge--accepted {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #4caf50;
+}
+
+.badge--expired {
+  background-color: rgba(107, 114, 128, 0.08);
+  color: #6b7280;
+  border: 1px dashed #6b7280;
+}
+
+.badge--revoked {
+  background-color: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+  border: 1px dashed #dc2626;
+  text-decoration: line-through;
+}
+
+@keyframes pulse-dot {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.4; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ── Resend Button ── */
+
+.invite-status-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn--resend {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
+  border: 1px solid #FF8C00;
+  background-color: transparent;
+  color: #FF8C00;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn--resend:hover:not(:disabled) {
+  background-color: rgba(255, 140, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.btn--resend:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Invite Confirmation Dialog ── */
+
+.modal--confirm {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.modal--confirm .modal__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: -1;
+}
+
+.modal__content--small {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  max-width: 400px;
+  width: 90%;
+  animation: slideUp 0.3s ease;
+}
+
+.modal__header {
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal__body {
+  padding: 20px;
+}
+
+.modal__subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.modal__actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  border-top: 1px solid #e5e7eb;
+  justify-content: flex-end;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Signup After Magic Link ── */
+
+.signup-hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #f8f9fb;
+}
+
+.signup-container {
+  max-width: 440px;
+  width: 100%;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
+  padding: 40px 36px;
+}
+
+.signup-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.signup-header h1 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1a1a1b;
+}
+
+.signup-header p {
+  margin: 0;
+  font-size: 14px;
+  color: #808080;
+}
+
+/* ── Invite Management Panel ── */
+
+.invite-management-panel {
+  margin-top: 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.invite-panel__filters {
+  display: flex;
+  gap: 4px;
+  padding: 16px 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.invite-panel__loading,
+.invite-panel__empty {
+  padding: 32px 20px;
+  text-align: center;
+  color: #808080;
+  font-size: 14px;
+}
+
+.invite-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.invite-table th {
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #fafafa;
+}
+
+.invite-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.invite-row__email {
+  font-weight: 500;
+  color: #1a1a1b;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab {
+  padding: 6px 12px;
+  border-radius: 6px 6px 0 0;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #808080;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tab--active {
+  border-bottom-color: #FF8C00;
+  background: #fff3e0;
+  color: #FF8C00;
+  font-weight: 700;
+}
+
+.tab__count {
+  background: #e0e0e0;
+  color: #666;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.tab--active .tab__count {
+  background: #FF8C00;
+  color: white;
+}

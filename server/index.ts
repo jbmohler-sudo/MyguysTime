@@ -1947,6 +1947,89 @@ app.post("/api/company/invites", authenticate, asyncHandler(async (req: Authenti
   });
 }));
 
+app.post("/api/company/invites/:inviteId/resend", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  if (!authorizeAdmin(req, res)) {
+    return;
+  }
+
+  const inviteId = getParam(req.params.inviteId);
+  if (!inviteId) {
+    res.status(400).json({ error: "Invite ID is required." });
+    return;
+  }
+
+  const invite = await prisma.userInvite.findFirst({
+    where: { id: inviteId, companyId: req.auth!.companyId },
+    include: {
+      employee: { select: { displayName: true } },
+      invitedByUser: { select: { fullName: true } },
+    },
+  });
+
+  if (!invite) {
+    res.status(404).json({ error: "Invite not found." });
+    return;
+  }
+
+  if (invite.acceptedAt) {
+    res.status(409).json({ error: "This invite has already been accepted." });
+    return;
+  }
+
+  if (invite.expiresAt <= new Date()) {
+    res.status(409).json({ error: "This invite has expired. Create a new invite instead." });
+    return;
+  }
+
+  const updated = await prisma.userInvite.update({
+    where: { id: inviteId },
+    data: {
+      lastSentAt: new Date(),
+      sendCount: { increment: 1 },
+    },
+    include: {
+      employee: { select: { displayName: true } },
+      invitedByUser: { select: { fullName: true } },
+    },
+  });
+
+  const rawToken = invite.tokenHash;
+  const inviteUrl = buildInviteUrl(req, rawToken);
+  console.log(`[invite:resend] ${invite.email ?? "unknown"} -> ${inviteUrl}`);
+
+  res.json({ invite: serializeInviteSummary(updated) });
+}));
+
+app.delete("/api/company/invites/:inviteId", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  if (!authorizeAdmin(req, res)) {
+    return;
+  }
+
+  const inviteId = getParam(req.params.inviteId);
+  if (!inviteId) {
+    res.status(400).json({ error: "Invite ID is required." });
+    return;
+  }
+
+  const invite = await prisma.userInvite.findFirst({
+    where: { id: inviteId, companyId: req.auth!.companyId },
+  });
+
+  if (!invite) {
+    res.status(404).json({ error: "Invite not found." });
+    return;
+  }
+
+  if (invite.acceptedAt) {
+    res.status(409).json({ error: "Accepted invites cannot be revoked." });
+    return;
+  }
+
+  await prisma.userInvite.delete({ where: { id: inviteId } });
+
+  res.json({ ok: true });
+}));
+
 app.patch("/api/timesheets/:timesheetId/days/:dayEntryId", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   const timesheetId = getParam(req.params.timesheetId);
   const dayEntryId = getParam(req.params.dayEntryId);

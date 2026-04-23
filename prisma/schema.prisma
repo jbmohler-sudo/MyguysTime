@@ -112,6 +112,8 @@ model UserInvite {
   tokenHash       String    @unique
   expiresAt       DateTime
   acceptedAt      DateTime?
+  lastSentAt      DateTime?
+  sendCount       Int       @default(0)
   invitedByUserId String
   company         Company   @relation(fields: [companyId], references: [id], onDelete: Restrict)
   employee        Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
