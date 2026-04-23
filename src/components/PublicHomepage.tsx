@@ -174,7 +174,7 @@ export function PublicHomepage() {
   }, []);
 
   const handleStartClick = () => {
-    window.location.href = '/login';
+    window.location.href = 'https://app.myguystime.com/login';
   };
 
   return (
