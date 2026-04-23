@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback, useRef } from "react";
-import type { BootstrapPayload } from "../domain/models";
+import type { BootstrapPayload, InviteSummary } from "../domain/models";
+import { InviteStatusBadge } from "./InviteStatusBadge";
 
 interface EmployeeRow {
   id: string;
@@ -12,6 +13,7 @@ interface TeamManagementPanelProps {
   data: BootstrapPayload;
   onOpenAddEmployee: () => void;
   onEditEmployee: (employeeId: string) => void;
+  invites?: InviteSummary[];
 }
 
 const BRAND_ORANGE = "#FF8C00";
@@ -27,7 +29,17 @@ export function TeamManagementPanel({
   data,
   onOpenAddEmployee,
   onEditEmployee,
+  invites = [],
 }: TeamManagementPanelProps) {
+  const pendingInviteByEmployeeId = useMemo(() => {
+    const map = new Map<string, InviteSummary>();
+    for (const inv of invites) {
+      if (inv.employeeId && inv.status === "pending") {
+        map.set(inv.employeeId, inv);
+      }
+    }
+    return map;
+  }, [invites]);
   const [searchTerm, setSearchTerm] = useState("");
   const [scrollTop, setScrollTop] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -93,6 +105,7 @@ export function TeamManagementPanel({
           Team ({filteredEmployees.length})
         </h2>
         <button
+          className="team-management__add-btn"
           onClick={onOpenAddEmployee}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = "translateY(-2px)";
@@ -229,7 +242,12 @@ export function TeamManagementPanel({
                       textOverflow: "ellipsis",
                     }}
                   >
-                    {emp.name}
+                    <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      {emp.name}
+                      {pendingInviteByEmployeeId.has(emp.id) && (
+                        <InviteStatusBadge status="pending" size="sm" />
+                      )}
+                    </span>
                   </p>
                   <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: STATUS_GRAY }}>
                     {emp.crew} •{" "}

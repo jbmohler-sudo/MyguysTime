@@ -139,6 +139,8 @@ export interface ManagedEmployee {
   defaultCrewId: string | null;
   defaultCrewName: string | null;
   hasLoginAccess: boolean;
+  inviteStatus?: "active" | "pending" | "inactive";
+  invitedAt?: string | null;
 }
 
 export interface InviteSummary {
@@ -158,6 +160,8 @@ export interface InviteInput {
   employeeId?: string | null;
   email: string;
   role: "foreman" | "employee";
+  crewId?: string | null;
+  hourlyRate?: number;
 }
 
 export interface EmployeeInput {

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { AppShell } from "./components/AppShell";
+import { OnboardingProvider } from "./hooks/useOnboarding";
 import { CompanySetupScreen } from "./components/CompanySetupScreen";
 import { LoginScreen } from "./components/LoginScreen";
 import { PublicHomepage } from "./components/PublicHomepage";
+import { SignupAfterMagicLink } from "./components/SignupAfterMagicLink";
 import { SignupScreen } from "./components/SignupScreen";
 import type { BootstrapPayload, CompanyOnboardingInput, PrivateReportInput, TimesheetStatus } from "./domain/models";
 import {
@@ -15,6 +17,8 @@ import {
   listEmployees,
   listInvites,
   login,
+  resendInvite,
+  revokeInvite,
   signup,
   submitPrivateReport,
   updateCompanySettings,
@@ -40,6 +44,7 @@ function getCurrentWeekStart(date: Date) {
 function App() {
   const hostname = getCurrentHostname();
   const showPublicHomepage = isPublicHomepageHost(hostname);
+  const isInviteSignup = typeof window !== "undefined" && window.location.pathname === "/invite-signup";
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_STORAGE_KEY));
   const [data, setData] = useState<BootstrapPayload | null>(null);
   const [error, setError] = useState<string>("");
@@ -251,6 +256,16 @@ function App() {
     return { invite: response.invite, inviteUrl: response.inviteUrl };
   }
 
+  async function handleResendInvite(inviteId: string) {
+    if (!token) throw new Error("Not authenticated");
+    await resendInvite(token, inviteId);
+  }
+
+  async function handleRevokeInvite(inviteId: string) {
+    if (!token) throw new Error("Not authenticated");
+    await revokeInvite(token, inviteId);
+  }
+
   async function handleExport(kind: "payroll-summary" | "time-detail" | "weekly-summary") {
     if (!token || !data) {
       return;
@@ -286,6 +301,18 @@ function App() {
     return <PublicHomepage />;
   }
 
+  if (isInviteSignup) {
+    return (
+      <SignupAfterMagicLink
+        onComplete={(newToken) => {
+          localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
+          setToken(newToken);
+          window.history.replaceState({}, "", "/");
+        }}
+      />
+    );
+  }
+
   if (!token) {
     if (authMode === "signup") {
       async function handleSignup(fullName: string, companyName: string, email: string, password: string) {
@@ -316,25 +343,29 @@ function App() {
   }
 
   return (
-    <AppShell
-      data={data}
-      error={error}
-      onLogout={handleLogout}
-      onRefresh={handleRefresh}
-      onUpdateDay={handleUpdateDay}
-      onApplyCrewDefaults={handleApplyCrewDefaults}
-      onStatusChange={handleStatusChange}
-      onReopenWeek={handleReopenWeek}
-      onUpdateAdjustment={handleUpdateAdjustment}
-      onSubmitPrivateReport={handleSubmitPrivateReport}
-      onExport={handleExport}
-      onUpdateCompanySettings={handleUpdateCompanySettings}
-      onListEmployees={handleListEmployees}
-      onCreateEmployee={handleCreateEmployee}
-      onUpdateEmployee={handleUpdateEmployee}
-      onListInvites={handleListInvites}
-      onCreateInvite={handleCreateInvite}
-    />
+    <OnboardingProvider>
+      <AppShell
+        data={data}
+        error={error}
+        onLogout={handleLogout}
+        onRefresh={handleRefresh}
+        onUpdateDay={handleUpdateDay}
+        onApplyCrewDefaults={handleApplyCrewDefaults}
+        onStatusChange={handleStatusChange}
+        onReopenWeek={handleReopenWeek}
+        onUpdateAdjustment={handleUpdateAdjustment}
+        onSubmitPrivateReport={handleSubmitPrivateReport}
+        onExport={handleExport}
+        onUpdateCompanySettings={handleUpdateCompanySettings}
+        onListEmployees={handleListEmployees}
+        onCreateEmployee={handleCreateEmployee}
+        onUpdateEmployee={handleUpdateEmployee}
+        onListInvites={handleListInvites}
+        onCreateInvite={handleCreateInvite}
+        onResendInvite={handleResendInvite}
+        onRevokeInvite={handleRevokeInvite}
+      />
+    </OnboardingProvider>
   );
 }
 

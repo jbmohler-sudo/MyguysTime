@@ -3,7 +3,10 @@ import type { BootstrapPayload, EmployeeInput, InviteInput, InviteSummary, Manag
 import { prettyStatus } from "../domain/permissions";
 import { AddEmployeeModal } from "./AddEmployeeModal";
 import { ArchivePanel } from "./ArchivePanel";
+import { InviteEmployeeModal } from "./InviteEmployeeModal";
+import { InviteManagementPanel } from "./InviteManagementPanel";
 import { MissingTimeAlertBanner } from "./MissingTimeAlertBanner";
+import { OnboardingOverlay } from "./OnboardingOverlay";
 import { PayrollExportModal } from "./PayrollExportModal";
 import { CompanySettingsPanel } from "./CompanySettingsPanel";
 import { Logo } from "./Logo";
@@ -11,6 +14,7 @@ import { OfficeDashboard } from "./OfficeDashboard";
 import { PrivateReportsPanel } from "./PrivateReportsPanel";
 import { TeamManagementPanel } from "./TeamManagementPanel";
 import { WeeklyCrewBoard } from "./WeeklyCrewBoard";
+import { useOnboardingContext } from "../hooks/useOnboarding";
 
 const BRAND_ORANGE = "#FF8C00";
 const BRAND_DARK = "#1A1A1B";
@@ -62,6 +66,8 @@ interface AppShellProps {
   onUpdateEmployee: (employeeId: string, payload: EmployeeInput) => Promise<ManagedEmployee>;
   onListInvites: () => Promise<InviteSummary[]>;
   onCreateInvite: (payload: InviteInput) => Promise<{ invite: InviteSummary; inviteUrl?: string }>;
+  onResendInvite: (inviteId: string) => Promise<void>;
+  onRevokeInvite: (inviteId: string) => Promise<void>;
 }
 
 export function AppShell({
@@ -77,7 +83,12 @@ export function AppShell({
   onSubmitPrivateReport,
   onExport,
   onUpdateCompanySettings,
+  onListInvites,
+  onCreateInvite,
+  onResendInvite,
+  onRevokeInvite,
 }: AppShellProps) {
+  const onboarding = useOnboardingContext();
   const truckViewportQuery = "(max-width: 720px)";
   const [selectedCrewId, setSelectedCrewId] = useState<string>("all");
   const [openedAt] = useState(() => new Date());
@@ -88,8 +99,10 @@ export function AppShell({
   const [activePage, setActivePage] = useState<AppPage>("dashboard");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [showPayrollModal, setShowPayrollModal] = useState(false);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
+  const [inviteSuccessUrl, setInviteSuccessUrl] = useState<string | null>(null);
 
   const visibleWeeks = useMemo(
     () =>
@@ -361,7 +374,10 @@ export function AppShell({
               const isHovered = hoveredNav === item.key;
               return (
                 <button
-                  className={isActive ? "app-nav__item app-nav__item--active" : "app-nav__item"}
+                  className={[
+                    isActive ? "app-nav__item app-nav__item--active" : "app-nav__item",
+                    item.key === "team" ? "nav__item--team" : "",
+                  ].filter(Boolean).join(" ")}
                   key={item.key}
                   onClick={() => setActivePage(item.key)}
                   onMouseEnter={() => setHoveredNav(item.key)}
@@ -391,6 +407,7 @@ export function AppShell({
             {/* Export Payroll button — office mode only */}
             {uiMode === "office" ? (
               <button
+                className="app-nav__export-btn"
                 onClick={() => setShowPayrollModal(true)}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "translateY(-2px)";
@@ -417,6 +434,40 @@ export function AppShell({
                 📥 Export Payroll
               </button>
             ) : null}
+
+            {/* Help / Tour button */}
+            <button
+              onClick={onboarding.restartTour}
+              title="Restart tour"
+              aria-label="Restart onboarding tour"
+              style={{
+                background: "none",
+                border: `1.5px solid #DDD`,
+                borderRadius: "50%",
+                width: "32px",
+                height: "32px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                fontSize: "0.85rem",
+                fontWeight: 700,
+                color: "#888",
+                flexShrink: 0,
+                transition: "all 0.15s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = BRAND_ORANGE;
+                e.currentTarget.style.color = BRAND_ORANGE;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "#DDD";
+                e.currentTarget.style.color = "#888";
+              }}
+              type="button"
+            >
+              ?
+            </button>
 
             {/* Mode pill */}
             <span
@@ -655,13 +706,46 @@ export function AppShell({
         ) : null}
 
         {activePage === "team" && canViewTeam ? (
-          <TeamManagementPanel
-            data={data}
-            onOpenAddEmployee={() => setShowAddEmployeeModal(true)}
-            onEditEmployee={(employee) => {
-              console.log("Edit employee:", employee);
-            }}
-          />
+          <>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
+              <button
+                onClick={() => setShowInviteModal(true)}
+                style={{
+                  padding: "9px 18px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: BRAND_ORANGE,
+                  color: "#fff",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                + Invite a Worker
+              </button>
+            </div>
+            {inviteSuccessUrl && (
+              <div style={{ marginBottom: "12px", padding: "10px 14px", borderRadius: "8px", background: "#E8F5E9", color: "#2E7D32", fontSize: "13px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>Invite sent! Dev link: <a href={inviteSuccessUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#1565C0" }}>{inviteSuccessUrl}</a></span>
+                <button onClick={() => setInviteSuccessUrl(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: "16px" }}>×</button>
+              </div>
+            )}
+            <TeamManagementPanel
+              data={data}
+              onOpenAddEmployee={() => setShowAddEmployeeModal(true)}
+              onEditEmployee={(employee) => {
+                console.log("Edit employee:", employee);
+              }}
+            />
+            <InviteManagementPanel
+              onListInvites={onListInvites}
+              onResendInvite={onResendInvite}
+              onRevokeInvite={onRevokeInvite}
+            />
+          </>
         ) : null}
 
         {activePage === "archive" && canViewArchive ? (
@@ -687,6 +771,21 @@ export function AppShell({
           setShowAddEmployeeModal(false);
         }}
       />
+
+      {/* ── Invite Employee Modal ── */}
+      <InviteEmployeeModal
+        isOpen={showInviteModal}
+        crews={data.crews}
+        onClose={() => setShowInviteModal(false)}
+        onCreateInvite={onCreateInvite}
+        onInviteSent={(_invite, url) => {
+          setShowInviteModal(false);
+          if (url) setInviteSuccessUrl(url);
+        }}
+      />
+
+      {/* ── Onboarding Overlay ── */}
+      <OnboardingOverlay />
     </div>
   );
 }

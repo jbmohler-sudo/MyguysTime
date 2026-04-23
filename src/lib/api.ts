@@ -235,6 +235,22 @@ export async function createInvite(token: string, payload: InviteInput) {
   );
 }
 
+export async function resendInvite(token: string, inviteId: string) {
+  return request<{ invite: InviteSummary }>(
+    `/company/invites/${inviteId}/resend`,
+    { method: "POST" },
+    token,
+  );
+}
+
+export async function revokeInvite(token: string, inviteId: string) {
+  return request<{ ok: boolean }>(
+    `/company/invites/${inviteId}`,
+    { method: "DELETE" },
+    token,
+  );
+}
+
 export async function downloadExport(token: string, path: string) {
   const response = await fetch(`${API_BASE}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
