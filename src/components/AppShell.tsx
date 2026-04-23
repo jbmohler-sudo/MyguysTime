@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { BootstrapPayload, EmployeeInput, InviteInput, InviteSummary, ManagedEmployee, PrivateReportInput, TimesheetStatus } from "../domain/models";
 import { prettyStatus } from "../domain/permissions";
+import { AddEmployeeModal } from "./AddEmployeeModal";
 import { ArchivePanel } from "./ArchivePanel";
 import { CompanySettingsPanel } from "./CompanySettingsPanel";
 import { Logo } from "./Logo";
@@ -607,54 +608,16 @@ export function AppShell({
         ) : null}
       </main>
 
-      {/* ── Add Employee Modal placeholder ── */}
-      {showAddEmployeeModal ? (
-        <div
-          onClick={() => setShowAddEmployeeModal(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(0,0,0,0.45)",
-            zIndex: 200,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              backgroundColor: "white",
-              borderRadius: "12px",
-              padding: "32px",
-              maxWidth: "480px",
-              width: "90%",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-            }}
-          >
-            <h2 style={{ color: BRAND_DARK, fontWeight: 800, margin: "0 0 8px" }}>Add New Employee</h2>
-            <p style={{ color: "#666", fontSize: "0.875rem", margin: "0 0 24px" }}>
-              Employee creation form coming in next phase.
-            </p>
-            <button
-              onClick={() => setShowAddEmployeeModal(false)}
-              style={{
-                backgroundColor: BRAND_ORANGE,
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                padding: "10px 20px",
-                fontWeight: 700,
-                cursor: "pointer",
-                fontSize: "0.875rem",
-              }}
-              type="button"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      ) : null}
+      {/* ── Add Employee Modal ── */}
+      <AddEmployeeModal
+        isOpen={showAddEmployeeModal}
+        crews={data.crews}
+        onClose={() => setShowAddEmployeeModal(false)}
+        onSave={async (employee) => {
+          console.log("New employee data:", employee);
+          setShowAddEmployeeModal(false);
+        }}
+      />
     </div>
   );
 }
