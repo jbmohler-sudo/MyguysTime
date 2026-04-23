@@ -17,7 +17,11 @@
       "PowerShell(Test-Path \"C:\\\\Users\\\\jbmoh\\\\Desktop\"; [Environment]::GetFolderPath\\(\"Desktop\"\\))",
       "Bash(cp \"C:/Users/jbmoh/OneDrive/Documents/GuysTime/appshell_design/AppShell_Updated.tsx\" \"c:/MVP/src/components/AppShell.tsx\")",
       "Bash(cp \"C:/Users/jbmoh/OneDrive/Documents/GuysTime/appshell_design/appshell_enhanced_styles.css\" \"c:/MVP/src/styles/\")",
-      "Bash(git branch *)"
+      "Bash(git branch *)",
+      "Bash(npx prisma *)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(npm test *)",
+      "Bash(git stash *)"
     ]
   }
 }

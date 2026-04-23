@@ -328,7 +328,7 @@ export function PublicHomepage() {
                         className="w-full text-left transition-all duration-500 group"
                       >
                         <div
-                          className={`p-6 md:p-8 rounded-xl border-2 transition-all duration-500 ${
+                          className={`card p-6 md:p-8 rounded-xl border-2 transition-all duration-500 ${
                             isExpanded
                               ? 'border-orange-500 bg-orange-50 shadow-lg'
                               : 'border-slate-200 bg-white shadow-sm hover:shadow-md hover:border-slate-300'
