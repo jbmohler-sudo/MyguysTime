@@ -61,7 +61,7 @@ function DayEditor({
     }
 
     todayRef.current.focus();
-    todayRef.current.scrollIntoView({ block: "center", behavior: "smooth" });
+    todayRef.current.scrollIntoView({ block: "nearest", inline: "start", behavior: "smooth" });
   }, [isToday, uiMode]);
 
   async function save(payload: Record<string, unknown>) {
