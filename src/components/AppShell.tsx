@@ -4,6 +4,7 @@ import { prettyStatus } from "../domain/permissions";
 import { AddEmployeeModal } from "./AddEmployeeModal";
 import { ArchivePanel } from "./ArchivePanel";
 import { MissingTimeAlertBanner } from "./MissingTimeAlertBanner";
+import { PayrollExportModal } from "./PayrollExportModal";
 import { CompanySettingsPanel } from "./CompanySettingsPanel";
 import { Logo } from "./Logo";
 import { OfficeDashboard } from "./OfficeDashboard";
@@ -87,6 +88,7 @@ export function AppShell({
   const [activePage, setActivePage] = useState<AppPage>("dashboard");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
+  const [showPayrollModal, setShowPayrollModal] = useState(false);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
 
   const visibleWeeks = useMemo(
@@ -199,6 +201,20 @@ export function AppShell({
     if (crewBoardElement) {
       crewBoardElement.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+  };
+
+  const handlePayrollExport = (csvContent: string, fileName: string) => {
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", fileName);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    console.log(`✓ Exported ${fileName}`);
   };
 
   const pageTitle: Record<AppPage, string> = {
@@ -371,6 +387,36 @@ export function AppShell({
 
             {/* Spacer */}
             <span style={{ flex: 1 }} />
+
+            {/* Export Payroll button — office mode only */}
+            {uiMode === "office" ? (
+              <button
+                onClick={() => setShowPayrollModal(true)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 6px 16px rgba(255,140,0,0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+                style={{
+                  padding: "7px 14px",
+                  borderRadius: "6px",
+                  backgroundColor: BRAND_ORANGE,
+                  color: "white",
+                  border: "none",
+                  fontSize: "0.8rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  whiteSpace: "nowrap",
+                }}
+                type="button"
+              >
+                📥 Export Payroll
+              </button>
+            ) : null}
 
             {/* Mode pill */}
             <span
@@ -622,6 +668,14 @@ export function AppShell({
           <ArchivePanel archivedEmployees={data.archivedEmployees} />
         ) : null}
       </main>
+
+      {/* ── Payroll Export Modal ── */}
+      <PayrollExportModal
+        isOpen={showPayrollModal}
+        data={data}
+        onClose={() => setShowPayrollModal(false)}
+        onExport={handlePayrollExport}
+      />
 
       {/* ── Add Employee Modal ── */}
       <AddEmployeeModal
