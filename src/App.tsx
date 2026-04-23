@@ -89,6 +89,7 @@ function App() {
     const response = await login(email, password);
     localStorage.setItem(TOKEN_STORAGE_KEY, response.token);
     setToken(response.token);
+    window.history.replaceState({}, "", "/dashboard");
   }
 
   function handleLogout() {
@@ -96,6 +97,7 @@ function App() {
     setToken(null);
     setData(null);
     setError("");
+    window.history.replaceState({}, "", "/");
   }
 
   async function handleRefresh(weekStart?: string) {
@@ -332,7 +334,7 @@ function App() {
         onComplete={(newToken) => {
           localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
           setToken(newToken);
-          window.history.replaceState({}, "", "/");
+          window.history.replaceState({}, "", "/dashboard");
         }}
       />
     );
@@ -344,6 +346,7 @@ function App() {
         const response = await signup(fullName, companyName, email, password);
         localStorage.setItem(TOKEN_STORAGE_KEY, response.token);
         setToken(response.token);
+        window.history.replaceState({}, "", "/dashboard");
       }
       return <SignupScreen onSignup={handleSignup} onShowLogin={() => setAuthMode("login")} error={error} />;
     }

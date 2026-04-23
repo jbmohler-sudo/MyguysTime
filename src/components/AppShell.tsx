@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   BootstrapPayload,
   EmployeeInput,
@@ -108,6 +108,8 @@ export function AppShell({
   const truckViewportQuery = "(max-width: 720px)";
 
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const lastScrollYRef = useRef(0);
   const [selectedCrewId, setSelectedCrewId] = useState<string>("all");
   const [openedAt] = useState(() => new Date());
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
@@ -186,11 +188,24 @@ export function AppShell({
     }
 
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
+      const scrollY = window.scrollY;
+      const prev = lastScrollYRef.current;
+
+      setIsScrolled(scrollY > 40);
+
+      if (scrollY < 80) {
+        setIsHeaderVisible(true);
+      } else if (scrollY > prev + 4) {
+        setIsHeaderVisible(false);
+      } else if (scrollY < prev - 4) {
+        setIsHeaderVisible(true);
+      }
+
+      lastScrollYRef.current = scrollY;
     };
 
     handleScroll();
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -294,7 +309,8 @@ export function AppShell({
           zIndex: 100,
           boxShadow: isScrolled ? "0 4px 12px rgba(0,0,0,0.08)" : "0 2px 8px rgba(0,0,0,0.06)",
           padding: isScrolled ? "0.6rem 20px" : "1rem 20px",
-          transition: "all 0.25s ease-in-out",
+          transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
+          transition: "padding 0.25s ease, box-shadow 0.25s ease, transform 0.3s ease",
         }}
       >
         <div className="hero__main">
@@ -323,18 +339,20 @@ export function AppShell({
               >
                 <Logo className="hero__logo" size="app" />
               </div>
-              <h1
-                style={{
-                  color: BRAND_DARK,
-                  fontWeight: 700,
-                  fontSize: isScrolled ? "0.92rem" : "1rem",
-                  margin: 0,
-                  transition: "font-size 0.2s ease",
-                  minWidth: 0,
-                }}
-              >
-                {pageTitle[activePage]}
-              </h1>
+              {!isMobileViewport && (
+                <h1
+                  style={{
+                    color: BRAND_DARK,
+                    fontWeight: 700,
+                    fontSize: isScrolled ? "0.92rem" : "1rem",
+                    margin: 0,
+                    transition: "font-size 0.2s ease",
+                    minWidth: 0,
+                  }}
+                >
+                  {pageTitle[activePage]}
+                </h1>
+              )}
             </div>
 
             <div
@@ -374,7 +392,8 @@ export function AppShell({
                     border: `2px solid ${BRAND_ORANGE}`,
                     color: BRAND_ORANGE,
                     borderRadius: "6px",
-                    padding: "6px 12px",
+                    padding: "10px 16px",
+                    minHeight: "44px",
                     fontWeight: 700,
                     cursor: "pointer",
                     fontSize: "0.8rem",
@@ -387,20 +406,22 @@ export function AppShell({
             </div>
           </div>
 
-          <p
-            className="hero-copy"
-            style={{
-              color: "#666",
-              fontSize: isScrolled ? "0.78rem" : "0.85rem",
-              margin: isScrolled ? "0.2rem 0 0.35rem" : "0.4rem 0 0.75rem",
-              maxHeight: isScrolled ? 0 : "40px",
-              opacity: isScrolled ? 0 : 1,
-              overflow: "hidden",
-              transition: "all 0.2s ease",
-            }}
-          >
-            {pageSubtitle[activePage]}
-          </p>
+          {!isMobileViewport && (
+            <p
+              className="hero-copy"
+              style={{
+                color: "#666",
+                fontSize: isScrolled ? "0.78rem" : "0.85rem",
+                margin: isScrolled ? "0.2rem 0 0.35rem" : "0.4rem 0 0.75rem",
+                maxHeight: isScrolled ? 0 : "40px",
+                opacity: isScrolled ? 0 : 1,
+                overflow: "hidden",
+                transition: "all 0.2s ease",
+              }}
+            >
+              {pageSubtitle[activePage]}
+            </p>
+          )}
 
           <nav
             className={
@@ -489,8 +510,8 @@ export function AppShell({
                 background: "none",
                 border: `1.5px solid #DDD`,
                 borderRadius: "50%",
-                width: "32px",
-                height: "32px",
+                width: "44px",
+                height: "44px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -606,6 +627,7 @@ export function AppShell({
             color: BRAND_DARK,
             padding: "14px 20px",
             fontSize: "0.875rem",
+            margin: "0 20px",
           }}
         >
           {error}
@@ -618,6 +640,8 @@ export function AppShell({
             backgroundColor: "rgba(255, 140, 0, 0.06)",
             borderLeft: `4px solid ${BRAND_ORANGE}`,
             padding: "1rem 1.5rem",
+            margin: "0 20px",
+            borderRadius: "0 8px 8px 0",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -666,29 +690,31 @@ export function AppShell({
         </div>
       ) : null}
 
-      <section
-        className={`mode-banner mode-banner--${uiMode}`}
-        style={{
-          backgroundColor: "white",
-          borderLeft: `4px solid ${uiMode === "office" ? BRAND_ORANGE : ACCENT_TEAL}`,
-          padding: "12px 20px",
-          margin: "16px 20px",
-          borderRadius: "0 8px 8px 0",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-          display: "flex",
-          alignItems: "center",
-          gap: "0.75rem",
-        }}
-      >
-        <strong style={{ color: BRAND_DARK, fontSize: "0.85rem", whiteSpace: "nowrap" }}>
-          {uiMode === "truck" ? "Truck mode" : "Office mode"}
-        </strong>
-        <span style={{ color: "#666", fontSize: "0.82rem" }}>
-          {uiMode === "truck"
-            ? "Dashboard stays centered on the current week, Today, and fast field entry. Company settings and archive stay out of the way."
-            : "Dashboard handles weekly review, payroll-prep, exports, and office-only reporting. Team, settings, and archive live in dedicated pages."}
-        </span>
-      </section>
+      {!isMobileViewport && (
+        <section
+          className={`mode-banner mode-banner--${uiMode}`}
+          style={{
+            backgroundColor: "white",
+            borderLeft: `4px solid ${uiMode === "office" ? BRAND_ORANGE : ACCENT_TEAL}`,
+            padding: "12px 20px",
+            margin: "16px 20px",
+            borderRadius: "0 8px 8px 0",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+          }}
+        >
+          <strong style={{ color: BRAND_DARK, fontSize: "0.85rem", whiteSpace: "nowrap" }}>
+            {uiMode === "truck" ? "Truck mode" : "Office mode"}
+          </strong>
+          <span style={{ color: "#666", fontSize: "0.82rem" }}>
+            {uiMode === "truck"
+              ? "Dashboard stays centered on the current week, Today, and fast field entry. Company settings and archive stay out of the way."
+              : "Dashboard handles weekly review, payroll-prep, exports, and office-only reporting. Team, settings, and archive live in dedicated pages."}
+          </span>
+        </section>
+      )}
 
       <main className="content-grid" style={{ padding: "0 20px 40px" }}>
         {activePage === "dashboard" ? (

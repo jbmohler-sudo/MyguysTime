@@ -38,6 +38,7 @@
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: clip; /* prevent horizontal scroll from wide tables/grids */
 }
 
 button {
@@ -107,11 +108,11 @@ label {
 }
 
 .app-shell {
-  padding: var(--space-32);
+  padding: 0;
 }
 
 .app-shell--truck {
-  padding: var(--space-16);
+  padding: 0;
 }
 
 .login-shell {
@@ -333,20 +334,28 @@ label {
 }
 
 .logo--app .logo__image {
-  height: 38px;
+  height: 52px;
 }
 
 .logo--marketing .logo__image {
-  height: 40px;
+  height: 44px;
 }
 
 .logo--preview .logo__image {
-  height: 32px;
+  height: 36px;
 }
 
 .hero__logo,
 .marketing-header__logo {
   margin-bottom: 0.15rem;
+}
+
+/* App header h1 is a compact page-title, not the big marketing hero headline */
+.hero--app h1 {
+  font-size: inherit;
+  letter-spacing: normal;
+  line-height: normal;
+  max-width: none;
 }
 
 .viewer-card,
@@ -1465,8 +1474,13 @@ button:disabled {
 
 table {
   border-collapse: collapse;
-  min-width: 900px;
   width: 100%;
+}
+
+/* Only enforce wide min-width when inside an explicitly scrollable wrapper */
+.table-wrap table,
+.invite-table {
+  min-width: 900px;
 }
 
 th,
@@ -1918,7 +1932,7 @@ th {
 
 @media (max-width: 720px) {
   .app-shell {
-    padding: var(--space-16);
+    padding: 0;
   }
 
   .marketing-shell {
@@ -1979,12 +1993,17 @@ th {
   }
 
   .logo--app .logo__image {
-    height: 34px;
+    height: 44px;
   }
 
   .logo--marketing .logo__image,
   .logo--preview .logo__image {
-    height: 30px;
+    height: 32px;
+  }
+
+  .nav-toggle {
+    min-height: 44px;
+    padding: 10px 16px;
   }
 
   .app-nav {
