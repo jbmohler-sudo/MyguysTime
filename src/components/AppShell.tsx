@@ -297,6 +297,517 @@ export function AppShell({
     archive: "Archived employees stay on file for office reference instead of being deleted.",
   };
 
+  const formattedWeekStart = useMemo(() => {
+    const [year, month, day] = data.weekStart.split("-");
+    return `${month}/${day}/${year}`;
+  }, [data.weekStart]);
+
+  if (isMobileViewport) {
+    return (
+      <div className={`app-shell app-shell--${uiMode} app-shell--mobile`} style={{ backgroundColor: BRAND_LIGHT, minHeight: "100vh" }}>
+        {/* Slim sticky header */}
+        <header
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 100,
+            backgroundColor: "white",
+            borderBottom: `3px solid ${BRAND_ORANGE}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 8px",
+            height: "52px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+          }}
+        >
+          <button
+            onClick={() => setMobileNavOpen((o) => !o)}
+            style={{
+              background: "none",
+              border: "none",
+              fontSize: "1.4rem",
+              cursor: "pointer",
+              width: "44px",
+              height: "44px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: BRAND_DARK,
+              flexShrink: 0,
+            }}
+            type="button"
+            aria-label="Open navigation"
+          >
+            {mobileNavOpen ? "✕" : "☰"}
+          </button>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", fontWeight: 700, color: BRAND_DARK }}>
+            <span>{data.viewer.fullName.split(" ")[0].toUpperCase()}</span>
+            <span style={{ color: "#CCC" }}>/</span>
+            <span
+              style={{
+                backgroundColor: uiMode === "office" ? BRAND_ORANGE : ACCENT_TEAL,
+                color: "white",
+                padding: "2px 8px",
+                borderRadius: "12px",
+                fontSize: "0.65rem",
+                fontWeight: 800,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              {uiMode === "truck" ? "TRUCK" : "OFFICE"}
+            </span>
+          </div>
+
+          <button
+            onClick={onboarding.restartTour}
+            style={{
+              background: "none",
+              border: "1.5px solid #DDD",
+              borderRadius: "50%",
+              width: "44px",
+              height: "44px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              fontSize: "0.85rem",
+              fontWeight: 700,
+              color: "#888",
+              flexShrink: 0,
+            }}
+            type="button"
+            aria-label="Help"
+          >
+            ?
+          </button>
+        </header>
+
+        {/* Slide-in nav drawer */}
+        {mobileNavOpen && (
+          <>
+            <div
+              onClick={() => setMobileNavOpen(false)}
+              style={{
+                position: "fixed",
+                inset: 0,
+                backgroundColor: "rgba(0,0,0,0.45)",
+                zIndex: 199,
+              }}
+            />
+            <nav
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                bottom: 0,
+                width: "260px",
+                backgroundColor: "white",
+                zIndex: 200,
+                display: "flex",
+                flexDirection: "column",
+                boxShadow: "4px 0 24px rgba(0,0,0,0.18)",
+              }}
+            >
+              <div style={{ padding: "56px 20px 16px", borderBottom: "1px solid #EEE" }}>
+                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: BRAND_DARK }}>{data.viewer.fullName}</div>
+                <div style={{ fontSize: "0.8rem", color: "#888", marginTop: "2px" }}>{data.viewer.role}</div>
+                {data.companySettings && (
+                  <div style={{ fontSize: "0.76rem", color: "#AAA", marginTop: "2px" }}>{data.companySettings.companyName}</div>
+                )}
+              </div>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "8px 0" }}>
+                {navItems
+                  .filter((item) => item.visible)
+                  .map((item) => (
+                    <button
+                      key={item.key}
+                      onClick={() => { setActivePage(item.key); setMobileNavOpen(false); }}
+                      style={{
+                        background: activePage === item.key ? "rgba(255,140,0,0.07)" : "none",
+                        border: "none",
+                        borderLeft: activePage === item.key ? `3px solid ${BRAND_ORANGE}` : "3px solid transparent",
+                        color: activePage === item.key ? BRAND_ORANGE : BRAND_DARK,
+                        fontWeight: activePage === item.key ? 700 : 500,
+                        padding: "14px 20px",
+                        cursor: "pointer",
+                        fontSize: "0.95rem",
+                        textAlign: "left",
+                        width: "100%",
+                      }}
+                      type="button"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+              </div>
+              <button
+                onClick={onLogout}
+                style={{
+                  background: "none",
+                  border: "none",
+                  borderTop: "1px solid #EEE",
+                  color: "#c00",
+                  fontWeight: 500,
+                  padding: "16px 20px",
+                  cursor: "pointer",
+                  fontSize: "0.9rem",
+                  textAlign: "left",
+                  width: "100%",
+                }}
+                type="button"
+              >
+                Sign out
+              </button>
+            </nav>
+          </>
+        )}
+
+        {/* Page body */}
+        <main>
+          {/* Welcome row */}
+          <div style={{ padding: "12px 16px", backgroundColor: "white", borderBottom: "1px solid #EEE" }}>
+            <span style={{ fontSize: "0.85rem", color: "#666" }}>
+              Welcome back,{" "}
+              <strong style={{ color: BRAND_DARK }}>{data.viewer.fullName.split(" ")[0]}</strong>
+            </span>
+            <span
+              style={{
+                marginLeft: "8px",
+                backgroundColor: "#F0F0F0",
+                color: "#555",
+                padding: "2px 8px",
+                borderRadius: "12px",
+                fontSize: "0.68rem",
+                fontWeight: 600,
+              }}
+            >
+              {data.viewer.role}
+            </span>
+          </div>
+
+          {/* Horizontal tab bar */}
+          <div
+            style={{
+              display: "flex",
+              overflowX: "auto",
+              backgroundColor: "white",
+              borderBottom: "1px solid #EEE",
+            }}
+          >
+            {navItems
+              .filter((item) => item.visible)
+              .map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => setActivePage(item.key)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    borderBottom: activePage === item.key ? `2px solid ${BRAND_ORANGE}` : "2px solid transparent",
+                    color: activePage === item.key ? BRAND_ORANGE : "#555",
+                    fontWeight: activePage === item.key ? 700 : 500,
+                    padding: "12px 16px",
+                    cursor: "pointer",
+                    fontSize: "0.85rem",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0,
+                    transition: "all 0.15s ease",
+                  }}
+                  type="button"
+                >
+                  {item.label}
+                </button>
+              ))}
+          </div>
+
+          {/* Controls row (dashboard only) */}
+          {activePage === "dashboard" && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 16px",
+                backgroundColor: "white",
+                borderBottom: "1px solid #EEE",
+                overflowX: "auto",
+              }}
+            >
+              {uiMode === "office" && (
+                <button
+                  onClick={() => setShowPayrollModal(true)}
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: "20px",
+                    backgroundColor: BRAND_ORANGE,
+                    color: "white",
+                    border: "none",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0,
+                  }}
+                  type="button"
+                >
+                  📥 Export Payroll
+                </button>
+              )}
+              {uiMode === "office" ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
+                  <label style={{ fontSize: "0.75rem", color: "#666", fontWeight: 500 }}>Week</label>
+                  <input
+                    type="date"
+                    value={data.weekStart}
+                    onChange={(event) => void onRefresh(event.target.value)}
+                    style={{
+                      border: "1.5px solid #DDD",
+                      borderRadius: "20px",
+                      padding: "5px 10px",
+                      fontSize: "0.78rem",
+                      color: BRAND_DARK,
+                      outline: "none",
+                    }}
+                  />
+                </div>
+              ) : (
+                <span
+                  style={{
+                    backgroundColor: "#F5F5F5",
+                    color: "#555",
+                    padding: "6px 12px",
+                    borderRadius: "20px",
+                    fontSize: "0.78rem",
+                    fontWeight: 500,
+                    flexShrink: 0,
+                  }}
+                >
+                  📅 {formattedWeekStart}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Error banner */}
+          {error && (
+            <div
+              style={{
+                backgroundColor: "rgba(255,140,0,0.08)",
+                borderLeft: `4px solid ${BRAND_ORANGE}`,
+                color: BRAND_DARK,
+                padding: "12px 16px",
+                fontSize: "0.875rem",
+                margin: "8px 16px",
+                borderRadius: "0 8px 8px 0",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          {/* ACTION REQUIRED */}
+          {uiMode === "office" && hasIncompleteTimesheets && activePage === "dashboard" && (
+            <div
+              style={{
+                backgroundColor: "rgba(255, 140, 0, 0.06)",
+                borderLeft: `4px solid ${BRAND_ORANGE}`,
+                padding: "14px 16px",
+                margin: "8px 16px",
+                borderRadius: "0 8px 8px 0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "1rem",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <span style={{ fontSize: "1.1rem" }}>⚠️</span>
+                <div>
+                  <strong style={{ color: BRAND_DARK, display: "block", fontSize: "0.85rem" }}>
+                    ACTION REQUIRED
+                  </strong>
+                  <span style={{ color: "#5A5A5B", fontSize: "0.78rem" }}>
+                    {incompleteCount} {incompleteCount === 1 ? "timesheet" : "timesheets"} waiting
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={handleQuickFix}
+                style={{
+                  backgroundColor: BRAND_ORANGE,
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "8px 14px",
+                  cursor: "pointer",
+                  fontSize: "0.8rem",
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                }}
+                type="button"
+              >
+                Fix now
+              </button>
+            </div>
+          )}
+
+          {/* Page content */}
+          <div style={{ paddingBottom: "40px" }}>
+            {activePage === "dashboard" && (
+              <>
+                <WeeklyCrewBoard
+                  uiMode={uiMode}
+                  viewer={data.viewer}
+                  crews={data.crews}
+                  employeeWeeks={visibleWeeks}
+                  selectedCrewId={selectedCrewId}
+                  onSelectCrew={setSelectedCrewId}
+                  weekStart={data.weekStart}
+                  todayIso={todayIso}
+                  currentWeekStart={currentWeekStart}
+                  onGoToCurrentWeek={() => void onRefresh(currentWeekStart)}
+                  onUpdateDay={onUpdateDay}
+                  onApplyCrewDefaults={onApplyCrewDefaults}
+                  onStatusChange={onStatusChange}
+                  onReopenWeek={onReopenWeek}
+                />
+                {uiMode === "office" && data.viewer.role === "admin" && (
+                  <div className="brand-surface">
+                    <OfficeDashboard
+                      companySettings={data.companySettings}
+                      employeeWeeks={data.employeeWeeks}
+                      onExport={onExport}
+                      onUpdateAdjustment={onUpdateAdjustment}
+                      onReopenWeek={onReopenWeek}
+                    />
+                  </div>
+                )}
+                {uiMode === "office" && (
+                  <section className="stack brand-surface">
+                    <PrivateReportsPanel
+                      viewer={data.viewer}
+                      employeeWeeks={visibleWeeks}
+                      reports={data.privateReports}
+                      onSubmit={onSubmitPrivateReport}
+                    />
+                  </section>
+                )}
+              </>
+            )}
+
+            {activePage === "company-settings" && canViewCompanySettings && data.companySettings && (
+              <CompanySettingsPanel
+                companySettings={data.companySettings}
+                stateRules={data.stateRules}
+                onSave={onUpdateCompanySettings}
+              />
+            )}
+
+            {activePage === "team" && canViewTeam && (
+              <>
+                <div style={{ display: "flex", justifyContent: "flex-end", padding: "12px 16px 0" }}>
+                  <button
+                    onClick={() => setShowInviteModal(true)}
+                    style={{
+                      padding: "10px 18px",
+                      borderRadius: "8px",
+                      border: "none",
+                      background: BRAND_ORANGE,
+                      color: "#fff",
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                    type="button"
+                  >
+                    + Invite a Worker
+                  </button>
+                </div>
+                {inviteSuccessUrl && (
+                  <div
+                    style={{
+                      margin: "12px 16px",
+                      padding: "10px 14px",
+                      borderRadius: "8px",
+                      background: "#E8F5E9",
+                      color: "#2E7D32",
+                      fontSize: "13px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <span>
+                      Invite sent!{" "}
+                      <a href={inviteSuccessUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#1565C0" }}>
+                        {inviteSuccessUrl}
+                      </a>
+                    </span>
+                    <button
+                      onClick={() => setInviteSuccessUrl(null)}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: "16px" }}
+                      type="button"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+                <TeamManagementPanel
+                  data={data}
+                  onOpenAddEmployee={() => setShowAddEmployeeModal(true)}
+                  onEditEmployee={(employee) => { console.log("Edit employee:", employee); }}
+                />
+                <InviteManagementPanel
+                  onListInvites={onListInvites}
+                  onResendInvite={onResendInvite}
+                  onRevokeInvite={onRevokeInvite}
+                />
+              </>
+            )}
+
+            {activePage === "archive" && canViewArchive && (
+              <ArchivePanel archivedEmployees={data.archivedEmployees} />
+            )}
+          </div>
+        </main>
+
+        <PayrollExportModal
+          isOpen={showPayrollModal}
+          data={data}
+          weekStart={data.weekStart}
+          onClose={() => setShowPayrollModal(false)}
+          onExport={handlePayrollExport}
+          onFetchQboPreview={onFetchQboPreview}
+          onDownloadQboCsv={onDownloadQboCsv}
+          onFetchHistory={onFetchExportHistory}
+        />
+        <AddEmployeeModal
+          isOpen={showAddEmployeeModal}
+          crews={data.crews}
+          onClose={() => setShowAddEmployeeModal(false)}
+          onSave={async (employee) => {
+            console.log("New employee data:", employee);
+            setShowAddEmployeeModal(false);
+          }}
+        />
+        <InviteEmployeeModal
+          isOpen={showInviteModal}
+          crews={data.crews}
+          onClose={() => setShowInviteModal(false)}
+          onCreateInvite={onCreateInvite}
+          onInviteSent={(_invite, url) => {
+            setShowInviteModal(false);
+            if (url) setInviteSuccessUrl(url);
+          }}
+        />
+        <OnboardingOverlay />
+      </div>
+    );
+  }
+
   return (
     <div className={`app-shell app-shell--${uiMode}`} style={{ backgroundColor: BRAND_LIGHT, minHeight: "100vh" }}>
       <header
