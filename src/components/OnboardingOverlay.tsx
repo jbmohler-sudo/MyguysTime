@@ -46,47 +46,55 @@ export const OnboardingOverlay: React.FC = () => {
   if (!step) return null;
 
   const getTooltipPosition = (): React.CSSProperties => {
-    if (!step.target) {
-      // Center tooltip on screen
-      return {
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-      };
-    }
+    const TOOLTIP_W = 320;
+    const TOOLTIP_H = 220; // approximate rendered height
+    const PAD = 12;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const centered: React.CSSProperties = {
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+    };
+
+    // Always center on small screens — avoids off-screen tooltips
+    if (vw < 540 || !step.target) return centered;
 
     const targetElement = document.querySelector(step.target) as HTMLElement;
-    if (!targetElement) return {};
+    if (!targetElement) return centered;
 
     const rect = targetElement.getBoundingClientRect();
     const spacing = 16;
+
+    const clampLeft = (raw: number) =>
+      Math.max(PAD, Math.min(raw, vw - TOOLTIP_W - PAD));
+    const clampTop = (raw: number) =>
+      Math.max(PAD, Math.min(raw, vh - TOOLTIP_H - PAD));
+
     switch (step.position) {
       case "top":
         return {
-          top: `${rect.top - spacing}px`,
-          left: `${rect.left + rect.width / 2}px`,
-          transform: "translate(-50%, -100%)",
+          top: `${clampTop(rect.top - spacing - TOOLTIP_H)}px`,
+          left: `${clampLeft(rect.left + rect.width / 2 - TOOLTIP_W / 2)}px`,
         };
       case "bottom":
         return {
-          top: `${rect.bottom + spacing}px`,
-          left: `${rect.left + rect.width / 2}px`,
-          transform: "translateX(-50%)",
+          top: `${clampTop(rect.bottom + spacing)}px`,
+          left: `${clampLeft(rect.left + rect.width / 2 - TOOLTIP_W / 2)}px`,
         };
       case "left":
         return {
-          top: `${rect.top + rect.height / 2}px`,
-          left: `${rect.left - spacing}px`,
-          transform: "translate(-100%, -50%)",
+          top: `${clampTop(rect.top + rect.height / 2 - TOOLTIP_H / 2)}px`,
+          left: `${clampLeft(rect.left - spacing - TOOLTIP_W)}px`,
         };
       case "right":
         return {
-          top: `${rect.top + rect.height / 2}px`,
-          left: `${rect.right + spacing}px`,
-          transform: "translateY(-50%)",
+          top: `${clampTop(rect.top + rect.height / 2 - TOOLTIP_H / 2)}px`,
+          left: `${clampLeft(rect.right + spacing)}px`,
         };
       default:
-        return {};
+        return centered;
     }
   };
 
@@ -147,7 +155,7 @@ export const OnboardingOverlay: React.FC = () => {
           borderRadius: "8px",
           boxShadow: "0 10px 40px rgba(0, 0, 0, 0.2)",
           padding: "24px",
-          maxWidth: "320px",
+          width: "min(320px, calc(100vw - 32px))",
           zIndex: 10000,
           fontFamily: "system-ui, -apple-system, sans-serif",
         }}
