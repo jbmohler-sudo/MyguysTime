@@ -576,7 +576,7 @@ export function AppShell({
       {uiMode === "office" && hasIncompleteTimesheets && activePage === "dashboard" ? (
         <div
           style={{
-            backgroundColor: "#FFF3CD",
+            backgroundColor: "rgba(255, 140, 0, 0.06)",
             borderLeft: `4px solid ${BRAND_ORANGE}`,
             padding: "1rem 1.5rem",
             display: "flex",
@@ -684,17 +684,19 @@ export function AppShell({
             />
 
             {uiMode === "office" && data.viewer.role === "admin" ? (
-              <OfficeDashboard
-                companySettings={data.companySettings}
-                employeeWeeks={data.employeeWeeks}
-                onExport={onExport}
-                onUpdateAdjustment={onUpdateAdjustment}
-                onReopenWeek={onReopenWeek}
-              />
+              <div className="brand-surface">
+                <OfficeDashboard
+                  companySettings={data.companySettings}
+                  employeeWeeks={data.employeeWeeks}
+                  onExport={onExport}
+                  onUpdateAdjustment={onUpdateAdjustment}
+                  onReopenWeek={onReopenWeek}
+                />
+              </div>
             ) : null}
 
             {uiMode === "office" ? (
-              <section className="stack">
+              <section className="stack brand-surface">
                 <PrivateReportsPanel
                   viewer={data.viewer}
                   employeeWeeks={visibleWeeks}

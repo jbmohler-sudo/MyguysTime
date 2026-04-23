@@ -273,9 +273,9 @@ label {
 }
 
 .app-nav__item--active {
-  background: var(--brand);
-  border-color: var(--brand);
-  color: var(--color-text-inverse);
+  background: rgba(255, 140, 0, 0.08);
+  border-color: #FF8C00;
+  color: #FF8C00;
 }
 
 .nav-toggle {
@@ -2430,5 +2430,30 @@ th {
 
 .card:hover {
   transform: translateY(-4px);
+}
+
+/* ─── Brand identity stitching ────────────────────────────────────────── */
+
+/* Large panel brand surface: subtle orange tint distinguishes from page bg */
+.brand-surface {
+  background: color-mix(in srgb, #FF8C00 4%, var(--color-bg-surface) 96%);
+  border: 1px solid color-mix(in srgb, #FF8C00 12%, var(--color-border-default) 88%);
+  border-radius: var(--radius-xl);
+  padding: var(--space-20);
+}
+
+/* Consistent left-border anchor for content containers */
+.brand-anchored {
+  border-left: 2px solid #FF8C00;
+  padding-left: var(--space-16);
+}
+
+/* Input/select/textarea: orange border on focus (mouse and keyboard) */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #FF8C00;
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.12);
+  outline: none;
 }
 
