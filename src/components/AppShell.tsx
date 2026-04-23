@@ -9,6 +9,11 @@ import { PrivateReportsPanel } from "./PrivateReportsPanel";
 import { TeamManagementPanel } from "./TeamManagementPanel";
 import { WeeklyCrewBoard } from "./WeeklyCrewBoard";
 
+const BRAND_ORANGE = "#FF8C00";
+const BRAND_DARK = "#1A1A1B";
+const BRAND_LIGHT = "#F8F9FA";
+const ACCENT_TEAL = "#00BCD4";
+
 type UiMode = "truck" | "office";
 type AppPage = "dashboard" | "team" | "company-settings" | "archive";
 
@@ -69,11 +74,6 @@ export function AppShell({
   onSubmitPrivateReport,
   onExport,
   onUpdateCompanySettings,
-  onListEmployees,
-  onCreateEmployee,
-  onUpdateEmployee,
-  onListInvites,
-  onCreateInvite,
 }: AppShellProps) {
   const truckViewportQuery = "(max-width: 720px)";
   const [selectedCrewId, setSelectedCrewId] = useState<string>("all");
@@ -84,6 +84,9 @@ export function AppShell({
   const [modeOverride] = useState<UiMode | null>(null);
   const [activePage, setActivePage] = useState<AppPage>("dashboard");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
+  const [hoveredNav, setHoveredNav] = useState<string | null>(null);
+
   const visibleWeeks = useMemo(
     () =>
       selectedCrewId === "all"
@@ -91,12 +94,14 @@ export function AppShell({
         : data.employeeWeeks.filter((week) => week.crewId === selectedCrewId),
     [data.employeeWeeks, selectedCrewId],
   );
+
   const todayIso = useMemo(() => {
     const year = openedAt.getFullYear();
     const month = String(openedAt.getMonth() + 1).padStart(2, "0");
     const day = String(openedAt.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   }, [openedAt]);
+
   const currentWeekStart = useMemo(() => {
     const result = new Date(openedAt);
     const day = result.getDay();
@@ -108,20 +113,27 @@ export function AppShell({
     const date = String(result.getDate()).padStart(2, "0");
     return `${year}-${month}-${date}`;
   }, [openedAt]);
+
   const uiMode = useMemo<UiMode>(() => {
     if (modeOverride) {
       return modeOverride;
     }
-
     if (data.viewer.role === "admin") {
       return "office";
     }
-
     return isMobileViewport ? "truck" : "office";
   }, [data.viewer.role, isMobileViewport, modeOverride]);
+
   const canViewCompanySettings = data.viewer.role === "admin" && Boolean(data.companySettings);
   const canViewArchive = data.viewer.role === "admin";
   const canViewTeam = data.viewer.role === "admin";
+
+  const incompleteCount = useMemo(() => {
+    return data.employeeWeeks.filter((week) => week.status === "draft").length;
+  }, [data.employeeWeeks]);
+
+  const hasIncompleteTimesheets = incompleteCount > 0;
+
   const navItems = useMemo(
     () =>
       [
@@ -137,19 +149,15 @@ export function AppShell({
     if (typeof window === "undefined") {
       return;
     }
-
     const mediaQuery = window.matchMedia(truckViewportQuery);
     function handleViewportChange(event: MediaQueryList | MediaQueryListEvent) {
       setIsMobileViewport(event.matches);
     }
-
     setIsMobileViewport(mediaQuery.matches);
-
     if (typeof mediaQuery.addEventListener === "function") {
       mediaQuery.addEventListener("change", handleViewportChange);
       return () => mediaQuery.removeEventListener("change", handleViewportChange);
     }
-
     mediaQuery.addListener(handleViewportChange);
     return () => mediaQuery.removeListener(handleViewportChange);
   }, [truckViewportQuery]);
@@ -176,103 +184,364 @@ export function AppShell({
     }
   }, [activePage, canViewArchive, canViewCompanySettings, canViewTeam]);
 
+  const handleQuickFix = () => {
+    setActivePage("dashboard");
+    setTimeout(() => {
+      const crewBoard = document.querySelector(".weekly-crew-board");
+      crewBoard?.scrollIntoView({ behavior: "smooth" });
+    }, 0);
+  };
+
+  const pageTitle: Record<AppPage, string> = {
+    dashboard: uiMode === "truck"
+      ? "Current-week crew timecards for the truck."
+      : "Weekly time review and payroll-prep for contractor crews.",
+    team: "Active employee records and default crew setup.",
+    "company-settings": "Company profile and payroll-prep defaults.",
+    archive: "Archived employee records and history.",
+  };
+
+  const pageSubtitle: Record<AppPage, string> = {
+    dashboard: uiMode === "truck"
+      ? "Mobile-first time entry for foremen and employees, focused on today and the active work week."
+      : "Keep the weekly board, payroll-prep review, exports, and next-step workflow in one focused dashboard.",
+    team: "Manage employee records, keep worker details current, and send login invites only when someone needs app access.",
+    "company-settings": "Update company identity, state support, payroll-prep defaults, and the standing disclaimer without cluttering the weekly dashboard.",
+    archive: "Archived employees stay on file for office reference instead of being deleted.",
+  };
+
   return (
-    <div className={`app-shell app-shell--${uiMode}`}>
-      <header className="hero hero--app">
+    <div
+      className={`app-shell app-shell--${uiMode}`}
+      style={{ backgroundColor: BRAND_LIGHT, minHeight: "100vh" }}
+    >
+      {/* ── Header ── */}
+      <header
+        className="hero hero--app"
+        style={{
+          backgroundColor: "white",
+          borderBottom: `3px solid ${BRAND_ORANGE}`,
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+        }}
+      >
         <div className="hero__main">
-          <div className="hero__topbar">
-            <div className="hero__brand-block">
+          {/* Top bar: logo + title + mobile menu toggle */}
+          <div
+            className="hero__topbar"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "1rem",
+            }}
+          >
+            <div className="hero__brand-block" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
               <Logo className="hero__logo" size="app" />
-              <h1>
-                {uiMode === "truck"
-                  ? "Current-week crew timecards for the truck."
-                  : activePage === "team"
-                    ? "Active employee records and default crew setup."
-                  : activePage === "company-settings"
-                    ? "Company profile and payroll-prep defaults."
-                    : activePage === "archive"
-                      ? "Archived employee records and history."
-                      : "Weekly time review and payroll-prep for contractor crews."}
+              <h1
+                style={{
+                  color: BRAND_DARK,
+                  fontWeight: 700,
+                  fontSize: "1rem",
+                  margin: 0,
+                }}
+              >
+                {pageTitle[activePage]}
               </h1>
             </div>
+
+            {/* Viewer card — inline in topbar */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                fontSize: "0.8rem",
+                color: "#666",
+                flexShrink: 0,
+              }}
+            >
+              <span>Signed in as</span>
+              <strong style={{ color: BRAND_DARK }}>{data.viewer.fullName}</strong>
+              <span
+                style={{
+                  backgroundColor: "#F0F0F0",
+                  color: "#555",
+                  padding: "2px 8px",
+                  borderRadius: "12px",
+                  fontSize: "0.7rem",
+                  fontWeight: 600,
+                }}
+              >
+                {data.viewer.role}
+              </span>
+              {data.companySettings ? (
+                <span style={{ color: "#888" }}>{data.companySettings.companyName}</span>
+              ) : null}
+            </div>
+
             {isMobileViewport ? (
               <button
                 className="nav-toggle"
                 onClick={() => setMobileNavOpen((current) => !current)}
+                style={{
+                  background: "none",
+                  border: `2px solid ${BRAND_ORANGE}`,
+                  color: BRAND_ORANGE,
+                  borderRadius: "6px",
+                  padding: "6px 12px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontSize: "0.8rem",
+                }}
                 type="button"
               >
-                {mobileNavOpen ? "Close menu" : "Menu"}
+                {mobileNavOpen ? "Close" : "Menu"}
               </button>
             ) : null}
           </div>
 
-          <p className="hero-copy">
-            {activePage === "dashboard"
-              ? uiMode === "truck"
-                ? "Mobile-first time entry for foremen and employees, focused on today and the active work week."
-                : "Keep the weekly board, payroll-prep review, exports, and next-step workflow in one focused dashboard."
-              : activePage === "team"
-                ? "Manage employee records, keep worker details current, and send login invites only when someone needs app access."
-                : activePage === "company-settings"
-                  ? "Update company identity, state support, payroll-prep defaults, and the standing disclaimer without cluttering the weekly dashboard."
-                : "Archived employees stay on file for office reference instead of being deleted."}
+          {/* Subtitle */}
+          <p
+            className="hero-copy"
+            style={{
+              color: "#666",
+              fontSize: "0.85rem",
+              margin: "0.4rem 0 0.75rem",
+            }}
+          >
+            {pageSubtitle[activePage]}
           </p>
 
-          <nav className={isMobileViewport ? (mobileNavOpen ? "app-nav app-nav--open" : "app-nav app-nav--mobile") : "app-nav"}>
-            {navItems.filter((item) => item.visible).map((item) => (
-              <button
-                className={activePage === item.key ? "app-nav__item app-nav__item--active" : "app-nav__item"}
-                key={item.key}
-                onClick={() => setActivePage(item.key)}
-                type="button"
-              >
-                {item.label}
-              </button>
-            ))}
-            <button className="app-nav__item" onClick={onLogout} type="button">
+          {/* Navigation */}
+          <nav
+            className={
+              isMobileViewport
+                ? mobileNavOpen
+                  ? "app-nav app-nav--open"
+                  : "app-nav app-nav--mobile"
+                : "app-nav"
+            }
+            style={{
+              display: "flex",
+              gap: "0.25rem",
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            {navItems.filter((item) => item.visible).map((item) => {
+              const isActive = activePage === item.key;
+              const isHovered = hoveredNav === item.key;
+              return (
+                <button
+                  className={isActive ? "app-nav__item app-nav__item--active" : "app-nav__item"}
+                  key={item.key}
+                  onClick={() => setActivePage(item.key)}
+                  onMouseEnter={() => setHoveredNav(item.key)}
+                  onMouseLeave={() => setHoveredNav(null)}
+                  style={{
+                    background: isActive ? "rgba(255,140,0,0.08)" : isHovered ? "#F5F5F5" : "none",
+                    border: "none",
+                    borderBottom: isActive ? `2px solid ${BRAND_ORANGE}` : "2px solid transparent",
+                    color: isActive ? BRAND_ORANGE : isHovered ? BRAND_DARK : "#555",
+                    fontWeight: isActive ? 700 : 500,
+                    padding: "8px 14px",
+                    borderRadius: "6px 6px 0 0",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
+                    transition: "all 0.15s ease",
+                  }}
+                  type="button"
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+
+            {/* Spacer */}
+            <span style={{ flex: 1 }} />
+
+            {/* Mode pill */}
+            <span
+              className={`mode-pill mode-pill--${uiMode}`}
+              style={{
+                backgroundColor: uiMode === "office" ? BRAND_ORANGE : ACCENT_TEAL,
+                color: "white",
+                padding: "5px 12px",
+                borderRadius: "20px",
+                fontSize: "0.72rem",
+                fontWeight: 800,
+                letterSpacing: "0.03em",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
+                textTransform: "uppercase",
+              }}
+            >
+              {uiMode === "truck" ? "Truck" : "Office"}
+            </span>
+
+            {/* Week picker (office/dashboard only) */}
+            {activePage === "dashboard" && uiMode === "office" ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <label style={{ fontSize: "0.78rem", color: "#666", fontWeight: 500 }}>Week</label>
+                <input
+                  type="date"
+                  value={data.weekStart}
+                  onChange={(event) => void onRefresh(event.target.value)}
+                  style={{
+                    border: `2px solid #EEE`,
+                    borderRadius: "6px",
+                    padding: "4px 8px",
+                    fontSize: "0.8rem",
+                    color: BRAND_DARK,
+                    outline: "none",
+                  }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = BRAND_ORANGE; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = "#EEE"; }}
+                />
+              </div>
+            ) : activePage === "dashboard" && uiMode === "truck" ? (
+              <span style={{ fontSize: "0.78rem", color: "#888" }}>Week: {data.weekStart}</span>
+            ) : null}
+
+            {/* Sign out */}
+            <button
+              className="app-nav__item"
+              onClick={onLogout}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "#c00"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "#888"; }}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#888",
+                fontWeight: 500,
+                padding: "8px 14px",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+                transition: "color 0.15s ease",
+              }}
+              type="button"
+            >
               Sign out
             </button>
           </nav>
 
-          <div className="hero-meta">
-            <span className={`mode-pill mode-pill--${uiMode}`}>{uiMode === "truck" ? "Truck mode" : "Office mode"}</span>
-            {activePage === "dashboard" ? (
-              uiMode === "office" ? (
-                <>
-                  <span>Week start</span>
-                  <input
-                    type="date"
-                    value={data.weekStart}
-                    onChange={(event) => void onRefresh(event.target.value)}
-                  />
-                  <span>Current status view: {visibleWeeks.map((week) => prettyStatus(week.status)).join(", ") || "No weeks yet"}</span>
-                </>
-              ) : (
-                <span>Current week only: {data.weekStart}</span>
-              )
-            ) : null}
-          </div>
-        </div>
-
-        <div className="viewer-card">
-          <span className="viewer-label">Signed in as</span>
-          <strong>{data.viewer.fullName}</strong>
-          <span className="viewer-role">{data.viewer.role}</span>
-          {data.companySettings ? <span className="viewer-week">{data.companySettings.companyName}</span> : null}
+          {/* Status summary (office dashboard) */}
+          {activePage === "dashboard" && uiMode === "office" && visibleWeeks.length > 0 ? (
+            <p
+              style={{
+                fontSize: "0.75rem",
+                color: "#888",
+                margin: "0.5rem 0 0",
+              }}
+            >
+              Status: {visibleWeeks.map((week) => prettyStatus(week.status)).join(", ")}
+            </p>
+          ) : null}
         </div>
       </header>
 
-      {error ? <div className="error-banner">{error}</div> : null}
-      <section className={`mode-banner mode-banner--${uiMode}`}>
-        <strong>{uiMode === "truck" ? "Truck mode" : "Office mode"}</strong>
-        <span>
+      {/* ── Error banner ── */}
+      {error ? (
+        <div
+          className="error-banner"
+          style={{
+            backgroundColor: "rgba(255,140,0,0.08)",
+            borderLeft: `4px solid ${BRAND_ORANGE}`,
+            color: BRAND_DARK,
+            padding: "14px 20px",
+            fontSize: "0.875rem",
+          }}
+        >
+          {error}
+        </div>
+      ) : null}
+
+      {/* ── Incomplete timesheets alert ── */}
+      {uiMode === "office" && hasIncompleteTimesheets && activePage === "dashboard" ? (
+        <div
+          style={{
+            backgroundColor: "#FFF3CD",
+            borderLeft: `4px solid ${BRAND_ORANGE}`,
+            padding: "1rem 1.5rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "1rem",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <span style={{ fontSize: "1.25rem" }}>⚠️</span>
+            <div>
+              <strong style={{ color: BRAND_DARK, display: "block", fontSize: "0.875rem" }}>
+                ACTION REQUIRED
+              </strong>
+              <span style={{ color: "#5A5A5B", fontSize: "0.8rem" }}>
+                {incompleteCount} {incompleteCount === 1 ? "timesheet" : "timesheets"} waiting for submission
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={handleQuickFix}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(255,140,0,0.4)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 2px 6px rgba(255,140,0,0.3)";
+            }}
+            style={{
+              backgroundColor: BRAND_ORANGE,
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              padding: "8px 16px",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+              fontWeight: 700,
+              whiteSpace: "nowrap",
+              boxShadow: "0 2px 6px rgba(255,140,0,0.3)",
+              transition: "all 0.2s ease",
+            }}
+            type="button"
+          >
+            Fix now
+          </button>
+        </div>
+      ) : null}
+
+      {/* ── Mode banner ── */}
+      <section
+        className={`mode-banner mode-banner--${uiMode}`}
+        style={{
+          backgroundColor: "white",
+          borderLeft: `4px solid ${uiMode === "office" ? BRAND_ORANGE : ACCENT_TEAL}`,
+          padding: "12px 20px",
+          margin: "16px 20px",
+          borderRadius: "0 8px 8px 0",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.75rem",
+        }}
+      >
+        <strong style={{ color: BRAND_DARK, fontSize: "0.85rem", whiteSpace: "nowrap" }}>
+          {uiMode === "truck" ? "Truck mode" : "Office mode"}
+        </strong>
+        <span style={{ color: "#666", fontSize: "0.82rem" }}>
           {uiMode === "truck"
             ? "Dashboard stays centered on the current week, Today, and fast field entry. Company settings and archive stay out of the way."
             : "Dashboard handles weekly review, payroll-prep, exports, and office-only reporting. Team, settings, and archive live in dedicated pages."}
         </span>
       </section>
 
-      <main className="content-grid">
+      {/* ── Main content ── */}
+      <main
+        className="content-grid"
+        style={{ padding: "0 20px 40px" }}
+      >
         {activePage === "dashboard" ? (
           <>
             <WeeklyCrewBoard
@@ -325,12 +594,11 @@ export function AppShell({
 
         {activePage === "team" && canViewTeam ? (
           <TeamManagementPanel
-            crews={data.crews}
-            onLoadEmployees={onListEmployees}
-            onCreateEmployee={onCreateEmployee}
-            onUpdateEmployee={onUpdateEmployee}
-            onLoadInvites={onListInvites}
-            onCreateInvite={onCreateInvite}
+            data={data}
+            onOpenAddEmployee={() => setShowAddEmployeeModal(true)}
+            onEditEmployee={(employee) => {
+              console.log("Edit employee:", employee);
+            }}
           />
         ) : null}
 
@@ -338,6 +606,55 @@ export function AppShell({
           <ArchivePanel archivedEmployees={data.archivedEmployees} />
         ) : null}
       </main>
+
+      {/* ── Add Employee Modal placeholder ── */}
+      {showAddEmployeeModal ? (
+        <div
+          onClick={() => setShowAddEmployeeModal(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.45)",
+            zIndex: 200,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: "white",
+              borderRadius: "12px",
+              padding: "32px",
+              maxWidth: "480px",
+              width: "90%",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+            }}
+          >
+            <h2 style={{ color: BRAND_DARK, fontWeight: 800, margin: "0 0 8px" }}>Add New Employee</h2>
+            <p style={{ color: "#666", fontSize: "0.875rem", margin: "0 0 24px" }}>
+              Employee creation form coming in next phase.
+            </p>
+            <button
+              onClick={() => setShowAddEmployeeModal(false)}
+              style={{
+                backgroundColor: BRAND_ORANGE,
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                padding: "10px 20px",
+                fontWeight: 700,
+                cursor: "pointer",
+                fontSize: "0.875rem",
+              }}
+              type="button"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
