@@ -71,6 +71,7 @@ interface AppShellProps {
   onFetchQboPreview?: (weekStart: string) => Promise<import("../types/payroll").ExportPreview>;
   onDownloadQboCsv?: (weekStart: string) => Promise<Response>;
   onFetchExportHistory?: () => Promise<import("../types/payroll").PayrollExportRecord[]>;
+  onSendReminders?: (employeeIds: string[]) => Promise<{ count: number; sent: boolean }>;
 }
 
 export function AppShell({
@@ -93,6 +94,7 @@ export function AppShell({
   onFetchQboPreview,
   onDownloadQboCsv,
   onFetchExportHistory,
+  onSendReminders,
 }: AppShellProps) {
   const onboarding = useOnboardingContext();
   const truckViewportQuery = "(max-width: 720px)";
@@ -660,6 +662,7 @@ export function AppShell({
               <MissingTimeAlertBanner
                 employeeWeeks={data.employeeWeeks}
                 onQuickFix={handleQuickFixMissingTime}
+                onSendReminders={onSendReminders}
               />
             ) : null}
 

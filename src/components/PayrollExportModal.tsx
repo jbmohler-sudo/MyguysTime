@@ -3,6 +3,7 @@ import type { BootstrapPayload } from "../domain/models";
 import type { ExportPreview, PayrollExportRecord } from "../types/payroll";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { useAnalytics } from "../hooks/useAnalytics";
+import { useToast } from "../hooks/useToast";
 import { PayrollExportHistory } from "./PayrollExportHistory";
 
 interface ExportRow {
@@ -51,6 +52,7 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
   const [qboError, setQboError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const analytics = useAnalytics();
+  const { showToast } = useToast();
 
   useFocusTrap(containerRef, isOpen, onClose);
 
@@ -111,6 +113,7 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
       await new Promise((resolve) => setTimeout(resolve, 500));
       onExport(csvContent, fileName);
       analytics.trackFeatureUsage("payroll", "exported", { employeeCount: exportData.length });
+      showToast("Payroll CSV Exported", "success", `${exportData.length} employee ${exportData.length === 1 ? "record" : "records"} downloaded.`);
       onClose();
     } finally {
       setIsExporting(false);
@@ -148,6 +151,7 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       analytics.trackFeatureUsage("payroll", "qbo_exported", { weekStart });
+      showToast("QBO CSV Exported", "success", `Week of ${weekStart} downloaded successfully.`);
       onClose();
     } catch {
       setQboError("QBO export failed. Please try again.");

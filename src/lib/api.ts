@@ -279,6 +279,14 @@ export async function fetchExportHistory(token: string) {
   );
 }
 
+export async function sendSmsReminders(token: string, employeeIds: string[]) {
+  return request<{ count: number; sent: boolean }>(
+    "/reminders/send-sms",
+    { method: "POST", body: JSON.stringify({ employeeIds }) },
+    token,
+  );
+}
+
 export async function triggerBackendSentryVerification(token: string) {
   return request<{ ok: boolean; eventId: string | null }>(
     "/debug/sentry-test",

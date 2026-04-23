@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import type { CrewSummary } from "../domain/models";
 import { useFocusTrap } from "../hooks/useFocusTrap";
+import { useAnalytics } from "../hooks/useAnalytics";
 
 const BRAND_ORANGE = "#FF8C00";
 const BRAND_DARK = "#1A1A1B";
@@ -28,6 +29,7 @@ export function AddEmployeeModal({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const analytics = useAnalytics();
 
   function handleClose() {
     if (!isSaving) {
@@ -61,6 +63,10 @@ export function AddEmployeeModal({
         displayName: displayName.trim(),
         hourlyRate,
         defaultCrewId: selectedCrewId,
+      });
+      analytics.trackFeatureUsage("employee", "created", {
+        crewId: selectedCrewId,
+        hourlyRate,
       });
       setDisplayName("");
       setSelectedCrewId("");

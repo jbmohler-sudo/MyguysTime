@@ -2689,7 +2689,7 @@ app.get("/api/exports/qbo.csv", authenticate, asyncHandler(async (req: Authentic
       const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
       const dd = String(date.getUTCDate()).padStart(2, "0");
       const yyyy = date.getUTCFullYear();
-      const txnDate = `${mm}/${dd}/${yyyy}`;
+      const txnDate = `${dd}/${mm}/${yyyy}`;
       const customer = ts.crew.name;
       const serviceItem = "Services";
       const description = day.jobTag ?? "";
@@ -2716,6 +2716,17 @@ app.get("/api/exports/qbo.csv", authenticate, asyncHandler(async (req: Authentic
   res.setHeader("Content-Type", "text/csv; charset=utf-8");
   res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
   res.send(rows.join("\n"));
+}));
+
+app.post("/api/reminders/send-sms", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  if (!authorizeAdmin(req, res)) {
+    return;
+  }
+  const body = req.body as { employeeIds?: unknown };
+  const ids = Array.isArray(body.employeeIds) ? (body.employeeIds as string[]) : [];
+  // Stub — log intent; wire Twilio here in Phase 2
+  console.log(`[SMS stub] would send reminders to ${ids.length} employees:`, ids);
+  res.json({ count: ids.length, sent: true });
 }));
 
 app.get("/api/exports/history", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {

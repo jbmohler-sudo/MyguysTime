@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AppShell } from "./components/AppShell";
 import { OnboardingProvider } from "./hooks/useOnboarding";
+import { ToastProvider } from "./hooks/useToast";
 import { CompanySetupScreen } from "./components/CompanySetupScreen";
 import { LoginScreen } from "./components/LoginScreen";
 import { PublicHomepage } from "./components/PublicHomepage";
@@ -21,6 +22,7 @@ import {
   login,
   resendInvite,
   revokeInvite,
+  sendSmsReminders,
   signup,
   submitPrivateReport,
   updateCompanySettings,
@@ -284,6 +286,11 @@ function App() {
     return result.exports;
   }
 
+  async function handleSendReminders(employeeIds: string[]) {
+    if (!token) throw new Error("Not authenticated");
+    return sendSmsReminders(token, employeeIds);
+  }
+
   async function handleExport(kind: "payroll-summary" | "time-detail" | "weekly-summary") {
     if (!token || !data) {
       return;
@@ -361,6 +368,7 @@ function App() {
   }
 
   return (
+    <ToastProvider>
     <OnboardingProvider>
       <AppShell
         data={data}
@@ -385,8 +393,10 @@ function App() {
         onFetchQboPreview={handleFetchQboPreview}
         onDownloadQboCsv={handleDownloadQboCsv}
         onFetchExportHistory={handleFetchExportHistory}
+        onSendReminders={handleSendReminders}
       />
     </OnboardingProvider>
+    </ToastProvider>
   );
 }
 
