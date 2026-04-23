@@ -35,6 +35,11 @@ import type { EmployeeInput, InviteInput } from "./domain/models";
 import { getCurrentHostname, isPublicHomepageHost } from "./lib/host";
 
 const TOKEN_STORAGE_KEY = "crew-timecard-token";
+const DEMO_CREDENTIALS: Record<"admin" | "foreman" | "employee", { email: string; password: string }> = {
+  admin: { email: "admin@crewtime.local", password: "admin123" },
+  foreman: { email: "luis@crewtime.local", password: "foreman123" },
+  employee: { email: "marco@crewtime.local", password: "employee123" },
+};
 
 function getCurrentWeekStart(date: Date) {
   const result = new Date(date);
@@ -90,6 +95,11 @@ function App() {
     localStorage.setItem(TOKEN_STORAGE_KEY, response.token);
     setToken(response.token);
     window.history.replaceState({}, "", "/dashboard");
+  }
+
+  async function handleStartDemo(role: "admin" | "foreman" | "employee") {
+    const credentials = DEMO_CREDENTIALS[role];
+    await handleLogin(credentials.email, credentials.password);
   }
 
   function handleLogout() {
@@ -325,7 +335,7 @@ function App() {
   }
 
   if (showPublicHomepage) {
-    return <PublicHomepage />;
+    return <PublicHomepage onStartDemo={handleStartDemo} />;
   }
 
   if (isInviteSignup) {

@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Truck, Eye, BarChart3, FileText, ArrowRight, Check } from 'lucide-react';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+}
+
 interface WorkflowStep {
   number: number;
   title: string;
@@ -140,10 +145,18 @@ function ProductPreview() {
   );
 }
 
-export function PublicHomepage() {
+interface PublicHomepageProps {
+  onStartDemo: (role: "admin" | "foreman" | "employee") => Promise<void>;
+}
+
+export function PublicHomepage({ onStartDemo }: PublicHomepageProps) {
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
   const [visibleSteps, setVisibleSteps] = useState<Set<number>>(new Set());
   const [visibleFeatures, setVisibleFeatures] = useState<Set<number>>(new Set());
+  const [launchingRole, setLaunchingRole] = useState<"admin" | "foreman" | "employee" | null>(null);
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isInstallReady, setIsInstallReady] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
     document.title = 'Contractor Hour Tracking App | My Guys Time';
@@ -173,8 +186,85 @@ export function PublicHomepage() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const standaloneQuery =
+      typeof window.matchMedia === "function" ? window.matchMedia("(display-mode: standalone)") : null;
+
+    const syncInstalledState = () => {
+      const installed =
+        standaloneQuery?.matches === true ||
+        ("standalone" in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
+      setIsInstalled(installed);
+      if (installed) {
+        setDeferredInstallPrompt(null);
+        setIsInstallReady(false);
+      }
+    };
+
+    syncInstalledState();
+
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setDeferredInstallPrompt(event as BeforeInstallPromptEvent);
+      setIsInstallReady(true);
+    };
+
+    const handleInstalled = () => {
+      setDeferredInstallPrompt(null);
+      setIsInstallReady(false);
+      setIsInstalled(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleInstalled);
+
+    if (standaloneQuery) {
+      if (typeof standaloneQuery.addEventListener === "function") {
+        standaloneQuery.addEventListener("change", syncInstalledState);
+      } else {
+        standaloneQuery.addListener(syncInstalledState);
+      }
+    }
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleInstalled);
+
+      if (standaloneQuery) {
+        if (typeof standaloneQuery.removeEventListener === "function") {
+          standaloneQuery.removeEventListener("change", syncInstalledState);
+        } else {
+          standaloneQuery.removeListener(syncInstalledState);
+        }
+      }
+    };
+  }, []);
+
   const handleStartClick = () => {
     window.location.href = 'https://app.myguystime.com/login';
+  };
+
+  const handleInstallApp = async () => {
+    if (!deferredInstallPrompt) {
+      return;
+    }
+
+    await deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    setDeferredInstallPrompt(null);
+    setIsInstallReady(false);
+    if (choice.outcome === "accepted") {
+      setIsInstalled(true);
+    }
+  };
+
+  const handleDemoStart = async (role: "admin" | "foreman" | "employee") => {
+    setLaunchingRole(role);
+    try {
+      await onStartDemo(role);
+    } finally {
+      setLaunchingRole(null);
+    }
   };
 
   return (
@@ -195,6 +285,14 @@ export function PublicHomepage() {
             <a href="#features" className="text-slate-600 hover:text-orange-500 transition-colors text-sm font-medium">
               Features
             </a>
+            {isInstallReady && !isInstalled ? (
+              <button
+                onClick={() => void handleInstallApp()}
+                className="px-5 py-2 border border-slate-300 hover:border-orange-500 text-slate-900 hover:text-orange-500 font-semibold rounded-lg transition-all duration-300"
+              >
+                Install app
+              </button>
+            ) : null}
             <button
               onClick={handleStartClick}
               className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105">
@@ -230,12 +328,58 @@ export function PublicHomepage() {
                 Start your week
                 <ArrowRight className="w-5 h-5" />
               </button>
+              {isInstallReady && !isInstalled ? (
+                <button
+                  onClick={() => void handleInstallApp()}
+                  className="px-8 py-4 border-2 border-slate-300 hover:border-orange-500 text-slate-900 hover:text-orange-500 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  Install on this phone
+                </button>
+              ) : null}
               <a
                 href="#workflow"
                 className="px-8 py-4 border-2 border-slate-300 hover:border-orange-500 text-slate-900 hover:text-orange-500 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
               >
                 See how it works
               </a>
+            </div>
+
+            <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-5">
+              <div className="flex flex-col gap-4">
+                <div>
+                  <p className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Live Demo Access</p>
+                  <h3 className="text-xl font-bold text-slate-900 mt-2">Jump straight into the real app by role</h3>
+                  <p className="text-sm text-slate-600 mt-2">
+                    Use seeded demo users so we can inspect the live interface without typing passwords every time.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button
+                    onClick={() => void handleDemoStart("admin")}
+                    disabled={launchingRole !== null}
+                    className="px-5 py-4 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-semibold rounded-xl transition-all duration-300"
+                  >
+                    {launchingRole === "admin" ? "Opening admin..." : "Start as Admin"}
+                  </button>
+                  <button
+                    onClick={() => void handleDemoStart("foreman")}
+                    disabled={launchingRole !== null}
+                    className="px-5 py-4 bg-white hover:bg-slate-50 disabled:bg-slate-100 text-slate-900 font-semibold rounded-xl border border-slate-300 transition-all duration-300"
+                  >
+                    {launchingRole === "foreman" ? "Opening foreman..." : "Start as Foreman"}
+                  </button>
+                  <button
+                    onClick={() => void handleDemoStart("employee")}
+                    disabled={launchingRole !== null}
+                    className="px-5 py-4 bg-white hover:bg-slate-50 disabled:bg-slate-100 text-slate-900 font-semibold rounded-xl border border-slate-300 transition-all duration-300"
+                  >
+                    {launchingRole === "employee" ? "Opening employee..." : "Start as Employee"}
+                  </button>
+                </div>
+                {isInstalled ? (
+                  <p className="text-sm font-medium text-slate-600">App is already installed on this device.</p>
+                ) : null}
+              </div>
             </div>
 
             <p className="text-sm text-slate-600 pt-4">
