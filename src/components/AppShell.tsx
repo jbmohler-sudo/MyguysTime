@@ -227,6 +227,31 @@ export function AppShell({
   }, [truckViewportQuery]);
 
   useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const previousHtmlOverflowX = document.documentElement.style.overflowX;
+    const previousBodyOverflowX = document.body.style.overflowX;
+    const previousHtmlWidth = document.documentElement.style.width;
+    const previousBodyWidth = document.body.style.width;
+
+    if (isMobileViewport) {
+      document.documentElement.style.overflowX = "hidden";
+      document.body.style.overflowX = "hidden";
+      document.documentElement.style.width = "100%";
+      document.body.style.width = "100%";
+    }
+
+    return () => {
+      document.documentElement.style.overflowX = previousHtmlOverflowX;
+      document.body.style.overflowX = previousBodyOverflowX;
+      document.documentElement.style.width = previousHtmlWidth;
+      document.body.style.width = previousBodyWidth;
+    };
+  }, [isMobileViewport]);
+
+  useEffect(() => {
     if (uiMode === "truck" && data.weekStart !== currentWeekStart) {
       void onRefresh(currentWeekStart);
     }
@@ -303,30 +328,55 @@ export function AppShell({
   }, [data.weekStart]);
 
   if (isMobileViewport) {
+    const visibleNavItems = navItems.filter((item) => item.visible);
+    const firstName = data.viewer.fullName.split(" ")[0];
+    const pageEyebrow = uiMode === "truck" ? "Truck mode" : "Office mobile";
+    const pageHeading =
+      activePage === "dashboard"
+        ? uiMode === "truck"
+          ? "Time entry for this week"
+          : "Review this week"
+        : navItems.find((item) => item.key === activePage)?.label ?? "Dashboard";
+    const pageSummary =
+      activePage === "dashboard"
+        ? uiMode === "truck"
+          ? "Open the crew board, tap the day, and keep the truck moving."
+          : "Review the week on phone without shrinking the desktop office shell."
+        : pageSubtitle[activePage];
+
     return (
-      <div className={`app-shell app-shell--${uiMode} app-shell--mobile`} style={{ backgroundColor: BRAND_LIGHT, minHeight: "100vh" }}>
-        {/* Slim sticky header */}
+      <div
+        className={`app-shell app-shell--${uiMode} app-shell--mobile`}
+        style={{
+          backgroundColor: BRAND_LIGHT,
+          minHeight: "100vh",
+          width: "100%",
+          maxWidth: "100vw",
+          overflowX: "clip",
+        }}
+      >
         <header
           style={{
             position: "sticky",
             top: 0,
             zIndex: 100,
             backgroundColor: "white",
-            borderBottom: `3px solid ${BRAND_ORANGE}`,
+            borderBottom: "1px solid #E9EDF3",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "0 8px",
-            height: "52px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+            gap: "0.75rem",
+            padding: "0.65rem 0.9rem",
+            minHeight: "60px",
+            boxShadow: "0 4px 16px rgba(15,23,42,0.06)",
           }}
         >
           <button
-            onClick={() => setMobileNavOpen((o) => !o)}
+            onClick={() => setMobileNavOpen((open) => !open)}
             style={{
               background: "none",
               border: "none",
-              fontSize: "1.4rem",
+              fontSize: "1.3rem",
               cursor: "pointer",
               width: "44px",
               height: "44px",
@@ -339,54 +389,74 @@ export function AppShell({
             type="button"
             aria-label="Open navigation"
           >
-            {mobileNavOpen ? "✕" : "☰"}
+            {mobileNavOpen ? "X" : "="}
           </button>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", fontWeight: 700, color: BRAND_DARK }}>
-            <span>{data.viewer.fullName.split(" ")[0].toUpperCase()}</span>
-            <span style={{ color: "#CCC" }}>/</span>
+          <div style={{ minWidth: 0, flex: 1, display: "grid", gap: "0.15rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", minWidth: 0 }}>
+              <Logo size="preview" />
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{
+                    color: BRAND_DARK,
+                    fontSize: "0.92rem",
+                    fontWeight: 700,
+                    lineHeight: 1.15,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {pageHeading}
+                </div>
+                <div style={{ color: "#6B7280", fontSize: "0.76rem", lineHeight: 1.15 }}>
+                  {firstName} - {data.viewer.role}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
             <span
               style={{
                 backgroundColor: uiMode === "office" ? BRAND_ORANGE : ACCENT_TEAL,
                 color: "white",
-                padding: "2px 8px",
-                borderRadius: "12px",
-                fontSize: "0.65rem",
+                padding: "0.34rem 0.65rem",
+                borderRadius: "999px",
+                fontSize: "0.66rem",
                 fontWeight: 800,
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
               }}
             >
-              {uiMode === "truck" ? "TRUCK" : "OFFICE"}
+              {uiMode === "truck" ? "Truck" : "Office"}
             </span>
+            <button
+              onClick={onboarding.restartTour}
+              style={{
+                background: "none",
+                border: "1.5px solid #DDD",
+                borderRadius: "50%",
+                width: "40px",
+                height: "40px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                fontSize: "0.85rem",
+                fontWeight: 700,
+                color: "#888",
+                flexShrink: 0,
+              }}
+              type="button"
+              aria-label="Help"
+            >
+              ?
+            </button>
           </div>
-
-          <button
-            onClick={onboarding.restartTour}
-            style={{
-              background: "none",
-              border: "1.5px solid #DDD",
-              borderRadius: "50%",
-              width: "44px",
-              height: "44px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              fontSize: "0.85rem",
-              fontWeight: 700,
-              color: "#888",
-              flexShrink: 0,
-            }}
-            type="button"
-            aria-label="Help"
-          >
-            ?
-          </button>
         </header>
 
-        {/* Slide-in nav drawer */}
-        {mobileNavOpen && (
+        {mobileNavOpen ? (
           <>
             <div
               onClick={() => setMobileNavOpen(false)}
@@ -403,7 +473,8 @@ export function AppShell({
                 top: 0,
                 left: 0,
                 bottom: 0,
-                width: "260px",
+                width: "min(86vw, 320px)",
+                maxWidth: "320px",
                 backgroundColor: "white",
                 zIndex: 200,
                 display: "flex",
@@ -411,37 +482,62 @@ export function AppShell({
                 boxShadow: "4px 0 24px rgba(0,0,0,0.18)",
               }}
             >
-              <div style={{ padding: "56px 20px 16px", borderBottom: "1px solid #EEE" }}>
+              <div style={{ padding: "24px 20px 16px", borderBottom: "1px solid #EEE", display: "grid", gap: "0.45rem" }}>
+                <Logo size="preview" />
                 <div style={{ fontWeight: 700, fontSize: "0.95rem", color: BRAND_DARK }}>{data.viewer.fullName}</div>
-                <div style={{ fontSize: "0.8rem", color: "#888", marginTop: "2px" }}>{data.viewer.role}</div>
-                {data.companySettings && (
-                  <div style={{ fontSize: "0.76rem", color: "#AAA", marginTop: "2px" }}>{data.companySettings.companyName}</div>
-                )}
+                <div style={{ fontSize: "0.8rem", color: "#888" }}>{data.viewer.role}</div>
+                {data.companySettings ? (
+                  <div style={{ fontSize: "0.76rem", color: "#AAA" }}>{data.companySettings?.companyName}</div>
+                ) : null}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "0.5rem",
+                    marginTop: "0.35rem",
+                    fontSize: "0.78rem",
+                    color: "#555",
+                  }}
+                >
+                  <span>Week of {formattedWeekStart}</span>
+                  <span
+                    style={{
+                      backgroundColor: "#F3F4F6",
+                      borderRadius: "999px",
+                      padding: "0.22rem 0.5rem",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {uiMode === "truck" ? "Truck" : "Office"}
+                  </span>
+                </div>
               </div>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "8px 0" }}>
-                {navItems
-                  .filter((item) => item.visible)
-                  .map((item) => (
-                    <button
-                      key={item.key}
-                      onClick={() => { setActivePage(item.key); setMobileNavOpen(false); }}
-                      style={{
-                        background: activePage === item.key ? "rgba(255,140,0,0.07)" : "none",
-                        border: "none",
-                        borderLeft: activePage === item.key ? `3px solid ${BRAND_ORANGE}` : "3px solid transparent",
-                        color: activePage === item.key ? BRAND_ORANGE : BRAND_DARK,
-                        fontWeight: activePage === item.key ? 700 : 500,
-                        padding: "14px 20px",
-                        cursor: "pointer",
-                        fontSize: "0.95rem",
-                        textAlign: "left",
-                        width: "100%",
-                      }}
-                      type="button"
-                    >
-                      {item.label}
-                    </button>
-                  ))}
+                {visibleNavItems.map((item) => (
+                  <button
+                    key={item.key}
+                    onClick={() => {
+                      setActivePage(item.key);
+                      setMobileNavOpen(false);
+                    }}
+                    style={{
+                      background: activePage === item.key ? "rgba(255,140,0,0.07)" : "none",
+                      border: "none",
+                      borderLeft: activePage === item.key ? `3px solid ${BRAND_ORANGE}` : "3px solid transparent",
+                      color: activePage === item.key ? BRAND_ORANGE : BRAND_DARK,
+                      fontWeight: activePage === item.key ? 700 : 500,
+                      padding: "14px 20px",
+                      cursor: "pointer",
+                      fontSize: "0.95rem",
+                      textAlign: "left",
+                      width: "100%",
+                    }}
+                    type="button"
+                  >
+                    {item.label}
+                  </button>
+                ))}
               </div>
               <button
                 onClick={onLogout}
@@ -463,136 +559,109 @@ export function AppShell({
               </button>
             </nav>
           </>
-        )}
+        ) : null}
 
-        {/* Page body */}
-        <main>
-          {/* Welcome row */}
-          <div style={{ padding: "12px 16px", backgroundColor: "white", borderBottom: "1px solid #EEE" }}>
-            <span style={{ fontSize: "0.85rem", color: "#666" }}>
-              Welcome back,{" "}
-              <strong style={{ color: BRAND_DARK }}>{data.viewer.fullName.split(" ")[0]}</strong>
-            </span>
-            <span
-              style={{
-                marginLeft: "8px",
-                backgroundColor: "#F0F0F0",
-                color: "#555",
-                padding: "2px 8px",
-                borderRadius: "12px",
-                fontSize: "0.68rem",
-                fontWeight: 600,
-              }}
-            >
-              {data.viewer.role}
-            </span>
-          </div>
-
-          {/* Horizontal tab bar */}
-          <div
+        <main style={{ width: "100%", maxWidth: "100%", overflowX: "clip", padding: "0 0 40px" }}>
+          <section
             style={{
-              display: "flex",
-              overflowX: "auto",
-              backgroundColor: "white",
-              borderBottom: "1px solid #EEE",
+              padding: "14px 16px 12px",
+              display: "grid",
+              gap: "0.9rem",
             }}
           >
-            {navItems
-              .filter((item) => item.visible)
-              .map((item) => (
-                <button
-                  key={item.key}
-                  onClick={() => setActivePage(item.key)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    borderBottom: activePage === item.key ? `2px solid ${BRAND_ORANGE}` : "2px solid transparent",
-                    color: activePage === item.key ? BRAND_ORANGE : "#555",
-                    fontWeight: activePage === item.key ? 700 : 500,
-                    padding: "12px 16px",
-                    cursor: "pointer",
-                    fontSize: "0.85rem",
-                    whiteSpace: "nowrap",
-                    flexShrink: 0,
-                    transition: "all 0.15s ease",
-                  }}
-                  type="button"
-                >
-                  {item.label}
-                </button>
-              ))}
-          </div>
-
-          {/* Controls row (dashboard only) */}
-          {activePage === "dashboard" && (
             <div
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "10px 16px",
                 backgroundColor: "white",
-                borderBottom: "1px solid #EEE",
-                overflowX: "auto",
+                border: "1px solid #E7ECF5",
+                borderRadius: "22px",
+                padding: "1rem",
+                boxShadow: "0 10px 24px rgba(15,23,42,0.06)",
+                display: "grid",
+                gap: "0.8rem",
               }}
             >
-              {uiMode === "office" && (
-                <button
-                  onClick={() => setShowPayrollModal(true)}
-                  style={{
-                    padding: "8px 14px",
-                    borderRadius: "20px",
-                    backgroundColor: BRAND_ORANGE,
-                    color: "white",
-                    border: "none",
-                    fontSize: "0.8rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    flexShrink: 0,
-                  }}
-                  type="button"
-                >
-                  📥 Export Payroll
-                </button>
-              )}
-              {uiMode === "office" ? (
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
-                  <label style={{ fontSize: "0.75rem", color: "#666", fontWeight: 500 }}>Week</label>
-                  <input
-                    type="date"
-                    value={data.weekStart}
-                    onChange={(event) => void onRefresh(event.target.value)}
-                    style={{
-                      border: "1.5px solid #DDD",
-                      borderRadius: "20px",
-                      padding: "5px 10px",
-                      fontSize: "0.78rem",
-                      color: BRAND_DARK,
-                      outline: "none",
-                    }}
-                  />
-                </div>
-              ) : (
+              <div style={{ display: "grid", gap: "0.3rem" }}>
                 <span
                   style={{
-                    backgroundColor: "#F5F5F5",
-                    color: "#555",
-                    padding: "6px 12px",
-                    borderRadius: "20px",
-                    fontSize: "0.78rem",
-                    fontWeight: 500,
-                    flexShrink: 0,
+                    color: uiMode === "truck" ? ACCENT_TEAL : BRAND_ORANGE,
+                    fontSize: "0.75rem",
+                    fontWeight: 800,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
                   }}
                 >
-                  📅 {formattedWeekStart}
+                  {pageEyebrow}
                 </span>
-              )}
-            </div>
-          )}
+                <h1 style={{ color: BRAND_DARK, fontSize: "1.35rem", lineHeight: 1.1, margin: 0 }}>{pageHeading}</h1>
+                <p style={{ color: "#5B6472", fontSize: "0.92rem", lineHeight: 1.45 }}>{pageSummary}</p>
+              </div>
 
-          {/* Error banner */}
-          {error && (
+              <div style={{ display: "grid", gap: "0.75rem" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.55rem" }}>
+                  <span
+                    style={{
+                      backgroundColor: "#F3F4F6",
+                      color: "#4B5563",
+                      padding: "0.45rem 0.75rem",
+                      borderRadius: "999px",
+                      fontSize: "0.82rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Week of {formattedWeekStart}
+                  </span>
+                  <span
+                    style={{
+                      backgroundColor: uiMode === "office" ? "rgba(255,140,0,0.10)" : "rgba(0,188,212,0.12)",
+                      color: uiMode === "office" ? BRAND_ORANGE : "#0F7C89",
+                      padding: "0.45rem 0.75rem",
+                      borderRadius: "999px",
+                      fontSize: "0.82rem",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {uiMode === "truck" ? "Truck workflow" : "Office workflow"}
+                  </span>
+                </div>
+
+                {activePage === "dashboard" ? (
+                  uiMode === "office" ? (
+                    <div style={{ display: "grid", gap: "0.75rem" }}>
+                      <label style={{ fontSize: "0.8rem", color: "#6B7280", fontWeight: 600 }}>
+                        Review week
+                        <input type="date" value={data.weekStart} onChange={(event) => void onRefresh(event.target.value)} />
+                      </label>
+                      <button
+                        onClick={() => setShowPayrollModal(true)}
+                        style={{
+                          backgroundColor: BRAND_ORANGE,
+                          color: "white",
+                          border: "none",
+                          borderRadius: "14px",
+                          fontSize: "0.95rem",
+                          fontWeight: 700,
+                          width: "100%",
+                        }}
+                        type="button"
+                      >
+                        Export payroll
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ color: "#6B7280", fontSize: "0.86rem", lineHeight: 1.45 }}>
+                      Open the menu only when you need another page. The truck screen stays centered on this week.
+                    </div>
+                  )
+                ) : (
+                  <div style={{ color: "#6B7280", fontSize: "0.86rem", lineHeight: 1.45 }}>
+                    Open the menu to move between pages. Desktop office layout stays unchanged.
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {error ? (
             <div
               style={{
                 backgroundColor: "rgba(255,140,0,0.08)",
@@ -600,37 +669,36 @@ export function AppShell({
                 color: BRAND_DARK,
                 padding: "12px 16px",
                 fontSize: "0.875rem",
-                margin: "8px 16px",
+                margin: "0 16px 12px",
                 borderRadius: "0 8px 8px 0",
               }}
             >
               {error}
             </div>
-          )}
+          ) : null}
 
-          {/* ACTION REQUIRED */}
-          {uiMode === "office" && hasIncompleteTimesheets && activePage === "dashboard" && (
+          {uiMode === "office" && hasIncompleteTimesheets && activePage === "dashboard" ? (
             <div
               style={{
                 backgroundColor: "rgba(255, 140, 0, 0.06)",
                 borderLeft: `4px solid ${BRAND_ORANGE}`,
                 padding: "14px 16px",
-                margin: "8px 16px",
+                margin: "0 16px 12px",
                 borderRadius: "0 8px 8px 0",
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: "1rem",
+                flexDirection: "column",
+                alignItems: "stretch",
+                gap: "0.85rem",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                <span style={{ fontSize: "1.1rem" }}>⚠️</span>
+                <span style={{ fontSize: "1.1rem", fontWeight: 700, color: BRAND_ORANGE }}>!</span>
                 <div>
                   <strong style={{ color: BRAND_DARK, display: "block", fontSize: "0.85rem" }}>
-                    ACTION REQUIRED
+                    Action required
                   </strong>
                   <span style={{ color: "#5A5A5B", fontSize: "0.78rem" }}>
-                    {incompleteCount} {incompleteCount === 1 ? "timesheet" : "timesheets"} waiting
+                    {incompleteCount} {incompleteCount === 1 ? "timesheet" : "timesheets"} waiting for submission
                   </span>
                 </div>
               </div>
@@ -645,18 +713,17 @@ export function AppShell({
                   cursor: "pointer",
                   fontSize: "0.8rem",
                   fontWeight: 700,
-                  whiteSpace: "nowrap",
+                  width: "100%",
                 }}
                 type="button"
               >
                 Fix now
               </button>
             </div>
-          )}
+          ) : null}
 
-          {/* Page content */}
-          <div style={{ paddingBottom: "40px" }}>
-            {activePage === "dashboard" && (
+          <div style={{ width: "100%", maxWidth: "100%", overflowX: "clip" }}>
+            {activePage === "dashboard" ? (
               <>
                 <WeeklyCrewBoard
                   uiMode={uiMode}
@@ -674,8 +741,8 @@ export function AppShell({
                   onStatusChange={onStatusChange}
                   onReopenWeek={onReopenWeek}
                 />
-                {uiMode === "office" && data.viewer.role === "admin" && (
-                  <div className="brand-surface">
+                {uiMode === "office" && data.viewer.role === "admin" ? (
+                  <div className="brand-surface" style={{ margin: "0 16px 16px" }}>
                     <OfficeDashboard
                       companySettings={data.companySettings}
                       employeeWeeks={data.employeeWeeks}
@@ -684,9 +751,9 @@ export function AppShell({
                       onReopenWeek={onReopenWeek}
                     />
                   </div>
-                )}
-                {uiMode === "office" && (
-                  <section className="stack brand-surface">
+                ) : null}
+                {uiMode === "office" ? (
+                  <section className="stack brand-surface" style={{ margin: "0 16px 16px" }}>
                     <PrivateReportsPanel
                       viewer={data.viewer}
                       employeeWeeks={visibleWeeks}
@@ -694,19 +761,19 @@ export function AppShell({
                       onSubmit={onSubmitPrivateReport}
                     />
                   </section>
-                )}
+                ) : null}
               </>
-            )}
+            ) : null}
 
-            {activePage === "company-settings" && canViewCompanySettings && data.companySettings && (
+            {activePage === "company-settings" && canViewCompanySettings && data.companySettings ? (
               <CompanySettingsPanel
-                companySettings={data.companySettings}
+                companySettings={data.companySettings!}
                 stateRules={data.stateRules}
                 onSave={onUpdateCompanySettings}
               />
-            )}
+            ) : null}
 
-            {activePage === "team" && canViewTeam && (
+            {activePage === "team" && canViewTeam ? (
               <>
                 <div style={{ display: "flex", justifyContent: "flex-end", padding: "12px 16px 0" }}>
                   <button
@@ -726,7 +793,7 @@ export function AppShell({
                     + Invite a Worker
                   </button>
                 </div>
-                {inviteSuccessUrl && (
+                {inviteSuccessUrl ? (
                   <div
                     style={{
                       margin: "12px 16px",
@@ -738,11 +805,12 @@ export function AppShell({
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
+                      gap: "0.75rem",
                     }}
                   >
-                    <span>
+                    <span style={{ minWidth: 0 }}>
                       Invite sent!{" "}
-                      <a href={inviteSuccessUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#1565C0" }}>
+                      <a href={inviteSuccessUrl ?? undefined} target="_blank" rel="noopener noreferrer" style={{ color: "#1565C0" }}>
                         {inviteSuccessUrl}
                       </a>
                     </span>
@@ -751,14 +819,16 @@ export function AppShell({
                       style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: "16px" }}
                       type="button"
                     >
-                      ×
+                      x
                     </button>
                   </div>
-                )}
+                ) : null}
                 <TeamManagementPanel
                   data={data}
                   onOpenAddEmployee={() => setShowAddEmployeeModal(true)}
-                  onEditEmployee={(employee) => { console.log("Edit employee:", employee); }}
+                  onEditEmployee={(employee) => {
+                    console.log("Edit employee:", employee);
+                  }}
                 />
                 <InviteManagementPanel
                   onListInvites={onListInvites}
@@ -766,11 +836,9 @@ export function AppShell({
                   onRevokeInvite={onRevokeInvite}
                 />
               </>
-            )}
+            ) : null}
 
-            {activePage === "archive" && canViewArchive && (
-              <ArchivePanel archivedEmployees={data.archivedEmployees} />
-            )}
+            {activePage === "archive" && canViewArchive ? <ArchivePanel archivedEmployees={data.archivedEmployees} /> : null}
           </div>
         </main>
 
@@ -807,6 +875,7 @@ export function AppShell({
       </div>
     );
   }
+
 
   return (
     <div className={`app-shell app-shell--${uiMode}`} style={{ backgroundColor: BRAND_LIGHT, minHeight: "100vh" }}>
@@ -891,7 +960,7 @@ export function AppShell({
                 {data.viewer.role}
               </span>
               {!isMobileViewport && data.companySettings ? (
-                <span style={{ color: "#888" }}>{data.companySettings.companyName}</span>
+                <span style={{ color: "#888" }}>{data.companySettings?.companyName}</span>
               ) : null}
 
               {isMobileViewport ? (
@@ -1282,7 +1351,7 @@ export function AppShell({
 
         {activePage === "company-settings" && canViewCompanySettings && data.companySettings ? (
           <CompanySettingsPanel
-            companySettings={data.companySettings}
+            companySettings={data.companySettings!}
             stateRules={data.stateRules}
             onSave={onUpdateCompanySettings}
           />
@@ -1326,7 +1395,7 @@ export function AppShell({
               >
                 <span>
                   Invite sent! Dev link:{" "}
-                  <a href={inviteSuccessUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#1565C0" }}>
+                  <a href={inviteSuccessUrl ?? undefined} target="_blank" rel="noopener noreferrer" style={{ color: "#1565C0" }}>
                     {inviteSuccessUrl}
                   </a>
                 </span>
