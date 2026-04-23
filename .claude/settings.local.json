@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat)",
+      "Bash(cat src/styles.css)",
+      "Bash(mv src/styles.css.tmp src/styles.css)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(npm run *)",
+      "Bash(git checkout *)",
+      "Bash(cp \"C:/Users/jbmoh/.claude/projects/appshell_design/AppShell_Updated.tsx\" \"c:/MVP/src/components/AppShell.tsx\")",
+      "Bash(cp \"C:/Users/jbmoh/.claude/projects/appshell_design/appshell_enhanced_styles.css\" \"c:/MVP/src/styles/\")",
+      "Read(//c/Users/jbmoh/Desktop/Documents/**)",
+      "Read(//c/Users/jbmoh/**)",
+      "PowerShell(Head -20)",
+      "PowerShell(Test-Path \"C:\\\\Users\\\\jbmoh\\\\Desktop\"; [Environment]::GetFolderPath\\(\"Desktop\"\\))",
+      "Bash(cp \"C:/Users/jbmoh/OneDrive/Documents/GuysTime/appshell_design/AppShell_Updated.tsx\" \"c:/MVP/src/components/AppShell.tsx\")",
+      "Bash(cp \"C:/Users/jbmoh/OneDrive/Documents/GuysTime/appshell_design/appshell_enhanced_styles.css\" \"c:/MVP/src/styles/\")",
+      "Bash(git branch *)"
+    ]
+  }
+}
