@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { CrewSummary } from "../domain/models";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 
 const BRAND_ORANGE = "#FF8C00";
 const BRAND_DARK = "#1A1A1B";
@@ -26,11 +27,23 @@ export function AddEmployeeModal({
   const [hourlyRate, setHourlyRate] = useState(25);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  function handleClose() {
+    if (!isSaving) {
+      setDisplayName("");
+      setSelectedCrewId("");
+      setHourlyRate(25);
+      setError(null);
+      onClose();
+    }
+  }
+
+  useFocusTrap(containerRef, isOpen, handleClose);
 
   if (!isOpen) return null;
 
-  const handleSave = async () => {
-    // Validate inputs
+  async function handleSave() {
     if (!displayName.trim()) {
       setError("Please enter a full name");
       return;
@@ -49,8 +62,6 @@ export function AddEmployeeModal({
         hourlyRate,
         defaultCrewId: selectedCrewId,
       });
-
-      // Reset form on success
       setDisplayName("");
       setSelectedCrewId("");
       setHourlyRate(25);
@@ -60,20 +71,12 @@ export function AddEmployeeModal({
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleClose = () => {
-    if (!isSaving) {
-      setDisplayName("");
-      setSelectedCrewId("");
-      setHourlyRate(25);
-      setError(null);
-      onClose();
-    }
-  };
+  }
 
   return (
     <div
+      aria-hidden="false"
+      onClick={handleClose}
       style={{
         position: "fixed",
         inset: 0,
@@ -83,9 +86,14 @@ export function AddEmployeeModal({
         justifyContent: "center",
         zIndex: 3000,
       }}
-      onClick={handleClose}
     >
       <div
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-employee-title"
+        aria-describedby={error ? "add-employee-error" : "add-employee-desc"}
+        onClick={(e) => e.stopPropagation()}
         style={{
           backgroundColor: "white",
           padding: "32px",
@@ -95,10 +103,10 @@ export function AddEmployeeModal({
           borderTop: `8px solid ${BRAND_ORANGE}`,
           boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
         }}
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <h2
+          id="add-employee-title"
           style={{
             margin: "0 0 8px 0",
             color: BRAND_DARK,
@@ -109,6 +117,7 @@ export function AddEmployeeModal({
           New Crew Member
         </h2>
         <p
+          id="add-employee-desc"
           style={{
             margin: "0 0 24px 0",
             color: "#666",
@@ -119,8 +128,11 @@ export function AddEmployeeModal({
         </p>
 
         {/* Error Message */}
-        {error && (
+        {error ? (
           <div
+            id="add-employee-error"
+            role="alert"
+            aria-live="assertive"
             style={{
               backgroundColor: "rgba(255, 140, 0, 0.1)",
               borderLeft: `4px solid ${BRAND_ORANGE}`,
@@ -134,11 +146,12 @@ export function AddEmployeeModal({
           >
             {error}
           </div>
-        )}
+        ) : null}
 
-        {/* Full Name Input */}
+        {/* Full Name */}
         <div style={{ marginBottom: "20px" }}>
           <label
+            htmlFor="employee-name"
             style={{
               display: "block",
               fontSize: "0.7rem",
@@ -152,36 +165,38 @@ export function AddEmployeeModal({
             Full Name
           </label>
           <input
+            id="employee-name"
             type="text"
             placeholder="e.g. John Smith"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
+            disabled={isSaving}
+            autoComplete="name"
             style={{
               width: "100%",
               padding: "12px",
               borderRadius: "8px",
-              border: `2px solid #EEE`,
+              border: "2px solid #EEE",
               fontSize: "1rem",
               fontFamily: "Inter, sans-serif",
               boxSizing: "border-box",
-              transition: "all 0.2s ease",
+              transition: "border-color 0.2s ease",
             }}
             onFocus={(e) => {
-              (e.target as HTMLInputElement).style.borderColor = BRAND_ORANGE;
-              (e.target as HTMLInputElement).style.boxShadow =
-                `0 0 0 3px rgba(255, 140, 0, 0.1)`;
+              e.target.style.borderColor = BRAND_ORANGE;
+              e.target.style.boxShadow = "0 0 0 3px rgba(255, 140, 0, 0.1)";
             }}
             onBlur={(e) => {
-              (e.target as HTMLInputElement).style.borderColor = "#EEE";
-              (e.target as HTMLInputElement).style.boxShadow = "none";
+              e.target.style.borderColor = "#EEE";
+              e.target.style.boxShadow = "none";
             }}
-            disabled={isSaving}
           />
         </div>
 
-        {/* Crew Selection Dropdown */}
+        {/* Crew Selection */}
         <div style={{ marginBottom: "20px" }}>
           <label
+            htmlFor="employee-crew"
             style={{
               display: "block",
               fontSize: "0.7rem",
@@ -196,31 +211,31 @@ export function AddEmployeeModal({
           </label>
           <div style={{ position: "relative" }}>
             <select
+              id="employee-crew"
               value={selectedCrewId}
               onChange={(e) => setSelectedCrewId(e.target.value)}
+              disabled={isSaving}
               style={{
                 width: "100%",
                 padding: "12px",
                 borderRadius: "8px",
-                border: `2px solid #EEE`,
+                border: "2px solid #EEE",
                 fontSize: "1rem",
                 fontFamily: "Inter, sans-serif",
                 appearance: "none",
                 backgroundColor: "white",
                 cursor: isSaving ? "not-allowed" : "pointer",
                 boxSizing: "border-box",
-                transition: "all 0.2s ease",
+                transition: "border-color 0.2s ease",
               }}
               onFocus={(e) => {
-                (e.target as HTMLSelectElement).style.borderColor = BRAND_ORANGE;
-                (e.target as HTMLSelectElement).style.boxShadow =
-                  `0 0 0 3px rgba(255, 140, 0, 0.1)`;
+                e.target.style.borderColor = BRAND_ORANGE;
+                e.target.style.boxShadow = "0 0 0 3px rgba(255, 140, 0, 0.1)";
               }}
               onBlur={(e) => {
-                (e.target as HTMLSelectElement).style.borderColor = "#EEE";
-                (e.target as HTMLSelectElement).style.boxShadow = "none";
+                e.target.style.borderColor = "#EEE";
+                e.target.style.boxShadow = "none";
               }}
-              disabled={isSaving}
             >
               <option value="">Choose a truck...</option>
               {crews.map((crew) => (
@@ -229,9 +244,8 @@ export function AddEmployeeModal({
                 </option>
               ))}
             </select>
-
-            {/* Custom Caret Icon */}
             <span
+              aria-hidden="true"
               style={{
                 position: "absolute",
                 right: "15px",
@@ -251,6 +265,7 @@ export function AddEmployeeModal({
         {/* Hourly Rate Slider */}
         <div style={{ marginBottom: "28px" }}>
           <label
+            htmlFor="employee-rate"
             style={{
               display: "block",
               fontSize: "0.7rem",
@@ -264,8 +279,9 @@ export function AddEmployeeModal({
             Hourly Pay Rate
           </label>
 
-          {/* Large Rate Display */}
+          {/* Large rate display — decorative, values conveyed via slider */}
           <div
+            aria-hidden="true"
             style={{
               fontSize: "2.5rem",
               fontWeight: 800,
@@ -280,13 +296,18 @@ export function AddEmployeeModal({
             <span style={{ fontSize: "1rem", color: "#999" }}>/hr</span>
           </div>
 
-          {/* Slider */}
           <input
+            id="employee-rate"
             type="range"
             min="15"
             max="100"
             value={hourlyRate}
             onChange={(e) => setHourlyRate(parseInt(e.target.value))}
+            disabled={isSaving}
+            aria-valuemin={15}
+            aria-valuemax={100}
+            aria-valuenow={hourlyRate}
+            aria-valuetext={`$${hourlyRate} per hour`}
             style={{
               width: "100%",
               height: "8px",
@@ -296,11 +317,10 @@ export function AddEmployeeModal({
               accentColor: BRAND_ORANGE,
               cursor: isSaving ? "not-allowed" : "pointer",
             }}
-            disabled={isSaving}
           />
 
-          {/* Min/Max Labels */}
           <div
+            aria-hidden="true"
             style={{
               display: "flex",
               justifyContent: "space-between",
@@ -326,6 +346,7 @@ export function AddEmployeeModal({
           <button
             onClick={handleClose}
             disabled={isSaving}
+            type="button"
             style={{
               padding: "12px",
               background: "#F4F4F4",
@@ -335,27 +356,25 @@ export function AddEmployeeModal({
               fontSize: "0.875rem",
               cursor: isSaving ? "not-allowed" : "pointer",
               color: BRAND_DARK,
-              transition: "all 0.2s ease",
+              transition: "background-color 0.2s ease",
               opacity: isSaving ? 0.6 : 1,
+              minHeight: "44px",
             }}
             onMouseOver={(e) => {
-              if (!isSaving) {
-                (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                  "#E0E0E0";
-              }
+              if (!isSaving) e.currentTarget.style.backgroundColor = "#E0E0E0";
             }}
             onMouseOut={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                "#F4F4F4";
+              e.currentTarget.style.backgroundColor = "#F4F4F4";
             }}
-            type="button"
           >
-            {isSaving ? "Saving..." : "Cancel"}
+            Cancel
           </button>
 
           <button
             onClick={handleSave}
             disabled={isSaving}
+            type="button"
+            aria-busy={isSaving}
             style={{
               padding: "12px",
               background: BRAND_ORANGE,
@@ -367,24 +386,20 @@ export function AddEmployeeModal({
               cursor: isSaving ? "not-allowed" : "pointer",
               transition: "all 0.2s ease",
               opacity: isSaving ? 0.8 : 1,
+              minHeight: "44px",
             }}
             onMouseOver={(e) => {
               if (!isSaving) {
-                (e.currentTarget as HTMLButtonElement).style.transform =
-                  "translateY(-2px)";
-                (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                  "0 6px 16px rgba(255, 140, 0, 0.4)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 6px 16px rgba(255, 140, 0, 0.4)";
               }
             }}
             onMouseOut={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.transform =
-                "translateY(0)";
-              (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                "0 2px 8px rgba(255, 140, 0, 0.2)";
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 2px 8px rgba(255, 140, 0, 0.2)";
             }}
-            type="button"
           >
-            {isSaving ? "Saving..." : "Save Employee"}
+            {isSaving ? "Saving…" : "Save Employee"}
           </button>
         </div>
       </div>

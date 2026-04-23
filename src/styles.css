@@ -23,6 +23,18 @@
   box-sizing: border-box;
 }
 
+/* ── Keyboard focus indicator (WCAG 2.1 AA — 3px orange outline) ── */
+:focus-visible {
+  outline: 3px solid #FF8C00;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Suppress mouse-click outline (only show for keyboard nav) */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
 body {
   margin: 0;
   min-width: 320px;

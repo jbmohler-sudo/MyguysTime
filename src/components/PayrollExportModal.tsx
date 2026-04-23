@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import type { BootstrapPayload } from "../domain/models";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 
 interface ExportRow {
   employeeName: string;
@@ -31,6 +32,9 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
   onExport,
 }) => {
   const [isExporting, setIsExporting] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(containerRef, isOpen, onClose);
 
   // Generate export rows from employee weeks data
   const exportData = useMemo(() => {
@@ -126,6 +130,10 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
       onClick={onClose}
     >
       <div
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="payroll-export-title"
         style={{
           backgroundColor: "white",
           borderRadius: "8px",
@@ -149,6 +157,7 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
           }}
         >
           <h2
+            id="payroll-export-title"
             style={{
               margin: 0,
               fontSize: "20px",
@@ -160,6 +169,8 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
           </h2>
           <button
             onClick={onClose}
+            type="button"
+            aria-label="Close export dialog"
             style={{
               background: "none",
               border: "none",
@@ -167,11 +178,12 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
               cursor: "pointer",
               color: STATUS_GRAY,
               padding: 0,
-              width: "32px",
-              height: "32px",
+              width: "44px",
+              height: "44px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              borderRadius: "4px",
             }}
           >
             ✕
@@ -407,6 +419,7 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
           <button
             onClick={onClose}
             disabled={isExporting}
+            type="button"
             style={{
               padding: "10px 20px",
               borderRadius: "6px",
@@ -418,6 +431,7 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
               cursor: isExporting ? "not-allowed" : "pointer",
               opacity: isExporting ? 0.6 : 1,
               transition: "all 0.2s ease",
+              minHeight: "44px",
             }}
           >
             Cancel
@@ -425,6 +439,8 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
           <button
             onClick={handleExport}
             disabled={isExporting}
+            type="button"
+            aria-busy={isExporting}
             style={{
               padding: "10px 24px",
               borderRadius: "6px",
