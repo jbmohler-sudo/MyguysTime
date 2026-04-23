@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import type { BootstrapPayload, EmployeeInput, InviteInput, InviteSummary, ManagedEmployee, PrivateReportInput, TimesheetStatus } from "../domain/models";
+import type {
+  BootstrapPayload,
+  EmployeeInput,
+  InviteInput,
+  InviteSummary,
+  ManagedEmployee,
+  PrivateReportInput,
+  TimesheetStatus,
+} from "../domain/models";
 import { prettyStatus } from "../domain/permissions";
 import { AddEmployeeModal } from "./AddEmployeeModal";
 import { ArchivePanel } from "./ArchivePanel";
@@ -98,6 +106,8 @@ export function AppShell({
 }: AppShellProps) {
   const onboarding = useOnboardingContext();
   const truckViewportQuery = "(max-width: 720px)";
+
+  const [isScrolled, setIsScrolled] = useState(false);
   const [selectedCrewId, setSelectedCrewId] = useState<string>("all");
   const [openedAt] = useState(() => new Date());
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
@@ -174,6 +184,20 @@ export function AppShell({
     if (typeof window === "undefined") {
       return;
     }
+
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
     const mediaQuery = window.matchMedia(truckViewportQuery);
     function handleViewportChange(event: MediaQueryList | MediaQueryListEvent) {
       setIsMobileViewport(event.matches);
@@ -239,29 +263,27 @@ export function AppShell({
   };
 
   const pageTitle: Record<AppPage, string> = {
-    dashboard: uiMode === "truck"
-      ? "Current-week crew timecards for the truck."
-      : "Weekly time review and payroll-prep for contractor crews.",
+    dashboard:
+      uiMode === "truck"
+        ? "Current-week crew timecards for the truck."
+        : "Weekly time review and payroll-prep for contractor crews.",
     team: "Active employee records and default crew setup.",
     "company-settings": "Company profile and payroll-prep defaults.",
     archive: "Archived employee records and history.",
   };
 
   const pageSubtitle: Record<AppPage, string> = {
-    dashboard: uiMode === "truck"
-      ? "Mobile-first time entry for foremen and employees, focused on today and the active work week."
-      : "Keep the weekly board, payroll-prep review, exports, and next-step workflow in one focused dashboard.",
+    dashboard:
+      uiMode === "truck"
+        ? "Mobile-first time entry for foremen and employees, focused on today and the active work week."
+        : "Keep the weekly board, payroll-prep review, exports, and next-step workflow in one focused dashboard.",
     team: "Manage employee records, keep worker details current, and send login invites only when someone needs app access.",
     "company-settings": "Update company identity, state support, payroll-prep defaults, and the standing disclaimer without cluttering the weekly dashboard.",
     archive: "Archived employees stay on file for office reference instead of being deleted.",
   };
 
   return (
-    <div
-      className={`app-shell app-shell--${uiMode}`}
-      style={{ backgroundColor: BRAND_LIGHT, minHeight: "100vh" }}
-    >
-      {/* ── Header ── */}
+    <div className={`app-shell app-shell--${uiMode}`} style={{ backgroundColor: BRAND_LIGHT, minHeight: "100vh" }}>
       <header
         className="hero hero--app"
         style={{
@@ -270,11 +292,12 @@ export function AppShell({
           position: "sticky",
           top: 0,
           zIndex: 100,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+          boxShadow: isScrolled ? "0 4px 12px rgba(0,0,0,0.08)" : "0 2px 8px rgba(0,0,0,0.06)",
+          padding: isScrolled ? "0.6rem 20px" : "1rem 20px",
+          transition: "all 0.25s ease-in-out",
         }}
       >
         <div className="hero__main">
-          {/* Top bar: logo + title + mobile menu toggle */}
           <div
             className="hero__topbar"
             style={{
@@ -284,21 +307,36 @@ export function AppShell({
               gap: "1rem",
             }}
           >
-            <div className="hero__brand-block" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <Logo className="hero__logo" size="app" />
+            <div
+              className="hero__brand-block"
+              style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 0 }}
+            >
+              <div
+                style={{
+                  transform: isScrolled ? "scale(0.92)" : "scale(1)",
+                  transformOrigin: "left center",
+                  transition: "transform 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <Logo className="hero__logo" size="app" />
+              </div>
               <h1
                 style={{
                   color: BRAND_DARK,
                   fontWeight: 700,
-                  fontSize: "1rem",
+                  fontSize: isScrolled ? "0.92rem" : "1rem",
                   margin: 0,
+                  transition: "font-size 0.2s ease",
+                  minWidth: 0,
                 }}
               >
                 {pageTitle[activePage]}
               </h1>
             </div>
 
-            {/* Viewer card — inline in topbar */}
             <div
               style={{
                 display: "flex",
@@ -309,7 +347,7 @@ export function AppShell({
                 flexShrink: 0,
               }}
             >
-              <span>Signed in as</span>
+              {!isMobileViewport ? <span>Signed in as</span> : null}
               <strong style={{ color: BRAND_DARK }}>{data.viewer.fullName}</strong>
               <span
                 style={{
@@ -323,52 +361,50 @@ export function AppShell({
               >
                 {data.viewer.role}
               </span>
-              {data.companySettings ? (
+              {!isMobileViewport && data.companySettings ? (
                 <span style={{ color: "#888" }}>{data.companySettings.companyName}</span>
               ) : null}
-            </div>
 
-            {isMobileViewport ? (
-              <button
-                className="nav-toggle"
-                onClick={() => setMobileNavOpen((current) => !current)}
-                style={{
-                  background: "none",
-                  border: `2px solid ${BRAND_ORANGE}`,
-                  color: BRAND_ORANGE,
-                  borderRadius: "6px",
-                  padding: "6px 12px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontSize: "0.8rem",
-                }}
-                type="button"
-              >
-                {mobileNavOpen ? "Close" : "Menu"}
-              </button>
-            ) : null}
+              {isMobileViewport ? (
+                <button
+                  className="nav-toggle"
+                  onClick={() => setMobileNavOpen((current) => !current)}
+                  style={{
+                    background: "none",
+                    border: `2px solid ${BRAND_ORANGE}`,
+                    color: BRAND_ORANGE,
+                    borderRadius: "6px",
+                    padding: "6px 12px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    fontSize: "0.8rem",
+                  }}
+                  type="button"
+                >
+                  {mobileNavOpen ? "Close" : "Menu"}
+                </button>
+              ) : null}
+            </div>
           </div>
 
-          {/* Subtitle */}
           <p
             className="hero-copy"
             style={{
               color: "#666",
-              fontSize: "0.85rem",
-              margin: "0.4rem 0 0.75rem",
+              fontSize: isScrolled ? "0.78rem" : "0.85rem",
+              margin: isScrolled ? "0.2rem 0 0.35rem" : "0.4rem 0 0.75rem",
+              maxHeight: isScrolled ? 0 : "40px",
+              opacity: isScrolled ? 0 : 1,
+              overflow: "hidden",
+              transition: "all 0.2s ease",
             }}
           >
             {pageSubtitle[activePage]}
           </p>
 
-          {/* Navigation */}
           <nav
             className={
-              isMobileViewport
-                ? mobileNavOpen
-                  ? "app-nav app-nav--open"
-                  : "app-nav app-nav--mobile"
-                : "app-nav"
+              isMobileViewport ? (mobileNavOpen ? "app-nav app-nav--open" : "app-nav app-nav--mobile") : "app-nav"
             }
             style={{
               display: "flex",
@@ -377,42 +413,44 @@ export function AppShell({
               flexWrap: "wrap",
             }}
           >
-            {navItems.filter((item) => item.visible).map((item) => {
-              const isActive = activePage === item.key;
-              const isHovered = hoveredNav === item.key;
-              return (
-                <button
-                  className={[
-                    isActive ? "app-nav__item app-nav__item--active" : "app-nav__item",
-                    item.key === "team" ? "nav__item--team" : "",
-                  ].filter(Boolean).join(" ")}
-                  key={item.key}
-                  onClick={() => setActivePage(item.key)}
-                  onMouseEnter={() => setHoveredNav(item.key)}
-                  onMouseLeave={() => setHoveredNav(null)}
-                  style={{
-                    background: isActive ? "rgba(255,140,0,0.08)" : isHovered ? "#F5F5F5" : "none",
-                    border: "none",
-                    borderBottom: isActive ? `2px solid ${BRAND_ORANGE}` : "2px solid transparent",
-                    color: isActive ? BRAND_ORANGE : isHovered ? BRAND_DARK : "#555",
-                    fontWeight: isActive ? 700 : 500,
-                    padding: "8px 14px",
-                    borderRadius: "6px 6px 0 0",
-                    cursor: "pointer",
-                    fontSize: "0.875rem",
-                    transition: "all 0.15s ease",
-                  }}
-                  type="button"
-                >
-                  {item.label}
-                </button>
-              );
-            })}
+            {navItems
+              .filter((item) => item.visible)
+              .map((item) => {
+                const isActive = activePage === item.key;
+                const isHovered = hoveredNav === item.key;
+                return (
+                  <button
+                    className={[
+                      isActive ? "app-nav__item app-nav__item--active" : "app-nav__item",
+                      item.key === "team" ? "nav__item--team" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    key={item.key}
+                    onClick={() => setActivePage(item.key)}
+                    onMouseEnter={() => setHoveredNav(item.key)}
+                    onMouseLeave={() => setHoveredNav(null)}
+                    style={{
+                      background: isActive ? "rgba(255,140,0,0.08)" : isHovered ? "#F5F5F5" : "none",
+                      border: "none",
+                      borderBottom: isActive ? `2px solid ${BRAND_ORANGE}` : "2px solid transparent",
+                      color: isActive ? BRAND_ORANGE : isHovered ? BRAND_DARK : "#555",
+                      fontWeight: isActive ? 700 : 500,
+                      padding: "8px 14px",
+                      borderRadius: "6px 6px 0 0",
+                      cursor: "pointer",
+                      fontSize: "0.875rem",
+                      transition: "all 0.15s ease",
+                    }}
+                    type="button"
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
 
-            {/* Spacer */}
             <span style={{ flex: 1 }} />
 
-            {/* Export Payroll button — office mode only */}
             {uiMode === "office" ? (
               <button
                 className="app-nav__export-btn"
@@ -443,7 +481,6 @@ export function AppShell({
               </button>
             ) : null}
 
-            {/* Help / Tour button */}
             <button
               onClick={onboarding.restartTour}
               title="Restart tour"
@@ -477,7 +514,6 @@ export function AppShell({
               ?
             </button>
 
-            {/* Mode pill */}
             <span
               className={`mode-pill mode-pill--${uiMode}`}
               style={{
@@ -495,7 +531,6 @@ export function AppShell({
               {uiMode === "truck" ? "Truck" : "Office"}
             </span>
 
-            {/* Week picker (office/dashboard only) */}
             {activePage === "dashboard" && uiMode === "office" ? (
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 <label style={{ fontSize: "0.78rem", color: "#666", fontWeight: 500 }}>Week</label>
@@ -511,20 +546,27 @@ export function AppShell({
                     color: BRAND_DARK,
                     outline: "none",
                   }}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = BRAND_ORANGE; }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = "#EEE"; }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = BRAND_ORANGE;
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "#EEE";
+                  }}
                 />
               </div>
             ) : activePage === "dashboard" && uiMode === "truck" ? (
               <span style={{ fontSize: "0.78rem", color: "#888" }}>Week: {data.weekStart}</span>
             ) : null}
 
-            {/* Sign out */}
             <button
               className="app-nav__item"
               onClick={onLogout}
-              onMouseEnter={(e) => { e.currentTarget.style.color = "#c00"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = "#888"; }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = "#c00";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = "#888";
+              }}
               style={{
                 background: "none",
                 border: "none",
@@ -541,13 +583,12 @@ export function AppShell({
             </button>
           </nav>
 
-          {/* Status summary (office dashboard) */}
           {activePage === "dashboard" && uiMode === "office" && visibleWeeks.length > 0 ? (
             <p
               style={{
                 fontSize: "0.75rem",
                 color: "#888",
-                margin: "0.5rem 0 0",
+                margin: isScrolled ? "0.35rem 0 0" : "0.5rem 0 0",
               }}
             >
               Status: {visibleWeeks.map((week) => prettyStatus(week.status)).join(", ")}
@@ -556,7 +597,6 @@ export function AppShell({
         </div>
       </header>
 
-      {/* ── Error banner ── */}
       {error ? (
         <div
           className="error-banner"
@@ -572,7 +612,6 @@ export function AppShell({
         </div>
       ) : null}
 
-      {/* ── Incomplete timesheets alert ── */}
       {uiMode === "office" && hasIncompleteTimesheets && activePage === "dashboard" ? (
         <div
           style={{
@@ -592,7 +631,8 @@ export function AppShell({
                 ACTION REQUIRED
               </strong>
               <span style={{ color: "#5A5A5B", fontSize: "0.8rem" }}>
-                {incompleteCount} {incompleteCount === 1 ? "timesheet" : "timesheets"} waiting for submission
+                {incompleteCount} {incompleteCount === 1 ? "timesheet" : "timesheets"} waiting for
+                submission
               </span>
             </div>
           </div>
@@ -626,7 +666,6 @@ export function AppShell({
         </div>
       ) : null}
 
-      {/* ── Mode banner ── */}
       <section
         className={`mode-banner mode-banner--${uiMode}`}
         style={{
@@ -651,11 +690,7 @@ export function AppShell({
         </span>
       </section>
 
-      {/* ── Main content ── */}
-      <main
-        className="content-grid"
-        style={{ padding: "0 20px 40px" }}
-      >
+      <main className="content-grid" style={{ padding: "0 20px 40px" }}>
         {activePage === "dashboard" ? (
           <>
             {uiMode === "office" ? (
@@ -739,9 +774,31 @@ export function AppShell({
               </button>
             </div>
             {inviteSuccessUrl && (
-              <div style={{ marginBottom: "12px", padding: "10px 14px", borderRadius: "8px", background: "#E8F5E9", color: "#2E7D32", fontSize: "13px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>Invite sent! Dev link: <a href={inviteSuccessUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#1565C0" }}>{inviteSuccessUrl}</a></span>
-                <button onClick={() => setInviteSuccessUrl(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: "16px" }}>×</button>
+              <div
+                style={{
+                  marginBottom: "12px",
+                  padding: "10px 14px",
+                  borderRadius: "8px",
+                  background: "#E8F5E9",
+                  color: "#2E7D32",
+                  fontSize: "13px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span>
+                  Invite sent! Dev link:{" "}
+                  <a href={inviteSuccessUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#1565C0" }}>
+                    {inviteSuccessUrl}
+                  </a>
+                </span>
+                <button
+                  onClick={() => setInviteSuccessUrl(null)}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: "16px" }}
+                >
+                  ×
+                </button>
               </div>
             )}
             <TeamManagementPanel
@@ -759,12 +816,9 @@ export function AppShell({
           </>
         ) : null}
 
-        {activePage === "archive" && canViewArchive ? (
-          <ArchivePanel archivedEmployees={data.archivedEmployees} />
-        ) : null}
+        {activePage === "archive" && canViewArchive ? <ArchivePanel archivedEmployees={data.archivedEmployees} /> : null}
       </main>
 
-      {/* ── Payroll Export Modal ── */}
       <PayrollExportModal
         isOpen={showPayrollModal}
         data={data}
@@ -776,7 +830,6 @@ export function AppShell({
         onFetchHistory={onFetchExportHistory}
       />
 
-      {/* ── Add Employee Modal ── */}
       <AddEmployeeModal
         isOpen={showAddEmployeeModal}
         crews={data.crews}
@@ -787,7 +840,6 @@ export function AppShell({
         }}
       />
 
-      {/* ── Invite Employee Modal ── */}
       <InviteEmployeeModal
         isOpen={showInviteModal}
         crews={data.crews}
@@ -799,7 +851,6 @@ export function AppShell({
         }}
       />
 
-      {/* ── Onboarding Overlay ── */}
       <OnboardingOverlay />
     </div>
   );
