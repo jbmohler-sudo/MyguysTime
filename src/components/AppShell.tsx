@@ -3,6 +3,7 @@ import type { BootstrapPayload, EmployeeInput, InviteInput, InviteSummary, Manag
 import { prettyStatus } from "../domain/permissions";
 import { AddEmployeeModal } from "./AddEmployeeModal";
 import { ArchivePanel } from "./ArchivePanel";
+import { MissingTimeAlertBanner } from "./MissingTimeAlertBanner";
 import { CompanySettingsPanel } from "./CompanySettingsPanel";
 import { Logo } from "./Logo";
 import { OfficeDashboard } from "./OfficeDashboard";
@@ -191,6 +192,13 @@ export function AppShell({
       const crewBoard = document.querySelector(".weekly-crew-board");
       crewBoard?.scrollIntoView({ behavior: "smooth" });
     }, 0);
+  };
+
+  const handleQuickFixMissingTime = () => {
+    const crewBoardElement = document.querySelector(".crew-board, .weekly-crew-board");
+    if (crewBoardElement) {
+      crewBoardElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   const pageTitle: Record<AppPage, string> = {
@@ -545,6 +553,13 @@ export function AppShell({
       >
         {activePage === "dashboard" ? (
           <>
+            {uiMode === "office" ? (
+              <MissingTimeAlertBanner
+                employeeWeeks={data.employeeWeeks}
+                onQuickFix={handleQuickFixMissingTime}
+              />
+            ) : null}
+
             <WeeklyCrewBoard
               uiMode={uiMode}
               viewer={data.viewer}
