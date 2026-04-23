@@ -14,6 +14,8 @@ import {
   createInvite,
   downloadExport,
   fetchBootstrap,
+  fetchExportHistory,
+  fetchQboPreview,
   listEmployees,
   listInvites,
   login,
@@ -266,6 +268,22 @@ function App() {
     await revokeInvite(token, inviteId);
   }
 
+  async function handleFetchQboPreview(ws: string) {
+    if (!token) throw new Error("Not authenticated");
+    return fetchQboPreview(token, ws);
+  }
+
+  async function handleDownloadQboCsv(ws: string) {
+    if (!token) throw new Error("Not authenticated");
+    return downloadExport(token, `/exports/qbo.csv?weekStart=${encodeURIComponent(ws)}`);
+  }
+
+  async function handleFetchExportHistory() {
+    if (!token) throw new Error("Not authenticated");
+    const result = await fetchExportHistory(token);
+    return result.exports;
+  }
+
   async function handleExport(kind: "payroll-summary" | "time-detail" | "weekly-summary") {
     if (!token || !data) {
       return;
@@ -364,6 +382,9 @@ function App() {
         onCreateInvite={handleCreateInvite}
         onResendInvite={handleResendInvite}
         onRevokeInvite={handleRevokeInvite}
+        onFetchQboPreview={handleFetchQboPreview}
+        onDownloadQboCsv={handleDownloadQboCsv}
+        onFetchExportHistory={handleFetchExportHistory}
       />
     </OnboardingProvider>
   );

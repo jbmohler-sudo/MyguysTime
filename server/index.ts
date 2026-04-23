@@ -2609,6 +2609,145 @@ app.get("/api/exports/time-detail.csv", authenticate, asyncHandler(async (req: A
   res.send(rows.join("\n"));
 }));
 
+app.get("/api/exports/qbo-preview.json", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  if (!authorizeAdmin(req, res)) {
+    return;
+  }
+
+  const weekStart = parseWeekStart(typeof req.query.weekStart === "string" ? req.query.weekStart : undefined);
+  const companyId = req.auth!.companyId;
+
+  const timesheets = await prisma.timesheetWeek.findMany({
+    where: { weekStartDate: weekStart, employee: { companyId } },
+    include: {
+      employee: true,
+      dayEntries: { orderBy: { dayIndex: "asc" } },
+    },
+  });
+
+  const warnings: string[] = [];
+  const errors: string[] = [];
+
+  let totalMinutes = 0;
+  let employeeSet = new Set<string>();
+
+  for (const ts of timesheets) {
+    if (ts.status !== "OFFICE_LOCKED") {
+      warnings.push(`${ts.employee.displayName} — week not locked (status: ${ts.status})`);
+    }
+    for (const day of ts.dayEntries) {
+      if (day.totalMinutes > 0) {
+        totalMinutes += day.totalMinutes;
+        employeeSet.add(ts.employeeId);
+      }
+    }
+  }
+
+  const totalHours = totalMinutes / 60;
+
+  if (timesheets.length === 0) {
+    errors.push("No timesheets found for this week.");
+  }
+
+  res.json({
+    weekStart: formatIsoDate(weekStart),
+    totalEmployees: employeeSet.size,
+    totalHours: Math.round(totalHours * 100) / 100,
+    warnings,
+    errors,
+    isReady: errors.length === 0,
+  });
+}));
+
+app.get("/api/exports/qbo.csv", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  if (!authorizeAdmin(req, res)) {
+    return;
+  }
+
+  const weekStart = parseWeekStart(typeof req.query.weekStart === "string" ? req.query.weekStart : undefined);
+  const companyId = req.auth!.companyId;
+  const exportedByUserId = req.auth!.userId;
+
+  const timesheets = await prisma.timesheetWeek.findMany({
+    where: { weekStartDate: weekStart, employee: { companyId } },
+    include: {
+      employee: true,
+      crew: true,
+      dayEntries: { orderBy: { dayIndex: "asc" } },
+    },
+    orderBy: [{ crew: { name: "asc" } }, { employee: { displayName: "asc" } }],
+  });
+
+  const rows = [createCsvRow(["NAME", "TXNDATE", "TIME", "CUSTOMER", "SERVICEITEM", "DESCRIPTION"])];
+  let totalMinutes = 0;
+
+  for (const ts of timesheets) {
+    for (const day of ts.dayEntries) {
+      if (day.totalMinutes <= 0) continue;
+      const hours = day.totalMinutes / 60;
+      const date = new Date(day.workDate);
+      const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+      const dd = String(date.getUTCDate()).padStart(2, "0");
+      const yyyy = date.getUTCFullYear();
+      const txnDate = `${mm}/${dd}/${yyyy}`;
+      const customer = ts.crew.name;
+      const serviceItem = "Services";
+      const description = day.jobTag ?? "";
+      rows.push(createCsvRow([ts.employee.displayName, txnDate, hours.toFixed(2), customer, serviceItem, description]));
+      totalMinutes += day.totalMinutes;
+    }
+  }
+
+  const totalHours = totalMinutes / 60;
+  const fileName = `qbo-time-${formatIsoDate(weekStart)}.csv`;
+
+  await prisma.payrollExport.create({
+    data: {
+      companyId,
+      weekStart: formatIsoDate(weekStart),
+      exportKind: "qbo",
+      totalRows: rows.length - 1,
+      totalHours: Math.round(totalHours * 100) / 100,
+      fileName,
+      exportedByUserId,
+    },
+  });
+
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+  res.send(rows.join("\n"));
+}));
+
+app.get("/api/exports/history", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  if (!authorizeAdmin(req, res)) {
+    return;
+  }
+
+  const companyId = req.auth!.companyId;
+
+  const exports = await prisma.payrollExport.findMany({
+    where: { companyId },
+    include: {
+      exportedByUser: { select: { id: true, fullName: true } },
+    },
+    orderBy: { exportedAt: "desc" },
+    take: 50,
+  });
+
+  res.json({
+    exports: exports.map((e) => ({
+      id: e.id,
+      weekStart: e.weekStart,
+      exportKind: e.exportKind,
+      totalRows: e.totalRows,
+      totalHours: e.totalHours,
+      fileName: e.fileName,
+      exportedAt: e.exportedAt.toISOString(),
+      exportedBy: e.exportedByUser.fullName,
+    })),
+  });
+}));
+
 app.get("/api/exports/weekly-summary", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   if (!authorizeAdmin(req, res)) {
     return;

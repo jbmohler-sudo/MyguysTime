@@ -24,6 +24,7 @@ model User {
   employee       Employee?       @relation(fields: [employeeId], references: [id])
   sentInvites    UserInvite[]    @relation("UserInvitesSent")
   createdReports PrivateReport[] @relation("PrivateReportAuthor")
+  payrollExports PayrollExport[] @relation("PayrollExportByUser")
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -47,6 +48,7 @@ model Company {
   crews                        Crew[]
   employees                    Employee[]
   userInvites                  UserInvite[]
+  payrollExports               PayrollExport[]
 }
 
 model Crew {
@@ -308,4 +310,22 @@ model PrivateReport {
 
   @@index([employeeId, reportDate])
   @@index([crewId, reportDate])
+}
+
+model PayrollExport {
+  id               String   @id @default(cuid())
+  companyId        String
+  company          Company  @relation(fields: [companyId], references: [id])
+  weekStart        String
+  exportKind       String   @default("qbo")
+  totalRows        Int
+  totalHours       Float
+  fileName         String
+  exportedByUserId String
+  exportedByUser   User     @relation("PayrollExportByUser", fields: [exportedByUserId], references: [id])
+  exportedAt       DateTime @default(now())
+  createdAt        DateTime @default(now())
+
+  @@index([companyId])
+  @@index([exportedAt])
 }

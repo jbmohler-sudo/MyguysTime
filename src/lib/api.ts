@@ -263,6 +263,22 @@ export async function downloadExport(token: string, path: string) {
   return response;
 }
 
+export async function fetchQboPreview(token: string, weekStart: string) {
+  return request<import("../types/payroll").ExportPreview>(
+    `/exports/qbo-preview.json?weekStart=${encodeURIComponent(weekStart)}`,
+    {},
+    token,
+  );
+}
+
+export async function fetchExportHistory(token: string) {
+  return request<{ exports: import("../types/payroll").PayrollExportRecord[] }>(
+    "/exports/history",
+    {},
+    token,
+  );
+}
+
 export async function triggerBackendSentryVerification(token: string) {
   return request<{ ok: boolean; eventId: string | null }>(
     "/debug/sentry-test",

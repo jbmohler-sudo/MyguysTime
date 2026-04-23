@@ -68,6 +68,9 @@ interface AppShellProps {
   onCreateInvite: (payload: InviteInput) => Promise<{ invite: InviteSummary; inviteUrl?: string }>;
   onResendInvite: (inviteId: string) => Promise<void>;
   onRevokeInvite: (inviteId: string) => Promise<void>;
+  onFetchQboPreview?: (weekStart: string) => Promise<import("../types/payroll").ExportPreview>;
+  onDownloadQboCsv?: (weekStart: string) => Promise<Response>;
+  onFetchExportHistory?: () => Promise<import("../types/payroll").PayrollExportRecord[]>;
 }
 
 export function AppShell({
@@ -87,6 +90,9 @@ export function AppShell({
   onCreateInvite,
   onResendInvite,
   onRevokeInvite,
+  onFetchQboPreview,
+  onDownloadQboCsv,
+  onFetchExportHistory,
 }: AppShellProps) {
   const onboarding = useOnboardingContext();
   const truckViewportQuery = "(max-width: 720px)";
@@ -757,8 +763,12 @@ export function AppShell({
       <PayrollExportModal
         isOpen={showPayrollModal}
         data={data}
+        weekStart={data.weekStart}
         onClose={() => setShowPayrollModal(false)}
         onExport={handlePayrollExport}
+        onFetchQboPreview={onFetchQboPreview}
+        onDownloadQboCsv={onDownloadQboCsv}
+        onFetchHistory={onFetchExportHistory}
       />
 
       {/* ── Add Employee Modal ── */}
