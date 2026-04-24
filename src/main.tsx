@@ -8,9 +8,12 @@ import "./styles.css";
 
 initializeSentry();
 
+const SERVICE_WORKER_VERSION = "2026-04-24-1";
+
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {
+    navigator.serviceWorker.register(`/sw.js?v=${SERVICE_WORKER_VERSION}`).catch(() => {
       // SW registration failed — not critical
     });
   });
