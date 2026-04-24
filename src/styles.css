@@ -869,7 +869,7 @@ button:disabled {
 
 .day-cell--truck {
   border-radius: 16px;
-  gap: 0.42rem;
+  gap: 0.36rem;
   inline-size: 100%;
   min-inline-size: 0;
   min-height: 0;
@@ -965,26 +965,6 @@ button:disabled {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-brand-primary) 18%, transparent);
 }
 
-.quick-action-row {
-  display: grid;
-  gap: 0.45rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.day-cell--truck .quick-action-row {
-  gap: 0.3rem;
-}
-
-.quick-action-row button {
-  padding: 0.7rem 0.55rem;
-}
-
-.day-cell--truck .quick-action-row button {
-  font-size: 0.76rem;
-  min-height: 38px;
-  padding: 0.46rem 0.24rem;
-}
-
 .adjust-row button {
   flex: 1;
   padding: 0.5rem 0.6rem;
@@ -1004,31 +984,23 @@ button:disabled {
   padding: 0.42rem 0.38rem;
 }
 
-.truck-time-pair {
-  display: grid;
-  gap: 0.35rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.day-cell--truck .checkbox-row {
+  font-size: 0.68rem;
+  justify-content: space-between;
 }
 
-.truck-detail-pair {
-  display: grid;
-  gap: 0.35rem;
-  grid-template-columns: minmax(80px, 96px) minmax(0, 1fr);
+.day-cell--truck .checkbox-row input {
+  width: auto;
 }
 
 .day-cell--truck label,
-.day-cell--truck .day-confirmation-label {
+.day-cell--truck .checkbox-row {
   font-size: 0.7rem;
 }
 
 .day-cell--truck input {
   min-height: 36px;
   padding: 0.42rem 0.58rem;
-}
-
-.day-field--truck-detail {
-  margin: 0;
-  padding: 0;
 }
 
 .checkbox-row {
@@ -1180,6 +1152,10 @@ button:disabled {
 .truck-week-actions .button-strong,
 .truck-week-actions button {
   min-width: 160px;
+}
+
+.employee-card--truck .truck-week-actions:empty {
+  display: none;
 }
 
 .status-actions {
@@ -2353,14 +2329,6 @@ th {
     flex-direction: column;
   }
 
-  .quick-action-row {
-    grid-template-columns: 1fr;
-  }
-
-  .day-cell--truck .quick-action-row {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .truck-week-actions {
     width: 100%;
   }
@@ -2446,7 +2414,7 @@ th {
   }
 
   .day-cell--truck {
-    gap: 0.34rem;
+    gap: 0.3rem;
     padding: 0.48rem;
   }
 
@@ -2456,12 +2424,6 @@ th {
 
   .day-cell--truck .day-cell__top > span {
     font-size: 0.74rem;
-  }
-
-  .day-cell--truck .quick-action-row button {
-    font-size: 0.72rem;
-    min-height: 36px;
-    padding: 0.42rem 0.18rem;
   }
 
   .day-cell--truck .adjust-row button,

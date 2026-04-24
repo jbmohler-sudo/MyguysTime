@@ -167,11 +167,11 @@ export function AppShell({
     if (modeOverride) {
       return modeOverride;
     }
-    if (effectiveViewer.role === "admin") {
-      return "office";
+    if (isMobileViewport) {
+      return "truck";
     }
-    return isMobileViewport ? "truck" : "office";
-  }, [effectiveViewer.role, isMobileViewport, modeOverride]);
+    return "office";
+  }, [isMobileViewport, modeOverride]);
 
   const canViewCompanySettings = effectiveViewer.role === "admin" && Boolean(data.companySettings);
   const canViewArchive = effectiveViewer.role === "admin";
@@ -647,13 +647,30 @@ export function AppShell({
                       <div style={{ color: "#6B7280", fontSize: "0.86rem", lineHeight: 1.45 }}>
                         Open the menu only when you need another page. The truck screen stays centered on this week.
                       </div>
-                      {isInstallReady && !isInstalled ? (
+                      {effectiveViewer.role === "admin" ? (
                         <button
-                          onClick={() => void handleInstallApp()}
+                          onClick={() => setShowPayrollModal(true)}
                           style={{
                             backgroundColor: BRAND_ORANGE,
                             color: "white",
                             border: "none",
+                            borderRadius: "14px",
+                            fontSize: "0.95rem",
+                            fontWeight: 700,
+                            width: "100%",
+                          }}
+                          type="button"
+                        >
+                          Export payroll
+                        </button>
+                      ) : null}
+                      {isInstallReady && !isInstalled ? (
+                        <button
+                          onClick={() => void handleInstallApp()}
+                          style={{
+                            backgroundColor: effectiveViewer.role === "admin" ? "#F3F4F6" : BRAND_ORANGE,
+                            color: effectiveViewer.role === "admin" ? BRAND_DARK : "white",
+                            border: effectiveViewer.role === "admin" ? "1px solid #D7DEE8" : "none",
                             borderRadius: "14px",
                             fontSize: "0.95rem",
                             fontWeight: 700,

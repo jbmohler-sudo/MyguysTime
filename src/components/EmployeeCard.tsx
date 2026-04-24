@@ -25,11 +25,6 @@ interface EmployeeCardProps {
   onReopenWeek: (timesheetId: string, reopenTo: TimesheetStatus, note: string) => Promise<void>;
 }
 
-function currentClockTime() {
-  const now = new Date();
-  return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-}
-
 function formatTruckDayTabLabel(dayLabel: string, value: string) {
   const date = new Date(`${value}T00:00:00`);
   const dayOfMonth = new Intl.DateTimeFormat("en-US", { day: "numeric" }).format(date);
@@ -173,8 +168,8 @@ function DayEditor({
         </div>
         <span>{entry.totalHours.toFixed(2)}h</span>
       </div>
-      {uiMode === "truck" ? <div className="truck-time-pair">{startField}{endField}</div> : startField}
-      {uiMode === "truck" ? null : endField}
+      {startField}
+      {endField}
       <div className="adjust-row">
         <button disabled={!editable} onClick={() => void adjustActiveTime(-5)} type="button">
           -5m
@@ -183,59 +178,17 @@ function DayEditor({
           +5m
         </button>
       </div>
-      {uiMode === "truck" ? (
-        <div className="quick-action-row">
-          <button
-            disabled={!editable}
-            onClick={() => {
-              const nextValue = currentClockTime();
-              setStart(nextValue);
-              setActiveField("start");
-              void save({ start: nextValue });
-            }}
-            type="button"
-          >
-            Start day
-          </button>
-          <button
-            disabled={!editable}
-            onClick={() => {
-              const nextValue = currentClockTime();
-              setEnd(nextValue);
-              setActiveField("end");
-              void save({ end: nextValue });
-            }}
-            type="button"
-          >
-            End day
-          </button>
-          <button
-            className="button-strong"
-            disabled={!editable}
-            onClick={() => void save({ employeeConfirmed: true })}
-            type="button"
-          >
-            Confirm day
-          </button>
-        </div>
-      ) : null}
-      {uiMode === "truck" ? <div className="truck-detail-pair">{lunchField}{jobTagField}</div> : lunchField}
-      {uiMode === "truck" ? null : jobTagField}
-      {uiMode === "office" ? (
-        <label className="checkbox-row">
-          <input
-            checked={entry.employeeConfirmed}
-            disabled={!editable}
-            type="checkbox"
-            onChange={(event) => void save({ employeeConfirmed: event.target.checked })}
-          />
-          Daily confirmed
-        </label>
-      ) : (
-        <div className="day-confirmation-label">
-          {entry.employeeConfirmed ? "Confirmed for today" : "Not confirmed yet"}
-        </div>
-      )}
+      {lunchField}
+      {jobTagField}
+      <label className="checkbox-row">
+        <input
+          checked={entry.employeeConfirmed}
+          disabled={!editable}
+          type="checkbox"
+          onChange={(event) => void save({ employeeConfirmed: event.target.checked })}
+        />
+        Daily confirmed
+      </label>
     </div>
   );
 }
@@ -345,12 +298,12 @@ export function EmployeeCard({
           <strong>Next step</strong>
           <span>{workflowMessage}</span>
         </div>
-      ) : viewer.role !== "employee" ? (
+      ) : (
         <div className="workflow-banner workflow-banner--soft workflow-banner--truck-compact">
           <strong>Next step</strong>
-          <span>{workflowMessage}</span>
+          <span>Review the day, adjust any hours, then use the weekly action below.</span>
         </div>
-      ) : null}
+      )}
 
       {uiMode === "truck" ? (
         <div className="truck-day-nav" aria-label={`${employeeWeek.employeeName} week days`}>
@@ -460,22 +413,31 @@ export function EmployeeCard({
         </>
       ) : (
         <div className="truck-week-actions">
-          {canConfirmWeek(effectiveViewer.role, effectiveViewer.employeeId, employeeWeek) ? (
+          {effectiveViewer.role === "employee" && canConfirmWeek(effectiveViewer.role, effectiveViewer.employeeId, employeeWeek) ? (
             <button
               className="button-strong"
               onClick={() => void onStatusChange(employeeWeek.id, "employee_confirmed")}
               type="button"
             >
-              Confirm week
+              Confirm
             </button>
           ) : null}
-          {canApproveWeek(effectiveViewer.role, employeeWeek) ? (
+          {effectiveViewer.role === "foreman" && canApproveWeek(effectiveViewer.role, employeeWeek) ? (
             <button
               className="button-strong"
               onClick={() => void onStatusChange(employeeWeek.id, "foreman_approved")}
               type="button"
             >
               Approve week
+            </button>
+          ) : null}
+          {effectiveViewer.role === "admin" && canOfficeLock(effectiveViewer.role, employeeWeek) ? (
+            <button
+              className="button-strong"
+              onClick={() => void onStatusChange(employeeWeek.id, "office_locked")}
+              type="button"
+            >
+              Lock for payroll
             </button>
           ) : null}
         </div>
