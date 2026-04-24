@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CrewSummary, EmployeeWeek, TimesheetStatus, Viewer } from "../domain/models";
+import { prettyStatus } from "../domain/permissions";
 import { EmployeeCard } from "./EmployeeCard";
 
 type UiMode = "truck" | "office";
@@ -46,10 +47,41 @@ export function WeeklyCrewBoard({
   const [dayIndex, setDayIndex] = useState(0);
   const [start, setStart] = useState("07:00");
   const [end, setEnd] = useState("15:30");
+  const [activeTruckEmployeeId, setActiveTruckEmployeeId] = useState(() => employeeWeeks[0]?.id ?? "");
+
   const selectedCrew = useMemo(
     () => crews.find((crew) => crew.id === selectedCrewId) ?? crews[0] ?? null,
     [crews, selectedCrewId],
   );
+
+  useEffect(() => {
+    if (uiMode !== "truck") {
+      return;
+    }
+
+    if (!employeeWeeks.length) {
+      setActiveTruckEmployeeId("");
+      return;
+    }
+
+    const hasActiveEmployee = employeeWeeks.some((week) => week.id === activeTruckEmployeeId);
+    if (!hasActiveEmployee) {
+      setActiveTruckEmployeeId(employeeWeeks[0].id);
+    }
+  }, [activeTruckEmployeeId, employeeWeeks, uiMode]);
+
+  const activeTruckWeek = useMemo(
+    () => employeeWeeks.find((week) => week.id === activeTruckEmployeeId) ?? employeeWeeks[0] ?? null,
+    [activeTruckEmployeeId, employeeWeeks],
+  );
+
+  const visibleEmployeeWeeks = useMemo(() => {
+    if (uiMode !== "truck") {
+      return employeeWeeks;
+    }
+
+    return activeTruckWeek ? [activeTruckWeek] : [];
+  }, [activeTruckWeek, employeeWeeks, uiMode]);
 
   const canApplyDefaults = viewer.role === "admin" || viewer.role === "foreman";
   const weekContext =
@@ -71,7 +103,7 @@ export function WeeklyCrewBoard({
               <span className="week-context-note">This selected week includes today.</span>
             )}
             {uiMode === "truck" ? (
-              <span className="week-context-note">Swipe day cards left or right to move through the week.</span>
+              <span className="week-context-note">Choose an employee, then tap the day you want to edit.</span>
             ) : null}
           </div>
         </div>
@@ -131,8 +163,28 @@ export function WeeklyCrewBoard({
         </div>
       </div>
 
+      {uiMode === "truck" && employeeWeeks.length > 1 ? (
+        <div className="employee-strip" aria-label="Active employee selector">
+          {employeeWeeks.map((employeeWeek) => {
+            const isActive = employeeWeek.id === (activeTruckWeek?.id ?? "");
+            return (
+              <button
+                key={employeeWeek.id}
+                type="button"
+                className={isActive ? "employee-strip__button employee-strip__button--active" : "employee-strip__button"}
+                onClick={() => setActiveTruckEmployeeId(employeeWeek.id)}
+              >
+                <strong>{employeeWeek.employeeName}</strong>
+                <span>{employeeWeek.crewName}</span>
+                <em>{prettyStatus(employeeWeek.status)}</em>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
       <div className={uiMode === "truck" ? "employee-list employee-list--truck" : "employee-list"}>
-        {employeeWeeks.map((employeeWeek) => (
+        {visibleEmployeeWeeks.map((employeeWeek) => (
           <EmployeeCard
             key={employeeWeek.id}
             uiMode={uiMode}

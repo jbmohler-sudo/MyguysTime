@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { DayEntry, EmployeeWeek, TimesheetStatus, Viewer } from "../domain/models";
 import { adjustTimeValue, formatCurrency, formatDayCardDate } from "../domain/format";
 import { PayrollYtdSummaryGrid, workerTypeLabel } from "./PayrollYtdSummaryGrid";
@@ -140,6 +140,7 @@ function DayEditor({
     </label>
   );
 
+
   return (
     <div
       className={`${isToday ? "day-cell day-cell--today" : "day-cell"} ${uiMode === "truck" ? "day-cell--truck" : ""}`}
@@ -242,8 +243,6 @@ export function EmployeeCard({
   const showRates = uiMode === "office" && employeeWeek.hourlyRate !== null;
   const [reopenNote, setReopenNote] = useState("");
   const [revisionNote, setRevisionNote] = useState("");
-  const truckDayGridRef = useRef<HTMLDivElement | null>(null);
-  const truckDayRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [activeTruckDayIndex, setActiveTruckDayIndex] = useState(() => {
     const todayIndex = employeeWeek.entries.findIndex((entry) => entry.date === todayIso);
     return todayIndex >= 0 ? todayIndex : 0;
@@ -287,24 +286,11 @@ export function EmployeeCard({
 
   function jumpToTruckDay(index: number) {
     setActiveTruckDayIndex(index);
-    truckDayRefs.current[index]?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-      inline: "start",
-    });
   }
 
-  function handleTruckGridScroll() {
-    const grid = truckDayGridRef.current;
-    if (!grid) {
-      return;
-    }
-
-    const nextIndex = Math.round(grid.scrollLeft / Math.max(grid.clientWidth, 1));
-    if (nextIndex !== activeTruckDayIndex) {
-      setActiveTruckDayIndex(nextIndex);
-    }
-  }
+  const activeTruckEntry = useMemo(() => {
+    return employeeWeek.entries[activeTruckDayIndex] ?? employeeWeek.entries[0];
+  }, [activeTruckDayIndex, employeeWeek.entries]);
 
   return (
     <article className={`employee-card ${uiMode === "truck" ? "employee-card--truck" : ""}`}>
@@ -371,30 +357,33 @@ export function EmployeeCard({
         </div>
       ) : null}
 
-      <div
-        className={uiMode === "truck" ? "day-grid day-grid--truck" : "day-grid"}
-        onScroll={uiMode === "truck" ? handleTruckGridScroll : undefined}
-        ref={uiMode === "truck" ? truckDayGridRef : undefined}
-      >
-        {employeeWeek.entries.map((entry) => (
+      {uiMode === "truck" ? (
+        <div className="day-grid day-grid--truck-single">
           <DayEditor
-            key={entry.id}
-            dayRef={
-              uiMode === "truck"
-                ? (node) => {
-                    truckDayRefs.current[entry.dayIndex] = node;
-                  }
-                : undefined
-            }
+            key={activeTruckEntry.id}
             uiMode={uiMode}
             viewer={viewer}
             employeeWeek={employeeWeek}
-            entry={entry}
+            entry={activeTruckEntry}
             todayIso={todayIso}
             onUpdateDay={onUpdateDay}
           />
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="day-grid">
+          {employeeWeek.entries.map((entry) => (
+            <DayEditor
+              key={entry.id}
+              uiMode={uiMode}
+              viewer={viewer}
+              employeeWeek={employeeWeek}
+              entry={entry}
+              todayIso={todayIso}
+              onUpdateDay={onUpdateDay}
+            />
+          ))}
+        </div>
+      )}
 
       {uiMode === "office" ? (
         <>
