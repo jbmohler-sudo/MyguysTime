@@ -38,6 +38,11 @@ const UNSUPPORTED_STATE_MESSAGE =
   "We do not yet support accurate state-specific withholding calculations for this state. You can still use the app for time tracking and payroll prep, but please confirm state-specific withholding with your accountant or official state resources.";
 const SIGNUP_DEFAULT_STATE_CODE = "TX";
 const INVITE_EXPIRY_HOURS = 72;
+const DEMO_ROLE_ACCOUNTS: Record<"admin" | "foreman" | "employee", { email: string; role: UserRole }> = {
+  admin: { email: "admin@crewtime.local", role: "ADMIN" },
+  foreman: { email: "luis@crewtime.local", role: "FOREMAN" },
+  employee: { email: "marco@crewtime.local", role: "EMPLOYEE" },
+};
 
 app.use(cors({ origin: true, credentials: false }));
 app.use(express.json());
@@ -1003,6 +1008,45 @@ app.post("/api/auth/login", asyncHandler(async (req, res) => {
     role: asUserRole(user.role),
     companyId: user.companyId,
   });
+  res.json({ token });
+}));
+
+
+app.post("/api/auth/demo-access", asyncHandler(async (req, res) => {
+  const { role } = req.body as { role?: string };
+  const normalizedRole = role?.trim().toLowerCase();
+
+  if (
+    normalizedRole !== "admin" &&
+    normalizedRole !== "foreman" &&
+    normalizedRole !== "employee"
+  ) {
+    res.status(400).json({ error: "Choose a valid demo role." });
+    return;
+  }
+
+  const demoAccount = DEMO_ROLE_ACCOUNTS[normalizedRole];
+  const user = await prisma.user.findUnique({
+    where: { email: demoAccount.email },
+    include: { employee: true },
+  });
+
+  if (!user || user.role !== demoAccount.role) {
+    res.status(404).json({ error: `The ${normalizedRole} demo profile is not available right now.` });
+    return;
+  }
+
+  if (user.status !== "ACTIVE" || user.deactivatedAt) {
+    res.status(403).json({ error: `The ${normalizedRole} demo profile is not active.` });
+    return;
+  }
+
+  const token = issueToken({
+    userId: user.id,
+    role: asUserRole(user.role),
+    companyId: user.companyId,
+  });
+
   res.json({ token });
 }));
 

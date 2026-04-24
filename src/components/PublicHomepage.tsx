@@ -154,6 +154,7 @@ export function PublicHomepage({ onStartDemo }: PublicHomepageProps) {
   const [visibleSteps, setVisibleSteps] = useState<Set<number>>(new Set());
   const [visibleFeatures, setVisibleFeatures] = useState<Set<number>>(new Set());
   const [launchingRole, setLaunchingRole] = useState<"admin" | "foreman" | "employee" | null>(null);
+  const [demoError, setDemoError] = useState("");
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallReady, setIsInstallReady] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -259,9 +260,12 @@ export function PublicHomepage({ onStartDemo }: PublicHomepageProps) {
   };
 
   const handleDemoStart = async (role: "admin" | "foreman" | "employee") => {
+    setDemoError("");
     setLaunchingRole(role);
     try {
       await onStartDemo(role);
+    } catch (error) {
+      setDemoError(error instanceof Error ? error.message : "Unable to open the demo right now.");
     } finally {
       setLaunchingRole(null);
     }
@@ -376,6 +380,9 @@ export function PublicHomepage({ onStartDemo }: PublicHomepageProps) {
                     {launchingRole === "employee" ? "Opening employee..." : "Start as Employee"}
                   </button>
                 </div>
+                {demoError ? (
+                  <p className="text-sm font-medium text-red-600">{demoError}</p>
+                ) : null}
                 {isInstalled ? (
                   <p className="text-sm font-medium text-slate-600">App is already installed on this device.</p>
                 ) : null}
