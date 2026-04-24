@@ -34,13 +34,14 @@ const LUNCH_OPTIONS = [
 const PAY_TYPE_OPTIONS = [
   {
     value: "hourly" as const,
-    title: "Hourly",
-    detail: "All hours stay at the base hourly rate.",
+    title: "Flat Rate (1099 / Subcontractor)",
+    detail:
+      "Calculates all hours at a single rate. Use only for properly classified independent contractors or subcontractors.",
   },
   {
     value: "hourly_overtime" as const,
-    title: "Hourly + overtime",
-    detail: "Overtime stays separate in the weekly payroll-prep estimate.",
+    title: "Standard Employee (W2)",
+    detail: "Compliant with FLSA; calculates 1.5x for hours exceeding 40 in a workweek.",
   },
 ] as const;
 

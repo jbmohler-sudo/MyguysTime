@@ -42,6 +42,19 @@ function formatAcceptedAt(value: string | null) {
   }).format(new Date(value));
 }
 
+function formatPercentInput(value: number) {
+  if (!Number.isFinite(value)) {
+    return "";
+  }
+
+  return Number((value * 100).toFixed(4)).toString();
+}
+
+function parsePercentInput(value: string) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed / 100 : 0;
+}
+
 export function CompanySettingsPanel({
   companySettings,
   stateRules,
@@ -272,17 +285,23 @@ export function CompanySettingsPanel({
           </label>
           <label>
             Default federal withholding value
-            <input
-              type="number"
-              step="0.0001"
-              value={draft.defaultFederalWithholdingValue}
-              onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  defaultFederalWithholdingValue: Number(event.target.value),
-                }))
-              }
-            />
+            <div className="input-with-suffix">
+              <input
+                type="number"
+                step="0.01"
+                value={formatPercentInput(draft.defaultFederalWithholdingValue)}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    defaultFederalWithholdingValue: parsePercentInput(event.target.value),
+                  }))
+                }
+              />
+              <span>%</span>
+            </div>
+            <span className="field-helper">
+              Includes Federal Income Tax + FICA (Social Security & Medicare) estimates.
+            </span>
           </label>
           <label>
             Default state withholding mode
@@ -298,17 +317,20 @@ export function CompanySettingsPanel({
           </label>
           <label>
             Default state withholding value
-            <input
-              type="number"
-              step="0.0001"
-              value={draft.defaultStateWithholdingValue}
-              onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  defaultStateWithholdingValue: Number(event.target.value),
-                }))
-              }
-            />
+            <div className="input-with-suffix">
+              <input
+                type="number"
+                step="0.01"
+                value={formatPercentInput(draft.defaultStateWithholdingValue)}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    defaultStateWithholdingValue: parsePercentInput(event.target.value),
+                  }))
+                }
+              />
+              <span>%</span>
+            </div>
           </label>
           <label>
             Massachusetts PFML enabled
