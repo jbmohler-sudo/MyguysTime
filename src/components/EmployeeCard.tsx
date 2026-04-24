@@ -331,12 +331,17 @@ export function EmployeeCard({
       </div>
 
       {!editable ? (
-        <div className="workflow-banner">
+        <div className={uiMode === "truck" ? "workflow-banner workflow-banner--truck-compact" : "workflow-banner"}>
           <strong>Read-only</strong>
           <span>{workflowMessage}</span>
         </div>
       ) : uiMode === "office" ? (
         <div className="workflow-banner workflow-banner--soft">
+          <strong>Next step</strong>
+          <span>{workflowMessage}</span>
+        </div>
+      ) : viewer.role !== "employee" ? (
+        <div className="workflow-banner workflow-banner--soft workflow-banner--truck-compact">
           <strong>Next step</strong>
           <span>{workflowMessage}</span>
         </div>
