@@ -850,7 +850,6 @@ button:disabled {
   overscroll-behavior-x: contain;
   padding-bottom: 0.25rem;
   scroll-padding-inline: 0;
-  scroll-snap-type: x mandatory;
   width: 100%;
 }
 
@@ -893,8 +892,6 @@ button:disabled {
   min-height: 0;
   overflow-x: clip;
   padding: 0.58rem;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
 }
 
 .day-cell__top,

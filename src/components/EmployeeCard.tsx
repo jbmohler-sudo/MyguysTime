@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { DayEntry, EmployeeWeek, TimesheetStatus, Viewer } from "../domain/models";
 import { adjustTimeValue, formatCurrency, formatDayCardDate } from "../domain/format";
 import { PayrollYtdSummaryGrid, workerTypeLabel } from "./PayrollYtdSummaryGrid";
@@ -57,16 +57,6 @@ function DayEditor({
   const [jobTag, setJobTag] = useState(entry.jobTag ?? "");
   const [activeField, setActiveField] = useState<"start" | "end" | null>(null);
   const isToday = entry.date === todayIso;
-  const todayRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (uiMode !== "truck" || !isToday || !todayRef.current) {
-      return;
-    }
-
-    todayRef.current.focus();
-    todayRef.current.scrollIntoView({ block: "nearest", inline: "start", behavior: "smooth" });
-  }, [isToday, uiMode]);
 
   async function save(payload: Record<string, unknown>) {
     await onUpdateDay(employeeWeek.id, entry.id, payload);
@@ -148,17 +138,7 @@ function DayEditor({
   return (
     <div
       className={`${isToday ? "day-cell day-cell--today" : "day-cell"} ${uiMode === "truck" ? "day-cell--truck" : ""}`}
-      ref={(node) => {
-        if (isToday) {
-          todayRef.current = node;
-        }
-
-        if (!dayRef) {
-          return;
-        }
-
-        dayRef(node);
-      }}
+      ref={dayRef}
       tabIndex={isToday ? -1 : undefined}
     >
       <div className="day-cell__top">
