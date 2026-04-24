@@ -24,6 +24,7 @@ import { TeamManagementPanel } from "./TeamManagementPanel";
 import { WeeklyCrewBoard } from "./WeeklyCrewBoard";
 import { useOnboardingContext } from "../hooks/useOnboarding";
 import { Home, Users, Settings, Archive, LogOut } from "lucide-react";
+import { usePreviewUser } from "../context/PreviewUserContext";
 
 const BRAND_ORANGE = "#FF8C00";
 const BRAND_DARK = "#1A1A1B";
@@ -111,6 +112,7 @@ export function AppShell({
   onSendReminders,
 }: AppShellProps) {
   const onboarding = useOnboardingContext();
+  const { previewRole, setPreviewRole, isPreviewMode } = usePreviewUser();
   const truckViewportQuery = "(max-width: 1024px)";
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -159,19 +161,21 @@ export function AppShell({
     return `${year}-${month}-${date}`;
   }, [openedAt]);
 
+  const effectiveViewer = useMemo(() => (previewRole ? { ...data.viewer, role: previewRole } : data.viewer), [data.viewer, previewRole]);
+
   const uiMode = useMemo<UiMode>(() => {
     if (modeOverride) {
       return modeOverride;
     }
-    if (data.viewer.role === "admin") {
+    if (effectiveViewer.role === "admin") {
       return "office";
     }
     return isMobileViewport ? "truck" : "office";
-  }, [data.viewer.role, isMobileViewport, modeOverride]);
+  }, [effectiveViewer.role, isMobileViewport, modeOverride]);
 
-  const canViewCompanySettings = data.viewer.role === "admin" && Boolean(data.companySettings);
-  const canViewArchive = data.viewer.role === "admin";
-  const canViewTeam = data.viewer.role === "admin";
+  const canViewCompanySettings = effectiveViewer.role === "admin" && Boolean(data.companySettings);
+  const canViewArchive = effectiveViewer.role === "admin";
+  const canViewTeam = effectiveViewer.role === "admin";
 
   const incompleteCount = useMemo(() => {
     return data.employeeWeeks.filter((week) => week.status === "draft").length;
@@ -406,9 +410,30 @@ export function AppShell({
     return `${month}/${day}/${year}`;
   }, [data.weekStart]);
 
+  const previewRoleSwitcher = isPreviewMode ? (
+    <div className="preview-role-switcher" aria-label="Role switcher">
+      <span className="preview-role-switcher__label">Switch role</span>
+      <div className="preview-role-switcher__actions">
+        {(["admin", "foreman", "employee"] as const).map((role) => {
+          const active = effectiveViewer.role === role;
+          return (
+            <button
+              key={role}
+              type="button"
+              className={active ? "preview-role-switcher__button preview-role-switcher__button--active" : "preview-role-switcher__button"}
+              onClick={() => setPreviewRole(role)}
+            >
+              {role}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  ) : null;
+
   if (isMobileViewport) {
     const visibleNavItems = navItems.filter((item) => item.visible);
-    const firstName = data.viewer.fullName.split(" ")[0];
+    const firstName = effectiveViewer.fullName.split(" ")[0];
     const pageEyebrow = uiMode === "truck" ? "Truck mode" : "Office mobile";
     const pageHeading =
       activePage === "dashboard"
@@ -468,7 +493,7 @@ export function AppShell({
                   {pageHeading}
                 </div>
                 <div style={{ color: "#6B7280", fontSize: "0.76rem", lineHeight: 1.15 }}>
-                  {firstName} - {data.viewer.role}
+                  {firstName} - {effectiveViewer.role}
                 </div>
               </div>
             </div>
@@ -652,6 +677,7 @@ export function AppShell({
                           App is already installed on this device.
                         </div>
                       ) : null}
+                      {previewRoleSwitcher}
                     </div>
                   )
                 ) : (
@@ -729,7 +755,7 @@ export function AppShell({
               <>
                 <WeeklyCrewBoard
                   uiMode={uiMode}
-                  viewer={data.viewer}
+                  viewer={effectiveViewer}
                   crews={data.crews}
                   employeeWeeks={visibleWeeks}
                   selectedCrewId={selectedCrewId}
@@ -743,7 +769,7 @@ export function AppShell({
                   onStatusChange={onStatusChange}
                   onReopenWeek={onReopenWeek}
                 />
-                {uiMode === "office" && data.viewer.role === "admin" ? (
+                {uiMode === "office" && effectiveViewer.role === "admin" ? (
                   <div className="brand-surface" style={{ margin: "0 16px 16px" }}>
                     <OfficeDashboard
                       companySettings={data.companySettings}
@@ -757,7 +783,7 @@ export function AppShell({
                 {uiMode === "office" ? (
                   <section className="stack brand-surface" style={{ margin: "0 16px 16px" }}>
                     <PrivateReportsPanel
-                      viewer={data.viewer}
+                      viewer={effectiveViewer}
                       employeeWeeks={visibleWeeks}
                       reports={data.privateReports}
                       onSubmit={onSubmitPrivateReport}
@@ -1031,7 +1057,7 @@ export function AppShell({
                   fontWeight: 600,
                 }}
               >
-                {data.viewer.role}
+                {effectiveViewer.role}
               </span>
               {!isMobileViewport && data.companySettings ? (
                 <span style={{ color: "#888" }}>{data.companySettings?.companyName}</span>
@@ -1133,6 +1159,8 @@ export function AppShell({
                 📥 Export Payroll
               </button>
             ) : null}
+
+            {previewRoleSwitcher}
 
             <button
               onClick={onboarding.restartTour}
@@ -1361,7 +1389,7 @@ export function AppShell({
 
             <WeeklyCrewBoard
               uiMode={uiMode}
-              viewer={data.viewer}
+              viewer={effectiveViewer}
               crews={data.crews}
               employeeWeeks={visibleWeeks}
               selectedCrewId={selectedCrewId}
@@ -1376,7 +1404,7 @@ export function AppShell({
               onReopenWeek={onReopenWeek}
             />
 
-            {uiMode === "office" && data.viewer.role === "admin" ? (
+            {uiMode === "office" && effectiveViewer.role === "admin" ? (
               <div className="brand-surface">
                 <OfficeDashboard
                   companySettings={data.companySettings}
@@ -1391,7 +1419,7 @@ export function AppShell({
             {uiMode === "office" ? (
               <section className="stack brand-surface">
                 <PrivateReportsPanel
-                  viewer={data.viewer}
+                  viewer={effectiveViewer}
                   employeeWeeks={visibleWeeks}
                   reports={data.privateReports}
                   onSubmit={onSubmitPrivateReport}

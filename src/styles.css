@@ -173,6 +173,77 @@ label {
   margin-top: var(--space-16);
 }
 
+.magic-login-panel {
+  background: color-mix(in srgb, var(--color-brand-primary) 6%, var(--color-bg-surface) 94%);
+  border: 1px solid color-mix(in srgb, var(--color-brand-primary) 18%, var(--color-border-default) 82%);
+  border-radius: 20px;
+  display: grid;
+  gap: 0.55rem;
+  margin-top: var(--space-16);
+  padding: 1rem;
+}
+
+.magic-login-panel strong {
+  font-size: 0.95rem;
+}
+
+.magic-login-panel p {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.magic-login-grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.login-divider {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-top: var(--space-20);
+  text-transform: uppercase;
+}
+
+.preview-role-switcher {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.preview-role-switcher__label {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.preview-role-switcher__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.preview-role-switcher__button {
+  background: color-mix(in srgb, var(--color-bg-subtle) 78%, var(--color-bg-surface) 22%);
+  border: 1px solid color-mix(in srgb, var(--color-border-default) 82%, var(--color-bg-surface) 18%);
+  border-radius: 999px;
+  color: var(--color-text-primary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  min-height: 0;
+  padding: 0.42rem 0.72rem;
+  text-transform: capitalize;
+}
+
+.preview-role-switcher__button--active {
+  background: color-mix(in srgb, var(--color-brand-primary) 14%, var(--color-bg-surface) 86%);
+  border-color: color-mix(in srgb, var(--color-brand-primary) 52%, var(--color-bg-surface) 48%);
+  color: var(--brand-dark);
+}
+
 .hero {
   display: flex;
   justify-content: space-between;
@@ -2055,6 +2126,19 @@ th {
     grid-template-columns: 1fr;
   }
 
+  .magic-login-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-role-switcher__actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .preview-role-switcher__button {
+    padding-inline: 0.35rem;
+  }
+
   .homepage-shot__stats {
     grid-template-columns: 1fr 1fr 1fr;
   }
@@ -2134,6 +2218,10 @@ th {
   }
 
   .marketing-feature-list {
+    grid-template-columns: 1fr;
+  }
+
+  .magic-login-grid {
     grid-template-columns: 1fr;
   }
 

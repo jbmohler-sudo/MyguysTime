@@ -3,8 +3,9 @@ import { AppShell } from "./components/AppShell";
 import { OnboardingProvider } from "./hooks/useOnboarding";
 import { ToastProvider } from "./hooks/useToast";
 import { CompanySetupScreen } from "./components/CompanySetupScreen";
-import { LoginScreen } from "./components/LoginScreen";
 import { PublicHomepage } from "./components/PublicHomepage";
+import { LoginPage } from "./pages/LoginPage";
+import { PreviewUserProvider, usePreviewUser } from "./context/PreviewUserContext";
 import { SignupAfterMagicLink } from "./components/SignupAfterMagicLink";
 import { SignupScreen } from "./components/SignupScreen";
 import type { BootstrapPayload, CompanyOnboardingInput, PrivateReportInput, TimesheetStatus } from "./domain/models";
@@ -46,13 +47,14 @@ function getCurrentWeekStart(date: Date) {
   return result.toISOString().slice(0, 10);
 }
 
-function App() {
+function AppContent() {
   const hostname = getCurrentHostname();
   const pathname = typeof window !== "undefined" ? window.location.pathname : "/";
   const showPublicHomepage = isPublicHomepageHost(hostname);
   const isInviteSignup = pathname === "/invite-signup";
   const demoRole = pathname === "/demo/admin" ? "admin" : pathname === "/demo/foreman" ? "foreman" : pathname === "/demo/employee" ? "employee" : null;
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_STORAGE_KEY));
+  const { previewRole, clearPreviewRole } = usePreviewUser();
   const [data, setData] = useState<BootstrapPayload | null>(null);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(Boolean(token));
@@ -91,13 +93,14 @@ function App() {
   async function handleLogin(email: string, password: string) {
     const response = await login(email, password);
     localStorage.setItem(TOKEN_STORAGE_KEY, response.token);
+    clearPreviewRole();
     setToken(response.token);
     window.history.replaceState({}, "", "/dashboard");
   }
 
-
   function handleLogout() {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
+    clearPreviewRole();
     setToken(null);
     setData(null);
     setError("");
@@ -328,14 +331,19 @@ function App() {
     URL.revokeObjectURL(url);
   }
 
-  if (demoRole) {
-    const demoData = getDemoProfile(demoRole);
+  function renderStaticShell(shellData: BootstrapPayload, onStaticLogout: () => void) {
     const noopAsync = async () => {};
     const noopListEmployees = async () => [];
-    const noopCreateEmployee = async () => { throw new Error("Demo view only."); };
-    const noopUpdateEmployee = async () => { throw new Error("Demo view only."); };
+    const noopCreateEmployee = async () => {
+      throw new Error("Static testing view only.");
+    };
+    const noopUpdateEmployee = async () => {
+      throw new Error("Static testing view only.");
+    };
     const noopListInvites = async () => [];
-    const noopCreateInvite = async () => { throw new Error("Demo view only."); };
+    const noopCreateInvite = async () => {
+      throw new Error("Static testing view only.");
+    };
     const noopFetchHistory = async () => [];
     const noopSendReminders = async () => ({ count: 0, sent: false });
 
@@ -343,11 +351,9 @@ function App() {
       <ToastProvider>
         <OnboardingProvider>
           <AppShell
-            data={demoData}
+            data={shellData}
             error=""
-            onLogout={() => {
-              window.location.href = "/";
-            }}
+            onLogout={onStaticLogout}
             onRefresh={async () => {}}
             onUpdateDay={async () => {}}
             onApplyCrewDefaults={async () => {}}
@@ -372,6 +378,16 @@ function App() {
     );
   }
 
+  if (demoRole) {
+    return renderStaticShell(getDemoProfile(demoRole), () => {
+      window.location.href = "/";
+    });
+  }
+
+  if (previewRole && !token) {
+    return renderStaticShell(getDemoProfile(previewRole), handleLogout);
+  }
+
   if (showPublicHomepage) {
     return <PublicHomepage />;
   }
@@ -393,12 +409,19 @@ function App() {
       async function handleSignup(fullName: string, companyName: string, email: string, password: string) {
         const response = await signup(fullName, companyName, email, password);
         localStorage.setItem(TOKEN_STORAGE_KEY, response.token);
+        clearPreviewRole();
         setToken(response.token);
         window.history.replaceState({}, "", "/dashboard");
       }
       return <SignupScreen onSignup={handleSignup} onShowLogin={() => setAuthMode("login")} error={error} />;
     }
-    return <LoginScreen onLogin={handleLogin} onShowSignup={() => setAuthMode("signup")} error={error} />;
+    return (
+      <LoginPage
+        error={error}
+        onLogin={handleLogin}
+        onShowSignup={() => setAuthMode("signup")}
+      />
+    );
   }
 
   if (loading || !data) {
@@ -448,6 +471,14 @@ function App() {
       />
     </OnboardingProvider>
     </ToastProvider>
+  );
+}
+
+function App() {
+  return (
+    <PreviewUserProvider>
+      <AppContent />
+    </PreviewUserProvider>
   );
 }
 

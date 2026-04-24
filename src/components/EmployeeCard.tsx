@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { DayEntry, EmployeeWeek, TimesheetStatus, Viewer } from "../domain/models";
 import { adjustTimeValue, formatCurrency, formatDayCardDate } from "../domain/format";
 import { PayrollYtdSummaryGrid, workerTypeLabel } from "./PayrollYtdSummaryGrid";
+import { usePreviewUser } from "../context/PreviewUserContext";
 import {
   canApproveWeek,
   canConfirmWeek,
@@ -52,7 +53,9 @@ function DayEditor({
   dayRef?: (node: HTMLDivElement | null) => void;
   onUpdateDay: (timesheetId: string, dayEntryId: string, payload: Record<string, unknown>) => Promise<void>;
 }) {
-  const editable = canEditTimesheet(viewer.role, viewer.employeeId, employeeWeek);
+  const { previewRole } = usePreviewUser();
+  const effectiveViewer = previewRole ? { ...viewer, role: previewRole } : viewer;
+  const editable = canEditTimesheet(effectiveViewer.role, effectiveViewer.employeeId, employeeWeek);
   const [start, setStart] = useState(entry.start);
   const [end, setEnd] = useState(entry.end);
   const [lunchMinutes, setLunchMinutes] = useState(entry.lunchMinutes);
@@ -253,22 +256,24 @@ export function EmployeeCard({
     const todayIndex = employeeWeek.entries.findIndex((entry) => entry.date === todayIso);
     return todayIndex >= 0 ? todayIndex : 0;
   });
-  const editable = canEditTimesheet(viewer.role, viewer.employeeId, employeeWeek);
+  const { previewRole } = usePreviewUser();
+  const effectiveViewer = previewRole ? { ...viewer, role: previewRole } : viewer;
+  const editable = canEditTimesheet(effectiveViewer.role, effectiveViewer.employeeId, employeeWeek);
   const canFlagRevision =
     uiMode === "office" &&
-    (viewer.role === "admin" || viewer.role === "foreman") &&
+    (effectiveViewer.role === "admin" || effectiveViewer.role === "foreman") &&
     employeeWeek.status !== "office_locked" &&
     employeeWeek.status !== "needs_revision";
 
   let workflowMessage = "Review each day, then move the week forward when everything looks right.";
-  if (viewer.role === "employee") {
+  if (effectiveViewer.role === "employee") {
     workflowMessage =
       employeeWeek.status === "office_locked"
         ? "This week is office locked and read-only."
         : employeeWeek.status === "needs_revision"
           ? "This week was flagged for revision. Update your hours and submit it again."
         : "Confirm your daily hours, then submit the week when everything is correct.";
-  } else if (viewer.role === "foreman") {
+  } else if (effectiveViewer.role === "foreman") {
     workflowMessage =
       employeeWeek.status === "office_locked"
         ? "Office locked this week. Reopen is required before more edits."
@@ -415,7 +420,7 @@ export function EmployeeCard({
             <div className="employee-card__workflow">
               <span className="employee-card__workflow-label">Weekly action</span>
               <div className="status-actions">
-                {canConfirmWeek(viewer.role, viewer.employeeId, employeeWeek) ? (
+                {canConfirmWeek(effectiveViewer.role, effectiveViewer.employeeId, employeeWeek) ? (
                   <button
                     className="button-strong"
                     onClick={() => void onStatusChange(employeeWeek.id, "employee_confirmed")}
@@ -424,7 +429,7 @@ export function EmployeeCard({
                     Confirm week
                   </button>
                 ) : null}
-                {canApproveWeek(viewer.role, employeeWeek) ? (
+                {canApproveWeek(effectiveViewer.role, employeeWeek) ? (
                   <button
                     className="button-strong"
                     onClick={() => void onStatusChange(employeeWeek.id, "foreman_approved")}
@@ -433,7 +438,7 @@ export function EmployeeCard({
                     Approve week
                   </button>
                 ) : null}
-                {canOfficeLock(viewer.role, employeeWeek) ? (
+                {canOfficeLock(effectiveViewer.role, employeeWeek) ? (
                   <button
                     className="button-strong"
                     onClick={() => void onStatusChange(employeeWeek.id, "office_locked")}
@@ -455,7 +460,7 @@ export function EmployeeCard({
         </>
       ) : (
         <div className="truck-week-actions">
-          {canConfirmWeek(viewer.role, viewer.employeeId, employeeWeek) ? (
+          {canConfirmWeek(effectiveViewer.role, effectiveViewer.employeeId, employeeWeek) ? (
             <button
               className="button-strong"
               onClick={() => void onStatusChange(employeeWeek.id, "employee_confirmed")}
@@ -464,7 +469,7 @@ export function EmployeeCard({
               Confirm week
             </button>
           ) : null}
-          {canApproveWeek(viewer.role, employeeWeek) ? (
+          {canApproveWeek(effectiveViewer.role, employeeWeek) ? (
             <button
               className="button-strong"
               onClick={() => void onStatusChange(employeeWeek.id, "foreman_approved")}
