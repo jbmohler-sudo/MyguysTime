@@ -23,6 +23,7 @@ import { PrivateReportsPanel } from "./PrivateReportsPanel";
 import { TeamManagementPanel } from "./TeamManagementPanel";
 import { WeeklyCrewBoard } from "./WeeklyCrewBoard";
 import { useOnboardingContext } from "../hooks/useOnboarding";
+import { Home, Users, Settings, Archive, LogOut } from "lucide-react";
 
 const BRAND_ORANGE = "#FF8C00";
 const BRAND_DARK = "#1A1A1B";
@@ -110,7 +111,7 @@ export function AppShell({
   onSendReminders,
 }: AppShellProps) {
   const onboarding = useOnboardingContext();
-  const truckViewportQuery = "(max-width: 720px)";
+  const truckViewportQuery = "(max-width: 1024px)";
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
@@ -122,7 +123,6 @@ export function AppShell({
   );
   const [modeOverride] = useState<UiMode | null>(null);
   const [activePage, setActivePage] = useState<AppPage>("dashboard");
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showPayrollModal, setShowPayrollModal] = useState(false);
@@ -325,9 +325,6 @@ export function AppShell({
     }
   }, [currentWeekStart, data.weekStart, onRefresh, uiMode]);
 
-  useEffect(() => {
-    setMobileNavOpen(false);
-  }, [activePage]);
 
   useEffect(() => {
     if (activePage === "company-settings" && !canViewCompanySettings) {
@@ -453,27 +450,6 @@ export function AppShell({
             boxShadow: "0 4px 16px rgba(15,23,42,0.06)",
           }}
         >
-          <button
-            onClick={() => setMobileNavOpen((open) => !open)}
-            style={{
-              background: "none",
-              border: "none",
-              fontSize: "1.3rem",
-              cursor: "pointer",
-              width: "44px",
-              height: "44px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: BRAND_DARK,
-              flexShrink: 0,
-            }}
-            type="button"
-            aria-label="Open navigation"
-          >
-            {mobileNavOpen ? "X" : "="}
-          </button>
-
           <div style={{ minWidth: 0, flex: 1, display: "grid", gap: "0.15rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", minWidth: 0 }}>
               <Logo size="preview" />
@@ -538,112 +514,7 @@ export function AppShell({
           </div>
         </header>
 
-        {mobileNavOpen ? (
-          <>
-            <div
-              onClick={() => setMobileNavOpen(false)}
-              style={{
-                position: "fixed",
-                inset: 0,
-                backgroundColor: "rgba(0,0,0,0.45)",
-                zIndex: 199,
-              }}
-            />
-            <nav
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                bottom: 0,
-                width: "min(86vw, 320px)",
-                maxWidth: "320px",
-                backgroundColor: "white",
-                zIndex: 200,
-                display: "flex",
-                flexDirection: "column",
-                boxShadow: "4px 0 24px rgba(0,0,0,0.18)",
-              }}
-            >
-              <div style={{ padding: "24px 20px 16px", borderBottom: "1px solid #EEE", display: "grid", gap: "0.45rem" }}>
-                <Logo size="preview" />
-                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: BRAND_DARK }}>{data.viewer.fullName}</div>
-                <div style={{ fontSize: "0.8rem", color: "#888" }}>{data.viewer.role}</div>
-                {data.companySettings ? (
-                  <div style={{ fontSize: "0.76rem", color: "#AAA" }}>{data.companySettings?.companyName}</div>
-                ) : null}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: "0.5rem",
-                    marginTop: "0.35rem",
-                    fontSize: "0.78rem",
-                    color: "#555",
-                  }}
-                >
-                  <span>Week of {formattedWeekStart}</span>
-                  <span
-                    style={{
-                      backgroundColor: "#F3F4F6",
-                      borderRadius: "999px",
-                      padding: "0.22rem 0.5rem",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {uiMode === "truck" ? "Truck" : "Office"}
-                  </span>
-                </div>
-              </div>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "8px 0" }}>
-                {visibleNavItems.map((item) => (
-                  <button
-                    key={item.key}
-                    onClick={() => {
-                      setActivePage(item.key);
-                      setMobileNavOpen(false);
-                    }}
-                    style={{
-                      background: activePage === item.key ? "rgba(255,140,0,0.07)" : "none",
-                      border: "none",
-                      borderLeft: activePage === item.key ? `3px solid ${BRAND_ORANGE}` : "3px solid transparent",
-                      color: activePage === item.key ? BRAND_ORANGE : BRAND_DARK,
-                      fontWeight: activePage === item.key ? 700 : 500,
-                      padding: "14px 20px",
-                      cursor: "pointer",
-                      fontSize: "0.95rem",
-                      textAlign: "left",
-                      width: "100%",
-                    }}
-                    type="button"
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={onLogout}
-                style={{
-                  background: "none",
-                  border: "none",
-                  borderTop: "1px solid #EEE",
-                  color: "#c00",
-                  fontWeight: 500,
-                  padding: "16px 20px",
-                  cursor: "pointer",
-                  fontSize: "0.9rem",
-                  textAlign: "left",
-                  width: "100%",
-                }}
-                type="button"
-              >
-                Sign out
-              </button>
-            </nav>
-          </>
-        ) : null}
-
-        <main style={{ width: "100%", maxWidth: "100%", overflowX: "clip", padding: "0 0 40px" }}>
+        <main style={{ width: "100%", maxWidth: "100%", overflowX: "clip", padding: "0 0 80px" }}>
           <section
             style={{
               padding: "14px 16px 12px",
@@ -1003,6 +874,78 @@ export function AppShell({
           }}
         />
         <OnboardingOverlay />
+        
+        <nav
+          style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: "white",
+            borderTop: "1px solid #E9EDF3",
+            display: "flex",
+            justifyContent: "space-around",
+            alignItems: "center",
+            paddingBottom: "env(safe-area-inset-bottom)",
+            height: "64px",
+            zIndex: 200,
+            boxShadow: "0 -4px 16px rgba(15,23,42,0.06)",
+          }}
+        >
+          {visibleNavItems.map((item) => {
+            const isActive = activePage === item.key;
+            let Icon = Home;
+            if (item.key === "team") Icon = Users;
+            if (item.key === "company-settings") Icon = Settings;
+            if (item.key === "archive") Icon = Archive;
+
+            return (
+              <button
+                key={item.key}
+                onClick={() => setActivePage(item.key)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "4px",
+                  color: isActive ? BRAND_ORANGE : "#888",
+                  minWidth: "64px",
+                  minHeight: "48px",
+                  cursor: "pointer",
+                }}
+                type="button"
+              >
+                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                <span style={{ fontSize: "0.65rem", fontWeight: isActive ? 700 : 500 }}>
+                  {item.key === "company-settings" ? "Settings" : item.label}
+                </span>
+              </button>
+            );
+          })}
+          <button
+            onClick={onLogout}
+            style={{
+              background: "none",
+              border: "none",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "4px",
+              color: "#888",
+              minWidth: "64px",
+              minHeight: "48px",
+              cursor: "pointer",
+            }}
+            type="button"
+          >
+            <LogOut size={24} strokeWidth={2} />
+            <span style={{ fontSize: "0.65rem", fontWeight: 500 }}>Sign out</span>
+          </button>
+        </nav>
       </div>
     );
   }
@@ -1094,26 +1037,6 @@ export function AppShell({
                 <span style={{ color: "#888" }}>{data.companySettings?.companyName}</span>
               ) : null}
 
-              {isMobileViewport ? (
-                <button
-                  className="nav-toggle"
-                  onClick={() => setMobileNavOpen((current) => !current)}
-                  style={{
-                    background: "none",
-                    border: `2px solid ${BRAND_ORANGE}`,
-                    color: BRAND_ORANGE,
-                    borderRadius: "6px",
-                    padding: "10px 16px",
-                    minHeight: "44px",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    fontSize: "0.8rem",
-                  }}
-                  type="button"
-                >
-                  {mobileNavOpen ? "Close" : "Menu"}
-                </button>
-              ) : null}
             </div>
           </div>
 
@@ -1135,9 +1058,7 @@ export function AppShell({
           )}
 
           <nav
-            className={
-              isMobileViewport ? (mobileNavOpen ? "app-nav app-nav--open" : "app-nav app-nav--mobile") : "app-nav"
-            }
+            className="app-nav"
             style={{
               display: "flex",
               gap: "0.25rem",
