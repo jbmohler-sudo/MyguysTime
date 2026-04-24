@@ -29,6 +29,12 @@ function currentClockTime() {
   return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 }
 
+function formatTruckDayTabLabel(dayLabel: string, value: string) {
+  const date = new Date(`${value}T00:00:00`);
+  const dayOfMonth = new Intl.DateTimeFormat("en-US", { day: "numeric" }).format(date);
+  return `${dayLabel.charAt(0)} ${dayOfMonth}`;
+}
+
 function DayEditor({
   uiMode,
   viewer,
@@ -348,8 +354,7 @@ export function EmployeeCard({
                 onClick={() => jumpToTruckDay(index)}
                 type="button"
               >
-                <span>{entry.dayLabel}</span>
-                <strong>{formatDayCardDate(entry.date)}</strong>
+                <strong>{formatTruckDayTabLabel(entry.dayLabel, entry.date)}</strong>
                 {isToday ? <em>Today</em> : null}
               </button>
             );
