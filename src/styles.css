@@ -92,14 +92,18 @@ label {
 
 .day-field {
   border-radius: 14px;
-  margin: -0.2rem;
-  padding: 0.2rem;
+  margin: 0;
+  max-width: 100%;
+  min-width: 0;
+  padding: 0;
   transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+  width: 100%;
 }
 
 .day-field--active {
   background: var(--color-active-field-bg);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-active-field-border) 50%, transparent);
+  padding: 0.16rem;
 }
 
 .day-field--active input {
@@ -577,11 +581,18 @@ button:disabled {
 }
 
 .employee-card {
+  max-width: 100%;
+  min-width: 0;
   padding: 1rem;
+  width: 100%;
 }
 
 .employee-card--truck {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
   padding: 0.68rem;
+  width: 100%;
 }
 
 .employee-card--truck .employee-card__header {
@@ -678,6 +689,9 @@ button:disabled {
 
 .employee-list--truck {
   gap: 1.1rem;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
 }
 
 .employee-strip {
@@ -844,6 +858,9 @@ button:disabled {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   margin: 0.35rem 0 0.25rem;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
 }
 
 .day-grid--truck-single .day-cell--truck {
@@ -871,8 +888,10 @@ button:disabled {
   border-radius: 16px;
   gap: 0.36rem;
   inline-size: 100%;
+  max-width: 100%;
   min-inline-size: 0;
   min-height: 0;
+  overflow-x: clip;
   padding: 0.58rem;
   scroll-snap-align: start;
   scroll-snap-stop: always;
@@ -924,11 +943,15 @@ button:disabled {
 .truck-day-nav {
   display: grid;
   gap: 0.35rem;
-  grid-auto-columns: minmax(86px, 1fr);
+  grid-auto-columns: minmax(72px, 1fr);
   grid-auto-flow: column;
+  justify-content: start;
   margin-bottom: 0;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
   padding-bottom: 0.1rem;
+  width: 100%;
 }
 
 .truck-day-nav__button {
@@ -939,7 +962,9 @@ button:disabled {
   display: grid;
   gap: 0.08rem;
   justify-items: start;
+  max-width: 100%;
   min-height: 0;
+  min-width: 0;
   padding: 0.42rem 0.58rem;
 }
 
@@ -999,8 +1024,12 @@ button:disabled {
 }
 
 .day-cell--truck input {
+  box-sizing: border-box;
+  max-width: 100%;
   min-height: 36px;
+  min-width: 0;
   padding: 0.42rem 0.58rem;
+  width: 100%;
 }
 
 .checkbox-row {
@@ -2394,7 +2423,7 @@ th {
 
   .truck-day-nav {
     gap: 0.24rem;
-    grid-auto-columns: minmax(72px, 1fr);
+    grid-auto-columns: minmax(64px, 1fr);
   }
 
   .truck-day-nav__button {

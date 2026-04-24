@@ -542,7 +542,7 @@ export function AppShell({
         <main style={{ width: "100%", maxWidth: "100%", overflowX: "clip", padding: "0 0 80px" }}>
           <section
             style={{
-              padding: "14px 16px 12px",
+              padding: "12px 12px 10px",
               display: "grid",
               gap: "0.9rem",
             }}
@@ -787,7 +787,7 @@ export function AppShell({
                   onReopenWeek={onReopenWeek}
                 />
                 {uiMode === "office" && effectiveViewer.role === "admin" ? (
-                  <div className="brand-surface" style={{ margin: "0 16px 16px" }}>
+                  <div className="brand-surface" style={{ margin: "0 12px 12px" }}>
                     <OfficeDashboard
                       companySettings={data.companySettings}
                       employeeWeeks={data.employeeWeeks}
@@ -798,7 +798,7 @@ export function AppShell({
                   </div>
                 ) : null}
                 {uiMode === "office" ? (
-                  <section className="stack brand-surface" style={{ margin: "0 16px 16px" }}>
+                  <section className="stack brand-surface" style={{ margin: "0 12px 12px" }}>
                     <PrivateReportsPanel
                       viewer={effectiveViewer}
                       employeeWeeks={visibleWeeks}
@@ -820,7 +820,7 @@ export function AppShell({
 
             {activePage === "team" && canViewTeam ? (
               <>
-                <div style={{ display: "flex", justifyContent: "flex-end", padding: "12px 16px 0" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", padding: "8px 12px 0" }}>
                   <button
                     onClick={() => setShowInviteModal(true)}
                     style={{
@@ -841,7 +841,7 @@ export function AppShell({
                 {inviteSuccessUrl ? (
                   <div
                     style={{
-                      margin: "12px 16px",
+                      margin: "10px 12px",
                       padding: "10px 14px",
                       borderRadius: "8px",
                       background: "#E8F5E9",
