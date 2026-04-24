@@ -1,5 +1,5 @@
 import { useState } from "react";
-import logoImage from "../assets/my-guys-time-option-b.png";
+import logoImage from "../assets/logo-full.png";
 
 interface LogoProps {
   className?: string;
