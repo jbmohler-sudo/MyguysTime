@@ -24,7 +24,6 @@ import {
   revokeInvite,
   sendSmsReminders,
   signup,
-  startDemoSession,
   submitPrivateReport,
   updateCompanySettings,
   updateAdjustment,
@@ -34,6 +33,7 @@ import {
 } from "./lib/api";
 import type { EmployeeInput, InviteInput } from "./domain/models";
 import { getCurrentHostname, isPublicHomepageHost } from "./lib/host";
+import { getDemoProfile } from "./demo/profiles";
 
 const TOKEN_STORAGE_KEY = "crew-timecard-token";
 
@@ -48,8 +48,10 @@ function getCurrentWeekStart(date: Date) {
 
 function App() {
   const hostname = getCurrentHostname();
+  const pathname = typeof window !== "undefined" ? window.location.pathname : "/";
   const showPublicHomepage = isPublicHomepageHost(hostname);
-  const isInviteSignup = typeof window !== "undefined" && window.location.pathname === "/invite-signup";
+  const isInviteSignup = pathname === "/invite-signup";
+  const demoRole = pathname === "/demo/admin" ? "admin" : pathname === "/demo/foreman" ? "foreman" : pathname === "/demo/employee" ? "employee" : null;
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_STORAGE_KEY));
   const [data, setData] = useState<BootstrapPayload | null>(null);
   const [error, setError] = useState<string>("");
@@ -93,12 +95,6 @@ function App() {
     window.history.replaceState({}, "", "/dashboard");
   }
 
-  async function handleStartDemo(role: "admin" | "foreman" | "employee") {
-    const response = await startDemoSession(role);
-    localStorage.setItem(TOKEN_STORAGE_KEY, response.token);
-    setToken(response.token);
-    window.history.replaceState({}, "", "/dashboard");
-  }
 
   function handleLogout() {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
@@ -332,8 +328,52 @@ function App() {
     URL.revokeObjectURL(url);
   }
 
+  if (demoRole) {
+    const demoData = getDemoProfile(demoRole);
+    const noopAsync = async () => {};
+    const noopListEmployees = async () => [];
+    const noopCreateEmployee = async () => { throw new Error("Demo view only."); };
+    const noopUpdateEmployee = async () => { throw new Error("Demo view only."); };
+    const noopListInvites = async () => [];
+    const noopCreateInvite = async () => { throw new Error("Demo view only."); };
+    const noopFetchHistory = async () => [];
+    const noopSendReminders = async () => ({ count: 0, sent: false });
+
+    return (
+      <ToastProvider>
+        <OnboardingProvider>
+          <AppShell
+            data={demoData}
+            error=""
+            onLogout={() => {
+              window.location.href = "/";
+            }}
+            onRefresh={async () => {}}
+            onUpdateDay={async () => {}}
+            onApplyCrewDefaults={async () => {}}
+            onStatusChange={async () => {}}
+            onReopenWeek={async () => {}}
+            onUpdateAdjustment={async () => {}}
+            onSubmitPrivateReport={async () => {}}
+            onExport={async () => {}}
+            onUpdateCompanySettings={async () => {}}
+            onListEmployees={noopListEmployees}
+            onCreateEmployee={noopCreateEmployee}
+            onUpdateEmployee={noopUpdateEmployee}
+            onListInvites={noopListInvites}
+            onCreateInvite={noopCreateInvite}
+            onResendInvite={noopAsync}
+            onRevokeInvite={noopAsync}
+            onFetchExportHistory={noopFetchHistory}
+            onSendReminders={noopSendReminders}
+          />
+        </OnboardingProvider>
+      </ToastProvider>
+    );
+  }
+
   if (showPublicHomepage) {
-    return <PublicHomepage onStartDemo={handleStartDemo} />;
+    return <PublicHomepage />;
   }
 
   if (isInviteSignup) {

@@ -145,16 +145,10 @@ function ProductPreview() {
   );
 }
 
-interface PublicHomepageProps {
-  onStartDemo: (role: "admin" | "foreman" | "employee") => Promise<void>;
-}
-
-export function PublicHomepage({ onStartDemo }: PublicHomepageProps) {
+export function PublicHomepage() {
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
   const [visibleSteps, setVisibleSteps] = useState<Set<number>>(new Set());
   const [visibleFeatures, setVisibleFeatures] = useState<Set<number>>(new Set());
-  const [launchingRole, setLaunchingRole] = useState<"admin" | "foreman" | "employee" | null>(null);
-  const [demoError, setDemoError] = useState("");
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallReady, setIsInstallReady] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -259,17 +253,6 @@ export function PublicHomepage({ onStartDemo }: PublicHomepageProps) {
     }
   };
 
-  const handleDemoStart = async (role: "admin" | "foreman" | "employee") => {
-    setDemoError("");
-    setLaunchingRole(role);
-    try {
-      await onStartDemo(role);
-    } catch (error) {
-      setDemoError(error instanceof Error ? error.message : "Unable to open the demo right now.");
-    } finally {
-      setLaunchingRole(null);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
@@ -359,30 +342,24 @@ export function PublicHomepage({ onStartDemo }: PublicHomepageProps) {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button
-                    onClick={() => void handleDemoStart("admin")}
-                    disabled={launchingRole !== null}
+                    onClick={() => { window.location.href = "/demo/admin"; }}
                     className="px-5 py-4 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-semibold rounded-xl transition-all duration-300"
                   >
-                    {launchingRole === "admin" ? "Opening admin..." : "Start as Admin"}
+                    Start as Admin
                   </button>
                   <button
-                    onClick={() => void handleDemoStart("foreman")}
-                    disabled={launchingRole !== null}
+                    onClick={() => { window.location.href = "/demo/foreman"; }}
                     className="px-5 py-4 bg-white hover:bg-slate-50 disabled:bg-slate-100 text-slate-900 font-semibold rounded-xl border border-slate-300 transition-all duration-300"
                   >
-                    {launchingRole === "foreman" ? "Opening foreman..." : "Start as Foreman"}
+                    Start as Foreman
                   </button>
                   <button
-                    onClick={() => void handleDemoStart("employee")}
-                    disabled={launchingRole !== null}
+                    onClick={() => { window.location.href = "/demo/employee"; }}
                     className="px-5 py-4 bg-white hover:bg-slate-50 disabled:bg-slate-100 text-slate-900 font-semibold rounded-xl border border-slate-300 transition-all duration-300"
                   >
-                    {launchingRole === "employee" ? "Opening employee..." : "Start as Employee"}
+                    Start as Employee
                   </button>
                 </div>
-                {demoError ? (
-                  <p className="text-sm font-medium text-red-600">{demoError}</p>
-                ) : null}
                 {isInstalled ? (
                   <p className="text-sm font-medium text-slate-600">App is already installed on this device.</p>
                 ) : null}
