@@ -9,11 +9,7 @@ import { AppShell } from "../components/AppShell";
 import { OnboardingProvider } from "../hooks/useOnboarding";
 import { ToastProvider } from "../hooks/useToast";
 import { ViewProvider } from "../context/ViewContext";
-import type {
-  BootstrapPayload,
-  EmployeeWeek,
-  TimesheetStatus,
-} from "../domain/models";
+import type { BootstrapPayload, TimesheetStatus } from "../domain/models";
 import { getDemoPayload, type DemoRole } from "./demoData";
 
 interface DemoShellProps {
@@ -24,13 +20,6 @@ export function DemoShell({ role }: DemoShellProps) {
   const [data, setData] = useState<BootstrapPayload>(() => getDemoPayload(role));
 
   // ─── Local-state mutators (no API calls) ─────────────────────────────────────
-
-  function replaceTimesheet(next: EmployeeWeek) {
-    setData((curr) => ({
-      ...curr,
-      employeeWeeks: curr.employeeWeeks.map((w) => (w.id === next.id ? next : w)),
-    }));
-  }
 
   async function handleUpdateDay(
     timesheetId: string,

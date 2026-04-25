@@ -35,7 +35,7 @@ const CREWS = [
       { dayIndex: 4, start: "06:30", end: "15:00" },
     ],
   },
-] as const;
+];
 
 function makeDays(
   timesheetId: string,
@@ -83,6 +83,7 @@ const COMPANY_SETTINGS = {
   id: "demo-company",
   companyName: "ABC Contracting Co.",
   ownerName: "Jeff Mohler",
+  weekStartDay: 1,
   companyState: "PA",
   stateName: "Pennsylvania",
   supportLevel: "full" as const,
@@ -100,6 +101,7 @@ const COMPANY_SETTINGS = {
   timeTrackingStyle: "foreman" as const,
   defaultLunchMinutes: 30,
   payType: "hourly" as const,
+  payrollMethod: "manual" as const,
   trackExpenses: true,
   payrollPrepDisclaimer: "Estimates only — verify before issuing checks.",
   stateDisclaimer: "",

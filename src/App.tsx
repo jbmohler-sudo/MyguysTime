@@ -13,6 +13,7 @@ import type { DemoRole } from "./demo/demoData";
 import { SignupAfterMagicLink } from "./components/SignupAfterMagicLink";
 import { SignupScreen } from "./components/SignupScreen";
 import type { BootstrapPayload, CompanyOnboardingInput, PrivateReportInput, TimesheetStatus } from "./domain/models";
+import { getWeekStartIso } from "./domain/week";
 import {
   applyCrewDefaults,
   completeCompanySetup,
@@ -42,15 +43,6 @@ import { supabase } from "./lib/supabase";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 const TOKEN_STORAGE_KEY = "crew-timecard-token";
 
-function getCurrentWeekStart(date: Date) {
-  const result = new Date(date);
-  const day = result.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  result.setHours(0, 0, 0, 0);
-  result.setDate(result.getDate() + diff);
-  return result.toISOString().slice(0, 10);
-}
-
 function AppContent() {
   const hostname = getCurrentHostname();
   const [path, setPath] = useState(() => (typeof window !== "undefined" ? window.location.pathname : "/"));
@@ -65,7 +57,6 @@ function AppContent() {
   const [loading, setLoading] = useState<boolean>(Boolean(token));
   const [authMode, setAuthMode] = useState<"login" | "signup">(() => (path === "/signup" ? "signup" : "login"));
   const [openedAt] = useState(() => new Date());
-  const defaultWeekStart = getCurrentWeekStart(openedAt);
 
   function setStoredToken(nextToken: string | null) {
     if (nextToken) {
@@ -111,7 +102,11 @@ function AppContent() {
     setError("");
 
     try {
-      const payload = await fetchBootstrap(nextToken, weekStart ?? data?.weekStart ?? defaultWeekStart);
+      const requestedWeekStart =
+        weekStart ??
+        data?.weekStart ??
+        getWeekStartIso(openedAt, data?.companySettings?.weekStartDay ?? 1);
+      const payload = await fetchBootstrap(nextToken, requestedWeekStart);
       setData(payload);
     } catch (loadError) {
       const message = loadError instanceof Error ? loadError.message : "Unable to load app data.";
@@ -167,7 +162,7 @@ function AppContent() {
       setStoredToken(null);
       setData(null);
     });
-  }, [defaultWeekStart, token]);
+  }, [openedAt, token]);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -285,6 +280,7 @@ function AppContent() {
   async function handleUpdateCompanySettings(payload: {
     companyName?: string;
     companyState?: string;
+    weekStartDay?: number;
     defaultFederalWithholdingMode?: string;
     defaultFederalWithholdingValue?: number;
     defaultStateWithholdingMode?: string;
@@ -292,6 +288,7 @@ function AppContent() {
     payrollPrepDisclaimer?: string;
     pfmlEnabled?: boolean;
     pfmlEmployeeRate?: number;
+    payrollMethod?: "service" | "manual" | "mixed";
   }) {
     if (!token) {
       return;

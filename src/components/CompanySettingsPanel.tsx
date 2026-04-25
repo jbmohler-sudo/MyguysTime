@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import type { CompanySettingsSummary, StateRuleSummary } from "../domain/models";
+import type { CompanySettingsSummary, PayrollMethod, StateRuleSummary } from "../domain/models";
+import { WEEKDAY_OPTIONS } from "../domain/week";
 import { SupportSummaryBlock } from "./SupportSummaryBlock";
 
 interface CompanySettingsPanelProps {
@@ -8,6 +9,7 @@ interface CompanySettingsPanelProps {
   onSave: (payload: {
     companyName?: string;
     companyState?: string;
+    weekStartDay?: number;
     defaultFederalWithholdingMode?: string;
     defaultFederalWithholdingValue?: number;
     defaultStateWithholdingMode?: string;
@@ -15,6 +17,7 @@ interface CompanySettingsPanelProps {
     payrollPrepDisclaimer?: string;
     pfmlEnabled?: boolean;
     pfmlEmployeeRate?: number;
+    payrollMethod?: PayrollMethod;
   }) => Promise<void>;
 }
 
@@ -55,6 +58,16 @@ function parsePercentInput(value: string) {
   return Number.isFinite(parsed) ? parsed / 100 : 0;
 }
 
+function payrollMethodLabel(value: PayrollMethod) {
+  if (value === "service") {
+    return "Payroll service";
+  }
+  if (value === "mixed") {
+    return "Mixed";
+  }
+  return "Manual";
+}
+
 export function CompanySettingsPanel({
   companySettings,
   stateRules,
@@ -64,6 +77,7 @@ export function CompanySettingsPanel({
     () => ({
       companyName: companySettings.companyName,
       companyState: companySettings.companyState,
+      weekStartDay: companySettings.weekStartDay,
       defaultFederalWithholdingMode: companySettings.defaultFederalWithholdingMode,
       defaultFederalWithholdingValue: companySettings.defaultFederalWithholdingValue,
       defaultStateWithholdingMode: companySettings.defaultStateWithholdingMode,
@@ -71,6 +85,7 @@ export function CompanySettingsPanel({
       payrollPrepDisclaimer: companySettings.payrollPrepDisclaimer,
       pfmlEnabled: companySettings.pfmlEnabled,
       pfmlEmployeeRate: companySettings.pfmlEmployeeRate,
+      payrollMethod: companySettings.payrollMethod,
     }),
     [companySettings],
   );
@@ -156,6 +171,7 @@ export function CompanySettingsPanel({
       await onSave({
         companyName: draft.companyName,
         companyState: draft.companyState,
+        weekStartDay: draft.weekStartDay,
         defaultFederalWithholdingMode: draft.defaultFederalWithholdingMode,
         defaultFederalWithholdingValue: draft.defaultFederalWithholdingValue,
         defaultStateWithholdingMode: draft.defaultStateWithholdingMode,
@@ -163,6 +179,7 @@ export function CompanySettingsPanel({
         payrollPrepDisclaimer: draft.payrollPrepDisclaimer,
         pfmlEnabled: draft.pfmlEnabled,
         pfmlEmployeeRate: draft.pfmlEmployeeRate,
+        payrollMethod: draft.payrollMethod,
       });
     } finally {
       setSaving(false);
@@ -230,6 +247,24 @@ export function CompanySettingsPanel({
               ))}
             </select>
           </label>
+          <label>
+            Week starts on
+            <select
+              value={draft.weekStartDay}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, weekStartDay: Number(event.target.value) }))
+              }
+            >
+              {WEEKDAY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <span className="field-helper">
+              Changing this mid-season will shift your weekly boards.
+            </span>
+          </label>
         </div>
         {stateNotice ? (
           <div className="workflow-banner workflow-banner--soft workflow-banner--inline">
@@ -271,6 +306,25 @@ export function CompanySettingsPanel({
           <span className="settings-meta">These become the default source for payroll estimates unless an employee override exists.</span>
         </div>
         <div className="settings-grid">
+          <label>
+            Payroll workflow
+            <select
+              value={draft.payrollMethod}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  payrollMethod: event.target.value as PayrollMethod,
+                }))
+              }
+            >
+              <option value="service">Payroll service</option>
+              <option value="manual">Manual</option>
+              <option value="mixed">Mixed</option>
+            </select>
+            <span className="field-helper">
+              Current mode: {payrollMethodLabel(draft.payrollMethod)}
+            </span>
+          </label>
           <label>
             Default federal withholding mode
             <select

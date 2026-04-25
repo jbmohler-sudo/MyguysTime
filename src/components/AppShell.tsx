@@ -25,6 +25,7 @@ import { TeamManagementPanel } from "./TeamManagementPanel";
 import { WeeklyCrewBoard } from "./WeeklyCrewBoard";
 import { useOnboardingContext } from "../hooks/useOnboarding";
 import { Home, Users, Settings, Archive, LogOut } from "lucide-react";
+import { getWeekStartIso } from "../domain/week";
 
 
 const BRAND_ORANGE = "#FF8C00";
@@ -69,6 +70,7 @@ interface AppShellProps {
   onUpdateCompanySettings: (payload: {
     companyName?: string;
     companyState?: string;
+    weekStartDay?: number;
     defaultFederalWithholdingMode?: string;
     defaultFederalWithholdingValue?: number;
     defaultStateWithholdingMode?: string;
@@ -76,6 +78,7 @@ interface AppShellProps {
     payrollPrepDisclaimer?: string;
     pfmlEnabled?: boolean;
     pfmlEmployeeRate?: number;
+    payrollMethod?: "service" | "manual" | "mixed";
   }) => Promise<void>;
   onListEmployees: () => Promise<ManagedEmployee[]>;
   onCreateEmployee: (payload: EmployeeInput) => Promise<ManagedEmployee>;
@@ -153,16 +156,8 @@ export function AppShell({
   }, [openedAt]);
 
   const currentWeekStart = useMemo(() => {
-    const result = new Date(openedAt);
-    const day = result.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    result.setHours(0, 0, 0, 0);
-    result.setDate(result.getDate() + diff);
-    const year = result.getFullYear();
-    const month = String(result.getMonth() + 1).padStart(2, "0");
-    const date = String(result.getDate()).padStart(2, "0");
-    return `${year}-${month}-${date}`;
-  }, [openedAt]);
+    return getWeekStartIso(openedAt, data.companySettings?.weekStartDay ?? 1);
+  }, [data.companySettings?.weekStartDay, openedAt]);
 
   const effectiveViewer = data.viewer;
 

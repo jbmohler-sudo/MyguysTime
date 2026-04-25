@@ -173,6 +173,7 @@ export async function updateCompanySettings(
   payload: {
     companyName?: string;
     companyState?: string;
+    weekStartDay?: number;
     defaultFederalWithholdingMode?: string;
     defaultFederalWithholdingValue?: number;
     defaultStateWithholdingMode?: string;
@@ -180,6 +181,7 @@ export async function updateCompanySettings(
     payrollPrepDisclaimer?: string;
     pfmlEnabled?: boolean;
     pfmlEmployeeRate?: number;
+    payrollMethod?: "service" | "manual" | "mixed";
   },
 ) {
   return request<{ companySettings: CompanySettingsSummary }>(

@@ -138,8 +138,10 @@ model CompanyPayrollSettings {
   defaultStateWithholdingMode    String   @default("PERCENTAGE")
   defaultStateWithholdingValue   Float    @default(0.03)
   timeTrackingStyle             String   @default("FOREMAN")
+  weekStartDay                  Int      @default(1)
   defaultLunchMinutes           Int      @default(30)
   payType                       String   @default("HOURLY_OVERTIME")
+  payrollMethod                 String   @default("MANUAL")
   trackExpenses                 Boolean  @default(true)
   payrollPrepDisclaimer          String?
   pfmlEnabled                    Boolean  @default(false)

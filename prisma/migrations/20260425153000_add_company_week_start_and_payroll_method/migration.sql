@@ -1,0 +1,3 @@
+ALTER TABLE "CompanyPayrollSettings"
+ADD COLUMN "weekStartDay" INTEGER NOT NULL DEFAULT 1,
+ADD COLUMN "payrollMethod" TEXT NOT NULL DEFAULT 'MANUAL';

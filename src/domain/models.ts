@@ -2,6 +2,7 @@ export type UserRole = "admin" | "foreman" | "employee";
 export type WorkerType = "employee" | "contractor_1099";
 export type TimeTrackingStyle = "foreman" | "worker_self_entry" | "mixed";
 export type PayType = "hourly" | "hourly_overtime";
+export type PayrollMethod = "service" | "manual" | "mixed";
 
 export type TimesheetStatus =
   | "draft"
@@ -185,6 +186,7 @@ export interface CompanySettingsSummary {
   id: string;
   companyName: string;
   ownerName: string;
+  weekStartDay: number;
   companyState: string;
   stateName: string;
   supportLevel: "full" | "partial_manual" | "unsupported";
@@ -202,6 +204,7 @@ export interface CompanySettingsSummary {
   timeTrackingStyle: TimeTrackingStyle;
   defaultLunchMinutes: number;
   payType: PayType;
+  payrollMethod: PayrollMethod;
   trackExpenses: boolean;
   payrollPrepDisclaimer: string;
   stateDisclaimer: string;
@@ -262,9 +265,11 @@ export interface OnboardingEmployeeInput {
 export interface CompanyOnboardingInput {
   companyName: string;
   ownerName?: string;
+  weekStartDay: number;
   employees: OnboardingEmployeeInput[];
   timeTrackingStyle: TimeTrackingStyle;
   lunchDeductionMinutes: 0 | 30 | 60;
   payType: PayType;
+  payrollMethod: PayrollMethod;
   trackExpenses: boolean;
 }

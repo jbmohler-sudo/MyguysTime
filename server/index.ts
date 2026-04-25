@@ -25,6 +25,7 @@ type TimesheetStatus = "DRAFT" | "NEEDS_REVISION" | "EMPLOYEE_CONFIRMED" | "FORE
 type WorkerType = "EMPLOYEE" | "CONTRACTOR_1099";
 type TimeTrackingStyle = "FOREMAN" | "WORKER_SELF_ENTRY" | "MIXED";
 type PayType = "HOURLY" | "HOURLY_OVERTIME";
+type PayrollMethod = "SERVICE" | "MANUAL" | "MIXED";
 const PAYROLL_PREP_DISCLAIMER = `Important: Payroll Estimates
 
 This app is designed to help you track hours and estimate pay and withholdings.
@@ -123,6 +124,10 @@ function payTypeToClient(value: PayType) {
   return value === "HOURLY" ? "hourly" as const : "hourly_overtime" as const;
 }
 
+function payrollMethodToClient(value: PayrollMethod) {
+  return value.toLowerCase() as "service" | "manual" | "mixed";
+}
+
 function createEmptyYtdSummary(workerType: WorkerType, calendarYear: number) {
   return {
     calendarYear,
@@ -187,8 +192,10 @@ function buildPayrollSettingsDefaults(
     defaultStateWithholdingMode?: "PERCENTAGE" | "MANUAL_OVERRIDE";
     defaultStateWithholdingValue?: number;
     timeTrackingStyle?: TimeTrackingStyle;
+    weekStartDay?: number;
     defaultLunchMinutes?: 0 | 30 | 60;
     payType?: PayType;
+    payrollMethod?: PayrollMethod;
     trackExpenses?: boolean;
   },
 ) {
@@ -203,8 +210,10 @@ function buildPayrollSettingsDefaults(
     defaultStateWithholdingMode: stateMode,
     defaultStateWithholdingValue: stateValue,
     timeTrackingStyle: overrides?.timeTrackingStyle ?? "FOREMAN",
+    weekStartDay: overrides?.weekStartDay ?? 1,
     defaultLunchMinutes: overrides?.defaultLunchMinutes ?? 30,
     payType: overrides?.payType ?? "HOURLY_OVERTIME",
+    payrollMethod: overrides?.payrollMethod ?? "MANUAL",
     trackExpenses: overrides?.trackExpenses ?? true,
     payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
     pfmlEnabled: stateCode === "MA" ? Boolean(stateRule?.defaultPfmlEnabled) : false,
@@ -270,6 +279,7 @@ function serializeCompanySettings(
     id: company.id,
     companyName: company.companyName,
     ownerName: company.ownerName ?? "",
+    weekStartDay: settings.weekStartDay,
     companyState: company.stateCode,
     stateName: stateRule.stateName,
     supportLevel: stateSupportLevel,
@@ -287,6 +297,7 @@ function serializeCompanySettings(
     timeTrackingStyle: timeTrackingStyleToClient(settings.timeTrackingStyle as TimeTrackingStyle),
     defaultLunchMinutes: settings.defaultLunchMinutes,
     payType: payTypeToClient(settings.payType as PayType),
+    payrollMethod: payrollMethodToClient(settings.payrollMethod as PayrollMethod),
     trackExpenses: settings.trackExpenses,
     payrollPrepDisclaimer:
       settings.payrollPrepDisclaimer || PAYROLL_PREP_DISCLAIMER,
@@ -431,6 +442,23 @@ function buildInviteUrl(req: express.Request, token: string) {
 
 function isFiniteNonNegativeNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+function normalizeWeekStartDay(value: unknown) {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 6 ? value : null;
+}
+
+function normalizePayrollMethod(value: unknown) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim().toUpperCase();
+  if (normalized === "SERVICE" || normalized === "MANUAL" || normalized === "MIXED") {
+    return normalized as PayrollMethod;
+  }
+
+  return null;
 }
 
 async function writeStatusAudit(
@@ -1039,18 +1067,22 @@ app.post("/api/company-setup", authenticate, asyncHandler(async (req: Authentica
   const {
     companyName,
     ownerName,
+    weekStartDay,
     employees,
     timeTrackingStyle,
     lunchDeductionMinutes,
     payType,
+    payrollMethod,
     trackExpenses,
   } = req.body as {
     companyName?: string;
     ownerName?: string;
+    weekStartDay?: number;
     employees?: Array<{ displayName?: string; hourlyRate?: number; workerType?: string }>;
     timeTrackingStyle?: string;
     lunchDeductionMinutes?: number;
     payType?: string;
+    payrollMethod?: string;
     trackExpenses?: boolean;
   };
 
@@ -1070,9 +1102,21 @@ app.post("/api/company-setup", authenticate, asyncHandler(async (req: Authentica
     return;
   }
 
+  const nextWeekStartDay = normalizeWeekStartDay(weekStartDay);
+  if (nextWeekStartDay === null) {
+    res.status(400).json({ error: "Week starts on must be a valid day of the week." });
+    return;
+  }
+
   const nextPayType = payType?.trim().toUpperCase() as PayType | undefined;
   if (!nextPayType || !["HOURLY", "HOURLY_OVERTIME"].includes(nextPayType)) {
     res.status(400).json({ error: "Pay type is required." });
+    return;
+  }
+
+  const nextPayrollMethod = normalizePayrollMethod(payrollMethod);
+  if (!nextPayrollMethod) {
+    res.status(400).json({ error: "Payroll method is required." });
     return;
   }
 
@@ -1123,8 +1167,10 @@ app.post("/api/company-setup", authenticate, asyncHandler(async (req: Authentica
     where: { companyId: updatedCompany.id },
     data: {
       timeTrackingStyle: nextTimeTrackingStyle,
+      weekStartDay: nextWeekStartDay,
       defaultLunchMinutes: lunchDeductionMinutes,
       payType: nextPayType,
+      payrollMethod: nextPayrollMethod,
       trackExpenses,
     },
   });
@@ -1193,6 +1239,7 @@ app.patch("/api/company-settings", authenticate, asyncHandler(async (req: Authen
   const {
     companyName,
     companyState,
+    weekStartDay,
     defaultFederalWithholdingMode,
     defaultFederalWithholdingValue,
     defaultStateWithholdingMode,
@@ -1200,9 +1247,11 @@ app.patch("/api/company-settings", authenticate, asyncHandler(async (req: Authen
     payrollPrepDisclaimer,
     pfmlEnabled,
     pfmlEmployeeRate,
+    payrollMethod,
   } = req.body as {
     companyName?: string;
     companyState?: string;
+    weekStartDay?: number;
     defaultFederalWithholdingMode?: string;
     defaultFederalWithholdingValue?: number;
     defaultStateWithholdingMode?: string;
@@ -1210,6 +1259,7 @@ app.patch("/api/company-settings", authenticate, asyncHandler(async (req: Authen
     payrollPrepDisclaimer?: string;
     pfmlEnabled?: boolean;
     pfmlEmployeeRate?: number;
+    payrollMethod?: string;
   };
 
   const nextFederalMode =
@@ -1248,6 +1298,20 @@ app.patch("/api/company-settings", authenticate, asyncHandler(async (req: Authen
     return;
   }
 
+  const nextWeekStartDay = weekStartDay === undefined ? currentSettings.weekStartDay : normalizeWeekStartDay(weekStartDay);
+  if (nextWeekStartDay === null) {
+    res.status(400).json({ error: "Week starts on must be a valid day of the week." });
+    return;
+  }
+
+  const nextPayrollMethod = payrollMethod === undefined
+    ? (currentSettings.payrollMethod as PayrollMethod)
+    : normalizePayrollMethod(payrollMethod);
+  if (!nextPayrollMethod) {
+    res.status(400).json({ error: "Unsupported payroll method." });
+    return;
+  }
+
   const nextStateCode = companyState?.trim().toUpperCase() || currentCompany.stateCode;
   const stateChanged = nextStateCode !== currentCompany.stateCode;
   const nextStateRule =
@@ -1270,6 +1334,7 @@ app.patch("/api/company-settings", authenticate, asyncHandler(async (req: Authen
   const updatedSettings = await prisma.companyPayrollSettings.update({
     where: { companyId: currentCompany.id },
     data: {
+      weekStartDay: nextWeekStartDay,
       defaultFederalWithholdingMode: nextFederalMode,
       defaultFederalWithholdingValue:
         typeof defaultFederalWithholdingValue === "number"
@@ -1289,6 +1354,7 @@ app.patch("/api/company-settings", authenticate, asyncHandler(async (req: Authen
             : currentSettings.defaultStateWithholdingValue,
       payrollPrepDisclaimer:
         payrollPrepDisclaimer !== undefined ? payrollPrepDisclaimer : currentSettings.payrollPrepDisclaimer,
+      payrollMethod: nextPayrollMethod,
       pfmlEnabled:
         typeof pfmlEnabled === "boolean"
           ? pfmlEnabled

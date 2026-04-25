@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { CompanyOnboardingInput, CompanySettingsSummary } from "../domain/models";
+import { WEEKDAY_OPTIONS } from "../domain/week";
 
 interface CompanySetupScreenProps {
   companySettings: CompanySettingsSummary;
@@ -45,10 +46,29 @@ const PAY_TYPE_OPTIONS = [
   },
 ] as const;
 
+const PAYROLL_METHOD_OPTIONS = [
+  {
+    value: "service" as const,
+    title: "Payroll service",
+    detail: "You just need clean hours and exports for your payroll provider or accountant.",
+  },
+  {
+    value: "manual" as const,
+    title: "Manual in-house payroll",
+    detail: "Keep withholding estimates and payroll-prep review visible inside the app.",
+  },
+  {
+    value: "mixed" as const,
+    title: "Mixed",
+    detail: "Use a payroll service sometimes, but still review payroll-prep details in-app when needed.",
+  },
+] as const;
+
 export function CompanySetupScreen({ companySettings, onComplete }: CompanySetupScreenProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [companyName, setCompanyName] = useState(companySettings.companyName);
   const [ownerName, setOwnerName] = useState(companySettings.ownerName);
+  const [weekStartDay, setWeekStartDay] = useState<CompanyOnboardingInput["weekStartDay"]>(companySettings.weekStartDay);
   const [employees, setEmployees] = useState<Array<{ displayName: string; hourlyRate: string; workerType: "w2" | "1099" }>>([
     { displayName: "", hourlyRate: "", workerType: "w2" },
   ]);
@@ -59,6 +79,7 @@ export function CompanySetupScreen({ companySettings, onComplete }: CompanySetup
     companySettings.defaultLunchMinutes as 0 | 30 | 60,
   );
   const [payType, setPayType] = useState<CompanyOnboardingInput["payType"]>(companySettings.payType);
+  const [payrollMethod, setPayrollMethod] = useState<CompanyOnboardingInput["payrollMethod"]>(companySettings.payrollMethod);
   const [trackExpenses, setTrackExpenses] = useState(companySettings.trackExpenses);
   const [saving, setSaving] = useState(false);
 
@@ -105,6 +126,7 @@ export function CompanySetupScreen({ companySettings, onComplete }: CompanySetup
       await onComplete({
         companyName: companyName.trim(),
         ownerName: ownerName.trim() || undefined,
+        weekStartDay,
         employees: employees
           .filter((employee) => employee.displayName.trim().length > 0)
           .map((employee) => ({
@@ -115,6 +137,7 @@ export function CompanySetupScreen({ companySettings, onComplete }: CompanySetup
         timeTrackingStyle,
         lunchDeductionMinutes,
         payType,
+        payrollMethod,
         trackExpenses,
       });
     } finally {
@@ -170,6 +193,19 @@ export function CompanySetupScreen({ companySettings, onComplete }: CompanySetup
                   value={ownerName}
                   onChange={(event) => setOwnerName(event.target.value)}
                 />
+              </label>
+              <label>
+                Week starts on
+                <select
+                  value={weekStartDay}
+                  onChange={(event) => setWeekStartDay(Number(event.target.value))}
+                >
+                  {WEEKDAY_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </label>
             </div>
           </section>
@@ -303,6 +339,31 @@ export function CompanySetupScreen({ companySettings, onComplete }: CompanySetup
                   }
                   key={option.value}
                   onClick={() => setPayType(option.value)}
+                  type="button"
+                >
+                  <strong>{option.title}</strong>
+                  <span>{option.detail}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="settings-section__header" style={{ marginTop: "1rem" }}>
+              <div>
+                <h3>How do you handle payroll?</h3>
+              </div>
+              <span className="settings-meta">This controls how much payroll-prep detail the office dashboard shows.</span>
+            </div>
+
+            <div className="onboarding-choice-grid onboarding-choice-grid--compact">
+              {PAYROLL_METHOD_OPTIONS.map((option) => (
+                <button
+                  className={
+                    option.value === payrollMethod
+                      ? "onboarding-choice onboarding-choice--active"
+                      : "onboarding-choice"
+                  }
+                  key={option.value}
+                  onClick={() => setPayrollMethod(option.value)}
                   type="button"
                 >
                   <strong>{option.title}</strong>
