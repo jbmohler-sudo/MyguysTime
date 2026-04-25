@@ -6,7 +6,7 @@ import { CompanySetupScreen } from "./components/CompanySetupScreen";
 import { PublicHomepage } from "./components/PublicHomepage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LoginPage } from "./pages/LoginPage";
-import { PreviewUserProvider, usePreviewUser } from "./context/PreviewUserContext";
+
 import { SignupAfterMagicLink } from "./components/SignupAfterMagicLink";
 import { SignupScreen } from "./components/SignupScreen";
 import type { BootstrapPayload, CompanyOnboardingInput, PrivateReportInput, TimesheetStatus } from "./domain/models";
@@ -37,8 +37,6 @@ import type { EmployeeInput, InviteInput } from "./domain/models";
 import { getCurrentHostname, isPublicHomepageHost } from "./lib/host";
 import { supabase } from "./lib/supabase";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
-import { getDemoProfile } from "./demo/profiles";
-
 const TOKEN_STORAGE_KEY = "crew-timecard-token";
 
 function getCurrentWeekStart(date: Date) {
@@ -57,9 +55,8 @@ function AppContent() {
   const isInviteSignup = path === "/invite-signup";
   const isForgotPasswordRoute = path === "/forgot-password";
   const isResetPasswordRoute = path === "/reset-password";
-  const demoRole = path === "/demo/admin" ? "admin" : path === "/demo/foreman" ? "foreman" : path === "/demo/employee" ? "employee" : null;
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_STORAGE_KEY));
-  const { previewRole, clearPreviewRole } = usePreviewUser();
+
   const [data, setData] = useState<BootstrapPayload | null>(null);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(Boolean(token));
@@ -179,14 +176,12 @@ function AppContent() {
       throw signInError ?? new Error("Unable to sign in.");
     }
 
-    clearPreviewRole();
     setStoredToken(sessionData.session.access_token);
     navigate("/dashboard");
   }
 
   async function handleLogout() {
     await supabase.auth.signOut();
-    clearPreviewRole();
     setStoredToken(null);
     setData(null);
     setError("");
@@ -425,63 +420,11 @@ function AppContent() {
     URL.revokeObjectURL(url);
   }
 
-  function renderStaticShell(shellData: BootstrapPayload, onStaticLogout: () => void) {
-    const noopAsync = async () => {};
-    const noopListEmployees = async () => [];
-    const noopCreateEmployee = async () => {
-      throw new Error("Static testing view only.");
-    };
-    const noopUpdateEmployee = async () => {
-      throw new Error("Static testing view only.");
-    };
-    const noopListInvites = async () => [];
-    const noopCreateInvite = async () => {
-      throw new Error("Static testing view only.");
-    };
-    const noopFetchHistory = async () => [];
-    const noopSendReminders = async () => ({ count: 0, sent: false });
 
-    return (
-      <ToastProvider>
-        <OnboardingProvider>
-          <AppShell
-            data={shellData}
-            error=""
-            onLogout={onStaticLogout}
-            onRefresh={async () => {}}
-            onUpdateMe={async () => {}}
-            onUpdateDay={async () => {}}
-            onApplyCrewDefaults={async () => {}}
-            onStatusChange={async () => {}}
-            onReopenWeek={async () => {}}
-            onUpdateAdjustment={async () => {}}
-            onSubmitPrivateReport={async () => {}}
-            onExport={async () => {}}
-            onUpdateCompanySettings={async () => {}}
-            onListEmployees={noopListEmployees}
-            onCreateEmployee={noopCreateEmployee}
-            onUpdateEmployee={noopUpdateEmployee}
-            onListInvites={noopListInvites}
-            onCreateInvite={noopCreateInvite}
-            onResendInvite={noopAsync}
-            onRevokeInvite={noopAsync}
-            onFetchExportHistory={noopFetchHistory}
-            onSendReminders={noopSendReminders}
-          />
-        </OnboardingProvider>
-      </ToastProvider>
-    );
-  }
 
-  if (demoRole) {
-    return renderStaticShell(getDemoProfile(demoRole), () => {
-      window.location.href = "/";
-    });
-  }
 
-  if (previewRole && !token) {
-    return renderStaticShell(getDemoProfile(previewRole), handleLogout);
-  }
+
+
 
   if (showPublicHomepage) {
     return <PublicHomepage />;
@@ -513,7 +456,7 @@ function AppContent() {
     return (
       <ResetPasswordPage
         onComplete={(newToken) => {
-          clearPreviewRole();
+
           setStoredToken(newToken);
           navigate("/dashboard");
         }}
@@ -538,7 +481,6 @@ function AppContent() {
           throw signInError ?? new Error("Supabase session was not created after signup.");
         }
 
-        clearPreviewRole();
         setStoredToken(sessionData.session.access_token);
         navigate("/dashboard");
       }
@@ -619,9 +561,7 @@ function AppContent() {
 
 function App() {
   return (
-    <PreviewUserProvider>
-      <AppContent />
-    </PreviewUserProvider>
+    <AppContent />
   );
 }
 

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { DayEntry, EmployeeWeek, TimesheetStatus, Viewer } from "../domain/models";
 import { adjustTimeValue, formatCurrency, formatDayCardDate } from "../domain/format";
 import { PayrollYtdSummaryGrid, workerTypeLabel } from "./PayrollYtdSummaryGrid";
-import { usePreviewUser } from "../context/PreviewUserContext";
+
 import {
   canApproveWeek,
   canConfirmWeek,
@@ -48,8 +48,7 @@ function DayEditor({
   dayRef?: (node: HTMLDivElement | null) => void;
   onUpdateDay: (timesheetId: string, dayEntryId: string, payload: Record<string, unknown>) => Promise<void>;
 }) {
-  const { previewRole } = usePreviewUser();
-  const effectiveViewer = previewRole ? { ...viewer, role: previewRole } : viewer;
+  const effectiveViewer = viewer;
   const editable = canEditTimesheet(effectiveViewer.role, effectiveViewer.employeeId, employeeWeek);
   const [start, setStart] = useState(entry.start);
   const [end, setEnd] = useState(entry.end);
@@ -189,8 +188,7 @@ export function EmployeeCard({
     const todayIndex = employeeWeek.entries.findIndex((entry) => entry.date === todayIso);
     return todayIndex >= 0 ? todayIndex : 0;
   });
-  const { previewRole } = usePreviewUser();
-  const effectiveViewer = previewRole ? { ...viewer, role: previewRole } : viewer;
+  const effectiveViewer = viewer;
   const editable = canEditTimesheet(effectiveViewer.role, effectiveViewer.employeeId, employeeWeek);
   const canFlagRevision =
     uiMode === "office" &&

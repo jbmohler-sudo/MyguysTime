@@ -25,7 +25,7 @@ import { TeamManagementPanel } from "./TeamManagementPanel";
 import { WeeklyCrewBoard } from "./WeeklyCrewBoard";
 import { useOnboardingContext } from "../hooks/useOnboarding";
 import { Home, Users, Settings, Archive, LogOut } from "lucide-react";
-import { usePreviewUser } from "../context/PreviewUserContext";
+
 
 const BRAND_ORANGE = "#FF8C00";
 const BRAND_DARK = "#1A1A1B";
@@ -115,7 +115,7 @@ export function AppShell({
   onSendReminders,
 }: AppShellProps) {
   const onboarding = useOnboardingContext();
-  const { previewRole, setPreviewRole, isPreviewMode } = usePreviewUser();
+
   const truckViewportQuery = "(max-width: 1024px)";
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -164,7 +164,7 @@ export function AppShell({
     return `${year}-${month}-${date}`;
   }, [openedAt]);
 
-  const effectiveViewer = useMemo(() => (previewRole ? { ...data.viewer, role: previewRole } : data.viewer), [data.viewer, previewRole]);
+  const effectiveViewer = data.viewer;
 
   const uiMode = useMemo<UiMode>(() => {
     if (modeOverride) {
@@ -416,26 +416,7 @@ export function AppShell({
     return `${month}/${day}/${year}`;
   }, [data.weekStart]);
 
-  const previewRoleSwitcher = isPreviewMode ? (
-    <div className="preview-role-switcher" aria-label="Role switcher">
-      <span className="preview-role-switcher__label">Switch role</span>
-      <div className="preview-role-switcher__actions">
-        {(["admin", "foreman", "employee"] as const).map((role) => {
-          const active = effectiveViewer.role === role;
-          return (
-            <button
-              key={role}
-              type="button"
-              className={active ? "preview-role-switcher__button preview-role-switcher__button--active" : "preview-role-switcher__button"}
-              onClick={() => setPreviewRole(role)}
-            >
-              {role}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  ) : null;
+
 
   if (isMobileViewport) {
     const visibleNavItems = navItems.filter((item) => item.visible);
@@ -700,7 +681,7 @@ export function AppShell({
                           App is already installed on this device.
                         </div>
                       ) : null}
-                      {previewRoleSwitcher}
+
                     </div>
                   )
                 ) : (
@@ -1183,7 +1164,7 @@ export function AppShell({
               </button>
             ) : null}
 
-            {previewRoleSwitcher}
+
 
             <button
               onClick={onboarding.restartTour}

@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { usePreviewUser } from "../context/PreviewUserContext";
+
 
 interface LoginPageProps {
   error?: string;
@@ -9,7 +9,6 @@ interface LoginPageProps {
 }
 
 export function LoginPage({ error, onLogin, onShowForgotPassword, onShowSignup }: LoginPageProps) {
-  const { setPreviewRole } = usePreviewUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -33,29 +32,10 @@ export function LoginPage({ error, onLogin, onShowForgotPassword, onShowSignup }
     <div className="login-shell">
       <section className="login-card auth-card">
         <p className="eyebrow">Crew Timecard MVP</p>
-        <h1>Open the real crew board fast</h1>
+        <h1>Sign In</h1>
         <p className="hero-copy">
-          Use a temporary magic login for live phone testing, then fall back to the normal seeded login
-          if you need the real backend session.
+          Welcome back.
         </p>
-
-        <div className="magic-login-panel">
-          <strong>Magic login</strong>
-          <p>Skip passwords for a few minutes and load the same shared app shell and truck cards we are tuning.</p>
-          <div className="magic-login-grid">
-            <button className="button-strong" onClick={() => setPreviewRole("admin")} type="button">
-              Continue as Admin
-            </button>
-            <button className="button-strong" onClick={() => setPreviewRole("foreman")} type="button">
-              Continue as Foreman
-            </button>
-            <button className="button-strong" onClick={() => setPreviewRole("employee")} type="button">
-              Continue as Employee
-            </button>
-          </div>
-        </div>
-
-        <div className="login-divider">Or use seeded login</div>
 
         <form className="login-form" onSubmit={handleSubmit}>
           <label>
