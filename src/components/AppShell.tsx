@@ -10,6 +10,7 @@ import type {
 } from "../domain/models";
 import { prettyStatus } from "../domain/permissions";
 import { AddEmployeeModal } from "./AddEmployeeModal";
+import { AccountSettingsPanel } from "./AccountSettingsPanel";
 import { ArchivePanel } from "./ArchivePanel";
 import { InviteEmployeeModal } from "./InviteEmployeeModal";
 import { InviteManagementPanel } from "./InviteManagementPanel";
@@ -37,7 +38,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 type UiMode = "truck" | "office";
-type AppPage = "dashboard" | "team" | "company-settings" | "archive";
+type AppPage = "dashboard" | "team" | "company-settings" | "account-settings" | "archive";
 
 interface AppShellProps {
   data: BootstrapPayload;
@@ -83,6 +84,7 @@ interface AppShellProps {
   onCreateInvite: (payload: InviteInput) => Promise<{ invite: InviteSummary; inviteUrl?: string }>;
   onResendInvite: (inviteId: string) => Promise<void>;
   onRevokeInvite: (inviteId: string) => Promise<void>;
+  onUpdateMe: (payload: { fullName?: string; preferredView?: "office" | "truck" }) => Promise<void>;
   onFetchQboPreview?: (weekStart: string) => Promise<import("../types/payroll").ExportPreview>;
   onDownloadQboCsv?: (weekStart: string) => Promise<Response>;
   onFetchExportHistory?: () => Promise<import("../types/payroll").PayrollExportRecord[]>;
@@ -94,6 +96,7 @@ export function AppShell({
   error,
   onLogout,
   onRefresh,
+  onUpdateMe,
   onUpdateDay,
   onApplyCrewDefaults,
   onStatusChange,
@@ -189,6 +192,7 @@ export function AppShell({
         { key: "dashboard", label: "Dashboard", visible: true },
         { key: "team", label: "Team", visible: canViewTeam },
         { key: "company-settings", label: "Company Settings", visible: canViewCompanySettings },
+        { key: "account-settings", label: "Account Settings", visible: true },
         { key: "archive", label: "Archive", visible: canViewArchive },
       ] as Array<{ key: AppPage; label: string; visible: boolean }>,
     [canViewArchive, canViewCompanySettings, canViewTeam],
@@ -392,6 +396,7 @@ export function AppShell({
         : "Weekly time review and payroll-prep for contractor crews.",
     team: "Active employee records and default crew setup.",
     "company-settings": "Company profile and payroll-prep defaults.",
+    "account-settings": "Account email and password managed through Supabase Auth.",
     archive: "Archived employee records and history.",
   };
 
@@ -402,6 +407,7 @@ export function AppShell({
         : "Keep the weekly board, payroll-prep review, exports, and next-step workflow in one focused dashboard.",
     team: "Manage employee records, keep worker details current, and send login invites only when someone needs app access.",
     "company-settings": "Update company identity, state support, payroll-prep defaults, and the standing disclaimer without cluttering the weekly dashboard.",
+    "account-settings": "Change your login email or password without touching company payroll settings or crew-management data.",
     archive: "Archived employees stay on file for office reference instead of being deleted.",
   };
 
@@ -939,7 +945,7 @@ export function AppShell({
             const isActive = activePage === item.key;
             let Icon = Home;
             if (item.key === "team") Icon = Users;
-            if (item.key === "company-settings") Icon = Settings;
+            if (item.key === "company-settings" || item.key === "account-settings") Icon = Settings;
             if (item.key === "archive") Icon = Archive;
 
             return (
@@ -963,7 +969,7 @@ export function AppShell({
               >
                 <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
                 <span style={{ fontSize: "0.65rem", fontWeight: isActive ? 700 : 500 }}>
-                  {item.key === "company-settings" ? "Settings" : item.label}
+                  {item.key === "company-settings" ? "Company" : item.key === "account-settings" ? "Account" : item.label}
                 </span>
               </button>
             );
@@ -1451,6 +1457,13 @@ export function AppShell({
             companySettings={data.companySettings!}
             stateRules={data.stateRules}
             onSave={onUpdateCompanySettings}
+          />
+        ) : null}
+
+        {activePage === "account-settings" ? (
+          <AccountSettingsPanel
+            viewer={data.viewer}
+            onUpdateMe={onUpdateMe}
           />
         ) : null}
 

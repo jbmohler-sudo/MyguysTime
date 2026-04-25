@@ -1496,6 +1496,10 @@ button:disabled {
   margin-bottom: 0.85rem;
 }
 
+.account-summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .company-summary-grid div {
   background: color-mix(in srgb, var(--color-bg-subtle) 75%, var(--color-bg-surface) 25%);
   border: 1px solid color-mix(in srgb, var(--color-border-default) 78%, var(--color-bg-surface) 22%);
@@ -1525,6 +1529,10 @@ button:disabled {
   display: flex;
   gap: 0.75rem;
   justify-content: space-between;
+}
+
+.settings-form {
+  margin-top: 0;
 }
 
 .settings-meta {

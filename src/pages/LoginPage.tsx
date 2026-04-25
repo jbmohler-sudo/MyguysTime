@@ -4,13 +4,14 @@ import { usePreviewUser } from "../context/PreviewUserContext";
 interface LoginPageProps {
   error?: string;
   onLogin: (email: string, password: string) => Promise<void>;
+  onShowForgotPassword: () => void;
   onShowSignup: () => void;
 }
 
-export function LoginPage({ error, onLogin, onShowSignup }: LoginPageProps) {
+export function LoginPage({ error, onLogin, onShowForgotPassword, onShowSignup }: LoginPageProps) {
   const { setPreviewRole } = usePreviewUser();
-  const [email, setEmail] = useState("admin@crewtime.local");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [localError, setLocalError] = useState("");
 
@@ -80,6 +81,13 @@ export function LoginPage({ error, onLogin, onShowSignup }: LoginPageProps) {
           <span>Starting a new company?</span>
           <button className="button-muted" onClick={onShowSignup} type="button">
             Create admin account
+          </button>
+        </div>
+
+        <div className="auth-switch">
+          <span>Need to reset your password?</span>
+          <button className="button-muted" onClick={onShowForgotPassword} type="button">
+            Forgot password
           </button>
         </div>
       </section>

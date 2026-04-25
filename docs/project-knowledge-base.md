@@ -23,7 +23,7 @@ It is not:
 - Backend: Express + TypeScript
 - ORM: Prisma
 - Database: hosted Neon Postgres on Vercel
-- Auth: email/password + JWT
+- Auth: Supabase
 - Error monitoring: Sentry for React and Express
 - Hosting: Vercel
 
@@ -118,22 +118,6 @@ This matters because:
 `postinstall` now runs `prisma generate`.
 
 This prevents Vercel builds from compiling against a stale generated Prisma client when schema fields change.
-
-## Current auth and demo users
-
-Seeded credentials:
-
-- Admin: `admin@crewtime.local / admin123`
-- Foreman: `luis@crewtime.local / foreman123`
-- Employee: `marco@crewtime.local / employee123`
-
-Seed currently creates:
-
-- 1 company
-- 2 crews
-- 3 active employee weeks in the demo week
-- private reports
-- 1 archived employee
 
 ## Current feature state
 

@@ -69,7 +69,7 @@ export async function signup(fullName: string, companyName: string, email: strin
 }
 
 export async function acceptInvite(payload: AcceptInviteInput) {
-  return request<{ token: string }>("/auth/accept-invite", {
+  return request<{ email: string }>("/auth/accept-invite", {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -78,6 +78,16 @@ export async function acceptInvite(payload: AcceptInviteInput) {
 export async function fetchBootstrap(token: string, weekStart?: string) {
   const query = weekStart ? `?weekStart=${encodeURIComponent(weekStart)}` : "";
   return request<BootstrapPayload>(`/auth/me${query}`, {}, token);
+}
+
+export async function updateMe(
+  token: string,
+  payload: { fullName?: string; preferredView?: "office" | "truck" },
+) {
+  return request<{ viewer: import("../domain/models").Viewer }>("/auth/me", {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  }, token);
 }
 
 export async function updateDayEntry(

@@ -1,5 +1,10 @@
-dist
-dist-server
-.claude_archive
-.vercel
-docs
+node_modules/
+.vercel/
+dist/
+dist-server/
+.claude_archive/
+.claude/
+.agents/
+docs/
+tmp_video_frames2/
+.git/

@@ -1,9 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { prisma } from "./db.js";
+import { getSupabaseAuthClient } from "./supabase.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev-jwt-secret";
 export type UserRole = "ADMIN" | "FOREMAN" | "EMPLOYEE";
 
 export interface AuthTokenPayload {
@@ -12,23 +10,33 @@ export interface AuthTokenPayload {
   companyId: string;
 }
 
+export interface AuthenticatedUser {
+  id: string;
+  supabaseId: string | null;
+  companyId: string;
+  email: string;
+  fullName: string;
+  role: UserRole;
+  employeeId: string | null;
+  status: string;
+  deactivatedAt: Date | null;
+}
+
 export interface AuthenticatedRequest extends Request {
   auth?: AuthTokenPayload;
+  user?: AuthenticatedUser;
 }
 
-export async function verifyPassword(password: string, passwordHash: string): Promise<boolean> {
-  return bcrypt.compare(password, passwordHash);
+
+function toUserRole(role: string): UserRole | null {
+  if (role === "ADMIN" || role === "FOREMAN" || role === "EMPLOYEE") {
+    return role;
+  }
+
+  return null;
 }
 
-export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 10);
-}
-
-export function issueToken(payload: AuthTokenPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "8h" });
-}
-
-export function authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const header = req.header("Authorization");
   const queryToken = typeof req.query.token === "string" ? req.query.token : null;
   const token = header?.startsWith("Bearer ") ? header.slice(7) : queryToken;
@@ -39,10 +47,63 @@ export function authenticate(req: AuthenticatedRequest, res: Response, next: Nex
   }
 
   try {
-    req.auth = jwt.verify(token, JWT_SECRET) as AuthTokenPayload;
+    const supabase = getSupabaseAuthClient();
+    const { data, error } = await supabase.auth.getUser(token);
+
+    if (error || !data.user) {
+      res.status(401).json({ error: "Invalid token." });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { supabaseId: data.user.id },
+      select: {
+        id: true,
+        supabaseId: true,
+        companyId: true,
+        email: true,
+        fullName: true,
+        role: true,
+        employeeId: true,
+        status: true,
+        deactivatedAt: true,
+      },
+    });
+
+    if (!user) {
+      res.status(401).json({ error: "Authenticated user not found." });
+      return;
+    }
+
+    if (data.user.email && data.user.email !== user.email) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { email: data.user.email },
+      });
+      user.email = data.user.email;
+    }
+
+    if (user.status !== "ACTIVE" || user.deactivatedAt) {
+      res.status(403).json({ error: "This login is not active." });
+      return;
+    }
+
+    const role = toUserRole(user.role);
+    if (!role) {
+      res.status(403).json({ error: "User role is not supported." });
+      return;
+    }
+
+    req.user = { ...user, role };
+    req.auth = {
+      userId: user.id,
+      role,
+      companyId: user.companyId,
+    };
+
     next();
-  } catch {
-    res.status(401).json({ error: "Invalid token." });
+  } catch (error) {
+    next(error);
   }
 }
 

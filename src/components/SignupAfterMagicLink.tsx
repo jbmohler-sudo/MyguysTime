@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { acceptInvite } from "../lib/api";
+import { supabase } from "../lib/supabase";
 import { useAnalytics } from "../hooks/useAnalytics";
 
 const BRAND_ORANGE = "#FF8C00";
@@ -75,8 +76,17 @@ export function SignupAfterMagicLink({ onComplete }: SignupAfterMagicLinkProps) 
     analytics.trackEvent("signup_started", {});
     try {
       const result = await acceptInvite({ token, password, fullName: fullName.trim() });
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: result.email,
+        password,
+      });
+
+      if (signInError || !signInData.session?.access_token) {
+        throw signInError ?? new Error("Supabase session was not created after accepting the invite.");
+      }
+
       analytics.trackEvent("signup_completed", {});
-      onComplete(result.token);
+      onComplete(signInData.session.access_token);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Signup failed. Please try again.";
       if (msg.toLowerCase().includes("expired")) {

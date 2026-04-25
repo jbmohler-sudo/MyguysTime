@@ -1,6 +1,5 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
 import { pathToFileURL } from "node:url";
 import { calculateDayTotalMinutes, calculatePayrollEstimate } from "../server/payroll.js";
 import { addDays } from "../server/utils.js";
@@ -19,16 +18,11 @@ By continuing, you acknowledge that you are responsible for verifying payroll am
 const UNSUPPORTED_STATE_MESSAGE =
   "We do not yet support accurate state-specific withholding calculations for this state. You can still use the app for time tracking and payroll prep, but please confirm state-specific withholding with your accountant or official state resources.";
 
-async function hashPassword(password: string) {
-  return bcrypt.hash(password, 10);
-}
-
 async function createOrUpdateUserAccount(
   prisma: PrismaClient,
   input: {
     email: string;
     fullName: string;
-    password: string;
     role: "ADMIN" | "FOREMAN" | "EMPLOYEE";
     companyId: string;
     employeeId: string;
@@ -38,8 +32,6 @@ async function createOrUpdateUserAccount(
     where: { email: input.email },
   });
 
-  const passwordHash = existingUser?.passwordHash ?? await hashPassword(input.password);
-
   return prisma.user.upsert({
     where: { email: input.email },
     update: {
@@ -47,7 +39,6 @@ async function createOrUpdateUserAccount(
       fullName: input.fullName,
       role: input.role,
       employeeId: input.employeeId,
-      passwordHash,
       status: "ACTIVE",
       acceptedAt: existingUser?.acceptedAt ?? existingUser?.createdAt ?? new Date(),
       deactivatedAt: null,
@@ -56,7 +47,6 @@ async function createOrUpdateUserAccount(
       companyId: input.companyId,
       email: input.email,
       fullName: input.fullName,
-      passwordHash,
       role: input.role,
       employeeId: input.employeeId,
       status: "ACTIVE",
@@ -374,7 +364,6 @@ export async function seedDatabase() {
     const adminUser = await createOrUpdateUserAccount(prisma, {
       email: "admin@crewtime.local",
       fullName: "Dana Office",
-      password: "admin123",
       role: "ADMIN",
       companyId: company.id,
       employeeId: adminEmployee.id,
@@ -384,7 +373,6 @@ export async function seedDatabase() {
     const foremanUser = await createOrUpdateUserAccount(prisma, {
       email: "luis@crewtime.local",
       fullName: "Luis Ortega",
-      password: "foreman123",
       role: "FOREMAN",
       companyId: company.id,
       employeeId: luis.id,
@@ -394,7 +382,6 @@ export async function seedDatabase() {
     const employeeUser = await createOrUpdateUserAccount(prisma, {
       email: "marco@crewtime.local",
       fullName: "Marco Diaz",
-      password: "employee123",
       role: "EMPLOYEE",
       companyId: company.id,
       employeeId: marco.id,
@@ -688,7 +675,6 @@ export async function seedDatabase() {
       await createOrUpdateUserAccount(prisma, {
         email: "admin@apexroofing.local",
         fullName: "Jake Martinez",
-        password: "apex_admin123",
         role: "ADMIN",
         companyId: apexCompany.id,
         employeeId: apexAdminEmployee.id,
@@ -697,7 +683,6 @@ export async function seedDatabase() {
       await createOrUpdateUserAccount(prisma, {
         email: "jake@apexroofing.local",
         fullName: "Jake Martinez",
-        password: "apex_foreman123",
         role: "FOREMAN",
         companyId: apexCompany.id,
         employeeId: jakeEmployee.id,
@@ -706,7 +691,6 @@ export async function seedDatabase() {
       await createOrUpdateUserAccount(prisma, {
         email: "sarah@apexroofing.local",
         fullName: "Sarah Chen",
-        password: "apex_employee123",
         role: "EMPLOYEE",
         companyId: apexCompany.id,
         employeeId: sarahEmployee.id,

@@ -17,6 +17,7 @@ export interface Viewer {
   fullName: string;
   role: UserRole;
   employeeId: string | null;
+  preferredView: "office" | "truck";
 }
 
 export interface CrewDayDefault {

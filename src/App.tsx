@@ -4,6 +4,7 @@ import { OnboardingProvider } from "./hooks/useOnboarding";
 import { ToastProvider } from "./hooks/useToast";
 import { CompanySetupScreen } from "./components/CompanySetupScreen";
 import { PublicHomepage } from "./components/PublicHomepage";
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LoginPage } from "./pages/LoginPage";
 import { PreviewUserProvider, usePreviewUser } from "./context/PreviewUserContext";
 import { SignupAfterMagicLink } from "./components/SignupAfterMagicLink";
@@ -20,7 +21,6 @@ import {
   fetchQboPreview,
   listEmployees,
   listInvites,
-  login,
   resendInvite,
   revokeInvite,
   sendSmsReminders,
@@ -30,10 +30,13 @@ import {
   updateAdjustment,
   updateDayEntry,
   updateEmployee,
+  updateMe,
   updateTimesheetStatus,
 } from "./lib/api";
 import type { EmployeeInput, InviteInput } from "./domain/models";
 import { getCurrentHostname, isPublicHomepageHost } from "./lib/host";
+import { supabase } from "./lib/supabase";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { getDemoProfile } from "./demo/profiles";
 
 const TOKEN_STORAGE_KEY = "crew-timecard-token";
@@ -49,18 +52,59 @@ function getCurrentWeekStart(date: Date) {
 
 function AppContent() {
   const hostname = getCurrentHostname();
-  const pathname = typeof window !== "undefined" ? window.location.pathname : "/";
+  const [path, setPath] = useState(() => (typeof window !== "undefined" ? window.location.pathname : "/"));
   const showPublicHomepage = isPublicHomepageHost(hostname);
-  const isInviteSignup = pathname === "/invite-signup";
-  const demoRole = pathname === "/demo/admin" ? "admin" : pathname === "/demo/foreman" ? "foreman" : pathname === "/demo/employee" ? "employee" : null;
+  const isInviteSignup = path === "/invite-signup";
+  const isForgotPasswordRoute = path === "/forgot-password";
+  const isResetPasswordRoute = path === "/reset-password";
+  const demoRole = path === "/demo/admin" ? "admin" : path === "/demo/foreman" ? "foreman" : path === "/demo/employee" ? "employee" : null;
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_STORAGE_KEY));
   const { previewRole, clearPreviewRole } = usePreviewUser();
   const [data, setData] = useState<BootstrapPayload | null>(null);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(Boolean(token));
-  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [authMode, setAuthMode] = useState<"login" | "signup">(() => (path === "/signup" ? "signup" : "login"));
   const [openedAt] = useState(() => new Date());
   const defaultWeekStart = getCurrentWeekStart(openedAt);
+
+  function setStoredToken(nextToken: string | null) {
+    if (nextToken) {
+      localStorage.setItem(TOKEN_STORAGE_KEY, nextToken);
+    } else {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+    }
+
+    setToken(nextToken);
+  }
+
+  function navigate(path: string) {
+    window.history.replaceState({}, "", path);
+    setPath(path);
+  }
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const handlePopState = () => {
+      setPath(window.location.pathname);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (path === "/signup") {
+      setAuthMode("signup");
+      return;
+    }
+
+    if (path === "/" || path === "/login") {
+      setAuthMode("login");
+    }
+  }, [path]);
 
   async function loadApp(nextToken: string, weekStart?: string) {
     setLoading(true);
@@ -79,32 +123,74 @@ function AppContent() {
   }
 
   useEffect(() => {
+    let active = true;
+
+    void supabase.auth.getSession().then(({ data: sessionData }) => {
+      if (!active || !sessionData.session?.access_token) {
+        return;
+      }
+
+      setStoredToken(sessionData.session.access_token);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) {
+        return;
+      }
+
+      const accessToken = session?.access_token ?? null;
+      setStoredToken(accessToken);
+
+      if (!accessToken) {
+        setData(null);
+      }
+
+      if (event === "PASSWORD_RECOVERY" && window.location.pathname !== "/reset-password") {
+        navigate("/reset-password");
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
     if (!token) {
       return;
     }
 
     void loadApp(token).catch(() => {
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
-      setToken(null);
+      setStoredToken(null);
       setData(null);
     });
   }, [defaultWeekStart, token]);
 
   async function handleLogin(email: string, password: string) {
-    const response = await login(email, password);
-    localStorage.setItem(TOKEN_STORAGE_KEY, response.token);
+    const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+
+    if (signInError || !sessionData.session?.access_token) {
+      throw signInError ?? new Error("Unable to sign in.");
+    }
+
     clearPreviewRole();
-    setToken(response.token);
-    window.history.replaceState({}, "", "/dashboard");
+    setStoredToken(sessionData.session.access_token);
+    navigate("/dashboard");
   }
 
-  function handleLogout() {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
+  async function handleLogout() {
+    await supabase.auth.signOut();
     clearPreviewRole();
-    setToken(null);
+    setStoredToken(null);
     setData(null);
     setError("");
-    window.history.replaceState({}, "", "/");
+    navigate("/");
   }
 
   async function handleRefresh(weekStart?: string) {
@@ -113,6 +199,14 @@ function AppContent() {
     }
 
     await loadApp(token, weekStart);
+  }
+
+  async function handleUpdateMe(payload: { fullName?: string; preferredView?: "office" | "truck" }) {
+    if (!token) return;
+    const response = await updateMe(token, payload);
+    setData((current) =>
+      current ? { ...current, viewer: response.viewer } : current,
+    );
   }
 
   function replaceTimesheet(nextTimesheet: BootstrapPayload["employeeWeeks"][number]) {
@@ -355,6 +449,7 @@ function AppContent() {
             error=""
             onLogout={onStaticLogout}
             onRefresh={async () => {}}
+            onUpdateMe={async () => {}}
             onUpdateDay={async () => {}}
             onApplyCrewDefaults={async () => {}}
             onStatusChange={async () => {}}
@@ -396,9 +491,35 @@ function AppContent() {
     return (
       <SignupAfterMagicLink
         onComplete={(newToken) => {
-          localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
-          setToken(newToken);
-          window.history.replaceState({}, "", "/dashboard");
+          setStoredToken(newToken);
+          navigate("/dashboard");
+        }}
+      />
+    );
+  }
+
+  if (isForgotPasswordRoute) {
+    return (
+      <ForgotPasswordPage
+        onShowLogin={() => {
+          setAuthMode("login");
+          navigate("/login");
+        }}
+      />
+    );
+  }
+
+  if (isResetPasswordRoute) {
+    return (
+      <ResetPasswordPage
+        onComplete={(newToken) => {
+          clearPreviewRole();
+          setStoredToken(newToken);
+          navigate("/dashboard");
+        }}
+        onShowLogin={() => {
+          setAuthMode("login");
+          navigate("/login");
         }}
       />
     );
@@ -407,19 +528,40 @@ function AppContent() {
   if (!token) {
     if (authMode === "signup") {
       async function handleSignup(fullName: string, companyName: string, email: string, password: string) {
-        const response = await signup(fullName, companyName, email, password);
-        localStorage.setItem(TOKEN_STORAGE_KEY, response.token);
+        await signup(fullName, companyName, email, password);
+        const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password,
+        });
+
+        if (signInError || !sessionData.session?.access_token) {
+          throw signInError ?? new Error("Supabase session was not created after signup.");
+        }
+
         clearPreviewRole();
-        setToken(response.token);
-        window.history.replaceState({}, "", "/dashboard");
+        setStoredToken(sessionData.session.access_token);
+        navigate("/dashboard");
       }
-      return <SignupScreen onSignup={handleSignup} onShowLogin={() => setAuthMode("login")} error={error} />;
+      return (
+        <SignupScreen
+          onSignup={handleSignup}
+          onShowLogin={() => {
+            setAuthMode("login");
+            navigate("/login");
+          }}
+          error={error}
+        />
+      );
     }
     return (
       <LoginPage
         error={error}
         onLogin={handleLogin}
-        onShowSignup={() => setAuthMode("signup")}
+        onShowForgotPassword={() => navigate("/forgot-password")}
+        onShowSignup={() => {
+          setAuthMode("signup");
+          navigate("/signup");
+        }}
       />
     );
   }
@@ -449,6 +591,7 @@ function AppContent() {
         error={error}
         onLogout={handleLogout}
         onRefresh={handleRefresh}
+        onUpdateMe={handleUpdateMe}
         onUpdateDay={handleUpdateDay}
         onApplyCrewDefaults={handleApplyCrewDefaults}
         onStatusChange={handleStatusChange}
