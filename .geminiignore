@@ -1,10 +1,45 @@
+# Gemini / AI Agent Indexing Exclusions
+# Project: MyGuys_App
+
+# Dependencies
 node_modules/
-.vercel/
+jspm_packages/
+
+# Build and Output
 dist/
-dist-server/
-.claude_archive/
-.claude/
-.agents/
-docs/
-tmp_video_frames2/
-.git/
+dist-ssr/
+build/
+.vercel/
+out/
+
+# Vite / Dev tools
+.vite/
+*.local
+
+# Prisma / Database
+# Generated Prisma client can be massive and confusing for AI context
+node_modules/.prisma/
+prisma/migrations/
+
+# Logs and System Files
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+
+# Editor specific
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
