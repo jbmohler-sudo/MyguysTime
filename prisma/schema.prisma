@@ -81,6 +81,9 @@ model Employee {
   employmentStatus  String             @default("ACTIVE")
   hourlyRateCents   Int
   overtimeRateCents Int?
+  federalFilingStatus String           @default("single")
+  w4Step3Amount     Float              @default(0)
+  w4CollectedAt     DateTime?
   usesCompanyFederalDefault Boolean    @default(true)
   usesCompanyStateDefault   Boolean    @default(true)
   federalWithholdingPercent Float      @default(0.10)

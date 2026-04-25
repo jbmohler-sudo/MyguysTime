@@ -32,7 +32,10 @@ export interface PayrollCalculationInput {
     | "hourlyRateCents"
     | "overtimeRateCents"
     | "federalWithholdingPercent"
+    | "federalFilingStatus"
     | "stateWithholdingPercent"
+    | "w4Step3Amount"
+    | "w4CollectedAt"
     | "usesCompanyFederalDefault"
     | "usesCompanyStateDefault"
   >;
@@ -89,26 +92,25 @@ export function calculatePayrollEstimate(input: PayrollCalculationInput) {
   const stateDefaultValue = input.companyPayrollSettings?.defaultStateWithholdingValue ?? 0;
   const baseFederalMode = input.employee.usesCompanyFederalDefault ? federalDefaultMode : "PERCENTAGE";
   const baseStateMode = input.employee.usesCompanyStateDefault ? stateDefaultMode : "PERCENTAGE";
-  const baseFederalValue = input.employee.usesCompanyFederalDefault
-    ? federalDefaultValue
-    : input.employee.federalWithholdingPercent;
   const baseStateValue = input.employee.usesCompanyStateDefault
     ? stateDefaultValue
     : input.employee.stateWithholdingPercent;
 
-  const federalRate =
-    input.existingEstimate?.federalWithholdingMode === "MANUAL_OVERRIDE"
-      ? input.existingEstimate.federalWithholdingValue
-      : baseFederalValue;
   const stateRate =
     input.existingEstimate?.stateWithholdingMode === "MANUAL_OVERRIDE"
       ? input.existingEstimate.stateWithholdingValue
       : baseStateValue;
 
-  const federalWithholdingCents =
+  const weeklyW4Step3CreditCents =
+    input.employee.w4CollectedAt ? roundCents((input.employee.w4Step3Amount / 52) * 100) : 0;
+  const federalWithholdingBeforeCreditsCents =
     input.existingEstimate?.federalWithholdingMode === "MANUAL_OVERRIDE"
       ? roundCents(input.existingEstimate.federalWithholdingValue)
-      : roundCents(grossPayCents * federalRate);
+      : roundCents(grossPayCents * federalDefaultValue);
+  const federalWithholdingCents =
+    input.existingEstimate?.federalWithholdingMode === "MANUAL_OVERRIDE"
+      ? federalWithholdingBeforeCreditsCents
+      : Math.max(0, federalWithholdingBeforeCreditsCents - weeklyW4Step3CreditCents);
 
   const stateSupportLevel =
     input.companyPayrollSettings?.supportLevelSnapshot ?? input.stateRule?.supportLevel ?? "PARTIAL_MANUAL";
@@ -160,7 +162,9 @@ export function calculatePayrollEstimate(input: PayrollCalculationInput) {
     federalWithholdingValue:
       input.existingEstimate?.federalWithholdingMode === "MANUAL_OVERRIDE"
         ? input.existingEstimate.federalWithholdingValue
-        : baseFederalValue,
+        : input.employee.w4CollectedAt
+          ? federalDefaultValue
+          : (input.companyPayrollSettings?.defaultFederalWithholdingValue ?? federalDefaultValue),
     stateWithholdingMode: input.existingEstimate?.stateWithholdingMode ?? baseStateMode,
     stateWithholdingValue:
       input.existingEstimate?.stateWithholdingMode === "MANUAL_OVERRIDE"

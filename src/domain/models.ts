@@ -3,6 +3,7 @@ export type WorkerType = "employee" | "contractor_1099";
 export type TimeTrackingStyle = "foreman" | "worker_self_entry" | "mixed";
 export type PayType = "hourly" | "hourly_overtime";
 export type PayrollMethod = "service" | "manual" | "mixed";
+export type FederalFilingStatus = "single" | "married_jointly" | "head_of_household";
 
 export type TimesheetStatus =
   | "draft"
@@ -68,6 +69,7 @@ export interface PayrollEstimateSummary {
   overtimeHours: number;
   grossPay: number;
   federalWithholding: number;
+  w4NotOnFile: boolean;
   stateWithholding: number;
   pfmlWithholding: number;
   extraStateWithholdingLabel: string;
@@ -94,6 +96,9 @@ export interface EmployeeWeek {
   crewId: string;
   crewName: string;
   hourlyRate: number | null;
+  federalFilingStatus: FederalFilingStatus;
+  w4Step3Amount: number;
+  w4CollectedAt: string | null;
   status: TimesheetStatus;
   entries: DayEntry[];
   weeklyTotalHours: number;
@@ -137,6 +142,9 @@ export interface ManagedEmployee {
   displayName: string;
   workerType: WorkerType;
   hourlyRate: number;
+  federalFilingStatus: FederalFilingStatus;
+  w4Step3Amount: number;
+  w4CollectedAt: string | null;
   active: boolean;
   defaultCrewId: string | null;
   defaultCrewName: string | null;
@@ -172,6 +180,9 @@ export interface EmployeeInput {
   displayName: string;
   workerType: "employee" | "contractor_1099";
   hourlyRate: number;
+  federalFilingStatus?: FederalFilingStatus;
+  w4Step3Amount?: number;
+  w4CollectedAt?: string | null;
   defaultCrewId?: string | null;
   active: boolean;
 }

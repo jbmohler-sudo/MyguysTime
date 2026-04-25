@@ -329,6 +329,19 @@ function normalizeManagedEmployeeWorkerType(value: string | undefined) {
   return null;
 }
 
+function normalizeFederalFilingStatus(value: unknown) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "single" || normalized === "married_jointly" || normalized === "head_of_household") {
+    return normalized;
+  }
+
+  return null;
+}
+
 function serializeManagedEmployee(
   employee: Awaited<ReturnType<typeof prisma.employee.findFirstOrThrow>> & {
     defaultCrew: { id: string; name: string } | null;
@@ -342,6 +355,9 @@ function serializeManagedEmployee(
     displayName: employee.displayName,
     workerType: workerTypeToClient(asWorkerType(employee.workerType)),
     hourlyRate: currencyFromCents(employee.hourlyRateCents),
+    federalFilingStatus: normalizeFederalFilingStatus(employee.federalFilingStatus) ?? "single",
+    w4Step3Amount: employee.w4Step3Amount,
+    w4CollectedAt: employee.w4CollectedAt?.toISOString() ?? null,
     active: employee.employmentStatus === "ACTIVE",
     defaultCrewId: employee.defaultCrewId,
     defaultCrewName: employee.defaultCrew?.name ?? null,
@@ -706,6 +722,9 @@ function serializeTimesheet(
     crewId: timesheet.crewId,
     crewName: timesheet.crew.name,
     hourlyRate: viewerRole === "EMPLOYEE" ? null : currencyFromCents(timesheet.employee.hourlyRateCents),
+    federalFilingStatus: normalizeFederalFilingStatus(timesheet.employee.federalFilingStatus) ?? "single",
+    w4Step3Amount: timesheet.employee.w4Step3Amount,
+    w4CollectedAt: timesheet.employee.w4CollectedAt?.toISOString() ?? null,
     status: statusToClient(asTimesheetStatus(timesheet.status)),
     entries: timesheet.dayEntries.map((entry) => ({
       id: entry.id,
@@ -735,6 +754,7 @@ function serializeTimesheet(
       overtimeHours: (timesheet.payrollEstimate?.overtimeMinutes ?? 0) / 60,
       grossPay: currencyFromCents(timesheet.payrollEstimate?.grossPayCents ?? 0),
       federalWithholding: currencyFromCents(timesheet.payrollEstimate?.federalWithholdingCents ?? 0),
+      w4NotOnFile: timesheet.employee.w4CollectedAt === null,
       stateWithholding: currencyFromCents(timesheet.payrollEstimate?.stateWithholdingCents ?? 0),
       pfmlWithholding: currencyFromCents(timesheet.payrollEstimate?.pfmlWithholdingCents ?? 0),
       extraStateWithholdingLabel: timesheet.payrollEstimate?.extraStateWithholdingLabel ?? "",
@@ -1198,6 +1218,9 @@ app.post("/api/company-setup", authenticate, asyncHandler(async (req: Authentica
         workerType: isContractor ? "CONTRACTOR_1099" : "EMPLOYEE",
         hourlyRateCents,
         overtimeRateCents: nextPayType === "HOURLY" ? hourlyRateCents : null,
+        federalFilingStatus: "single",
+        w4Step3Amount: 0,
+        w4CollectedAt: null,
         defaultCrewId: defaultCrew.id,
         usesCompanyFederalDefault: !isContractor,
         usesCompanyStateDefault: !isContractor,
@@ -1439,12 +1462,26 @@ app.post("/api/employees", authenticate, asyncHandler(async (req: AuthenticatedR
     return;
   }
 
-  const { firstName, lastName, displayName, workerType, hourlyRate, defaultCrewId, active } = req.body as {
+  const {
+    firstName,
+    lastName,
+    displayName,
+    workerType,
+    hourlyRate,
+    federalFilingStatus,
+    w4Step3Amount,
+    w4CollectedAt,
+    defaultCrewId,
+    active,
+  } = req.body as {
     firstName?: string;
     lastName?: string;
     displayName?: string;
     workerType?: string;
     hourlyRate?: number;
+    federalFilingStatus?: string;
+    w4Step3Amount?: number;
+    w4CollectedAt?: string | null;
     defaultCrewId?: string | null;
     active?: boolean;
   };
@@ -1466,6 +1503,28 @@ app.post("/api/employees", authenticate, asyncHandler(async (req: AuthenticatedR
 
   if (!isFiniteNonNegativeNumber(hourlyRate)) {
     res.status(400).json({ error: "Hourly rate must be a non-negative number." });
+    return;
+  }
+
+  const nextFederalFilingStatus = normalizeFederalFilingStatus(federalFilingStatus ?? "single");
+  if (!nextFederalFilingStatus) {
+    res.status(400).json({ error: "Federal filing status must be single, married jointly, or head of household." });
+    return;
+  }
+
+  if (w4Step3Amount !== undefined && !isFiniteNonNegativeNumber(w4Step3Amount)) {
+    res.status(400).json({ error: "W-4 Step 3 amount must be a non-negative number." });
+    return;
+  }
+
+  const parsedW4CollectedAt =
+    w4CollectedAt === undefined
+      ? null
+      : w4CollectedAt === null
+        ? null
+        : new Date(w4CollectedAt);
+  if (parsedW4CollectedAt && Number.isNaN(parsedW4CollectedAt.getTime())) {
+    res.status(400).json({ error: "W-4 collected date is invalid." });
     return;
   }
 
@@ -1498,6 +1557,9 @@ app.post("/api/employees", authenticate, asyncHandler(async (req: AuthenticatedR
       employmentStatus: active ? "ACTIVE" : "ARCHIVED",
       hourlyRateCents,
       overtimeRateCents: payrollSettings.payType === "HOURLY" ? hourlyRateCents : null,
+      federalFilingStatus: nextFederalFilingStatus,
+      w4Step3Amount: w4Step3Amount ?? 0,
+      w4CollectedAt: parsedW4CollectedAt,
       defaultCrewId: cleanDefaultCrewId,
       usesCompanyFederalDefault: !isContractor,
       usesCompanyStateDefault: !isContractor,
@@ -1543,12 +1605,26 @@ app.patch("/api/employees/:employeeId", authenticate, asyncHandler(async (req: A
     return;
   }
 
-  const { firstName, lastName, displayName, workerType, hourlyRate, defaultCrewId, active } = req.body as {
+  const {
+    firstName,
+    lastName,
+    displayName,
+    workerType,
+    hourlyRate,
+    federalFilingStatus,
+    w4Step3Amount,
+    w4CollectedAt,
+    defaultCrewId,
+    active,
+  } = req.body as {
     firstName?: string;
     lastName?: string;
     displayName?: string;
     workerType?: string;
     hourlyRate?: number;
+    federalFilingStatus?: string;
+    w4Step3Amount?: number;
+    w4CollectedAt?: string | null;
     defaultCrewId?: string | null;
     active?: boolean;
   };
@@ -1570,6 +1646,28 @@ app.patch("/api/employees/:employeeId", authenticate, asyncHandler(async (req: A
 
   if (!isFiniteNonNegativeNumber(hourlyRate)) {
     res.status(400).json({ error: "Hourly rate must be a non-negative number." });
+    return;
+  }
+
+  const nextFederalFilingStatus = normalizeFederalFilingStatus(federalFilingStatus ?? currentEmployee.federalFilingStatus);
+  if (!nextFederalFilingStatus) {
+    res.status(400).json({ error: "Federal filing status must be single, married jointly, or head of household." });
+    return;
+  }
+
+  if (w4Step3Amount !== undefined && !isFiniteNonNegativeNumber(w4Step3Amount)) {
+    res.status(400).json({ error: "W-4 Step 3 amount must be a non-negative number." });
+    return;
+  }
+
+  const parsedW4CollectedAt =
+    w4CollectedAt === undefined
+      ? currentEmployee.w4CollectedAt
+      : w4CollectedAt === null
+        ? null
+        : new Date(w4CollectedAt);
+  if (parsedW4CollectedAt && Number.isNaN(parsedW4CollectedAt.getTime())) {
+    res.status(400).json({ error: "W-4 collected date is invalid." });
     return;
   }
 
@@ -1606,6 +1704,9 @@ app.patch("/api/employees/:employeeId", authenticate, asyncHandler(async (req: A
       employmentStatus: nextEmploymentStatus,
       hourlyRateCents,
       overtimeRateCents: payrollSettings.payType === "HOURLY" ? hourlyRateCents : null,
+      federalFilingStatus: nextFederalFilingStatus,
+      w4Step3Amount: w4Step3Amount ?? currentEmployee.w4Step3Amount,
+      w4CollectedAt: parsedW4CollectedAt,
       defaultCrewId: cleanDefaultCrewId,
       usesCompanyFederalDefault: !isContractor,
       usesCompanyStateDefault: !isContractor,

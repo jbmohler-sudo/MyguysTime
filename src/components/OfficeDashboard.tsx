@@ -281,12 +281,19 @@ export function OfficeDashboard({
                 </div>
                 {!isServicePayroll ? (
                   <div>
-                    <span>Withholding est.</span>
+                    <span>Federal est.</span>
                     <strong>
-                      {formatCurrency(
-                        week.payrollEstimate.federalWithholding + week.payrollEstimate.stateWithholding,
-                      )}
+                      {formatCurrency(week.payrollEstimate.federalWithholding)}
                     </strong>
+                    {week.payrollEstimate.w4NotOnFile ? (
+                      <span className="table-row-subcopy">W-4 not on file</span>
+                    ) : null}
+                  </div>
+                ) : null}
+                {!isServicePayroll ? (
+                  <div>
+                    <span>State est.</span>
+                    <strong>{formatCurrency(week.payrollEstimate.stateWithholding)}</strong>
                   </div>
                 ) : null}
                 <div>

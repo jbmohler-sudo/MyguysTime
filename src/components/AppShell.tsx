@@ -23,6 +23,7 @@ import { OfficeDashboard } from "./OfficeDashboard";
 import { PrivateReportsPanel } from "./PrivateReportsPanel";
 import { TeamManagementPanel } from "./TeamManagementPanel";
 import { WeeklyCrewBoard } from "./WeeklyCrewBoard";
+import { W4MissingAlertBanner } from "./W4MissingAlertBanner";
 import { useOnboardingContext } from "../hooks/useOnboarding";
 import { Home, Users, Settings, Archive, LogOut } from "lucide-react";
 import { getWeekStartIso } from "../domain/week";
@@ -108,6 +109,7 @@ export function AppShell({
   onSubmitPrivateReport,
   onExport,
   onUpdateCompanySettings,
+  onCreateEmployee,
   onListInvites,
   onCreateInvite,
   onResendInvite,
@@ -882,9 +884,11 @@ export function AppShell({
         <AddEmployeeModal
           isOpen={showAddEmployeeModal}
           crews={data.crews}
+          payrollMethod={data.companySettings?.payrollMethod ?? "manual"}
           onClose={() => setShowAddEmployeeModal(false)}
           onSave={async (employee) => {
-            console.log("New employee data:", employee);
+            await onCreateEmployee(employee);
+            await onRefresh(data.weekStart);
             setShowAddEmployeeModal(false);
           }}
         />
@@ -1379,11 +1383,17 @@ export function AppShell({
         {activePage === "dashboard" ? (
           <>
             {uiMode === "office" ? (
-              <MissingTimeAlertBanner
-                employeeWeeks={data.employeeWeeks}
-                onQuickFix={handleQuickFixMissingTime}
-                onSendReminders={onSendReminders}
-              />
+              <>
+                <W4MissingAlertBanner
+                  companySettings={data.companySettings}
+                  employeeWeeks={data.employeeWeeks}
+                />
+                <MissingTimeAlertBanner
+                  employeeWeeks={data.employeeWeeks}
+                  onQuickFix={handleQuickFixMissingTime}
+                  onSendReminders={onSendReminders}
+                />
+              </>
             ) : null}
 
             <WeeklyCrewBoard
@@ -1525,9 +1535,11 @@ export function AppShell({
       <AddEmployeeModal
         isOpen={showAddEmployeeModal}
         crews={data.crews}
+        payrollMethod={data.companySettings?.payrollMethod ?? "manual"}
         onClose={() => setShowAddEmployeeModal(false)}
         onSave={async (employee) => {
-          console.log("New employee data:", employee);
+          await onCreateEmployee(employee);
+          await onRefresh(data.weekStart);
           setShowAddEmployeeModal(false);
         }}
       />
