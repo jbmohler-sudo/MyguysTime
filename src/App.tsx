@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AppShell } from "./components/AppShell";
 import { OnboardingProvider } from "./hooks/useOnboarding";
 import { ToastProvider } from "./hooks/useToast";
+import { ViewProvider } from "./context/ViewContext";
 import { CompanySetupScreen } from "./components/CompanySetupScreen";
 import { PublicHomepage } from "./components/PublicHomepage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
@@ -511,6 +512,7 @@ function AppContent() {
   }
 
   return (
+    <ViewProvider>
     <ToastProvider>
     <OnboardingProvider>
       <AppShell
@@ -541,6 +543,7 @@ function AppContent() {
       />
     </OnboardingProvider>
     </ToastProvider>
+    </ViewProvider>
   );
 }
 
