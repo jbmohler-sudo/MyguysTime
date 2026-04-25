@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Guys Time — Interactive Mockup v2</title>
+<style>
+:root {
+  --orange: #FF8C00;
+  --orange-soft: rgba(255,140,0,0.10);
+  --orange-strong: #cc6f00;
+  --teal: #00BCD4;
+  --dark: #1A1A1B;
+  --light: #F8F9FA;
+  --muted: #5f6f8f;
+  --border: #d8e1f0;
+  --surface: #ffffff;
+  --app-bg: #f0f3f9;
+  --green: #247a4d;
+  --green-soft: #e5f6ec;
+  --yellow: #b7791f;
+  --yellow-soft: #fff3db;
+  --blue: #2b5fce;
+  --blue-soft: #e8f0ff;
+  --slate: #44516a;
+  --slate-soft: #edf1f6;
+  --red: #b43c3c;
+  --red-soft: #fdeaea;
+  --purple: #6d28d9;
+  --purple-soft: #ede9fe;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(15,23,42,0.07);
+  --shadow-lg: 0 8px 28px rgba(15,23,42,0.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, system-ui, sans-serif; background: var(--app-bg); color: var(--dark); line-height: 1.45; font-size: 14px; }
+
+/* ── Role switcher ── */
+#role-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+  background: #111; color: white;
+  display: flex; align-items: center; gap: 0; padding: 0 16px;
+  height: 44px; font-size: 13px;
+}
+#role-bar span { margin-right: 12px; font-weight: 600; color: #888; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; }
+.role-btn {
+  padding: 6px 16px; border: none; border-radius: 6px; cursor: pointer;
+  font-size: 13px; font-weight: 600; margin-right: 6px;
+  background: rgba(255,255,255,0.08); color: #bbb; transition: all .15s;
+}
+.role-btn:hover { background: rgba(255,255,255,0.18); color: white; }
+.role-btn.active { background: var(--orange); color: white; }
+#role-bar .spacer { flex: 1; }
+#role-bar .note { font-size: 11px; color: #555; }
+.view-note {
+  display: inline-block; background: rgba(255,140,0,0.15); color: #ffb347;
+  border-radius: 6px; padding: 2px 10px; font-size: 11px; font-weight: 600; margin-left: 12px;
+}
+
+/* ── App header ── */
+.app-header {
+  position: sticky; top: 44px; z-index: 100;
+  background: white; border-bottom: 3px solid var(--orange);
+  padding: 10px 24px 0; box-shadow: var(--shadow-lg);
+}
+.header-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 8px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.logo-box {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: var(--orange); display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 900; font-size: 15px; flex-shrink: 0;
+}
+.brand-name { font-weight: 700; font-size: .95rem; color: var(--dark); }
+.header-meta { display: flex; align-items: center; gap: 10px; font-size: .8rem; color: #666; }
+.role-pill { background: #F0F0F0; color: #555; padding: 2px 9px; border-radius: 12px; font-size: .68rem; font-weight: 700; }
+.mode-pill { color: white; padding: 4px 12px; border-radius: 20px; font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.mode-pill--office { background: var(--orange); }
+.mode-pill--truck { background: var(--teal); }
+.app-nav { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+.nav-btn {
+  background: none; border: none; border-bottom: 2px solid transparent;
+  color: #666; font-weight: 500; padding: 8px 14px; cursor: pointer;
+  font-size: .85rem; border-radius: 6px 6px 0 0; transition: all .15s;
+}
+.nav-btn:hover { background: #F5F5F5; color: var(--dark); }
+.nav-btn.active { background: var(--orange-soft); color: var(--orange); font-weight: 700; border-bottom-color: var(--orange); }
+.nav-spacer { flex: 1; }
+.export-btn {
+  padding: 7px 14px; border-radius: 6px; background: var(--orange);
+  color: white; border: none; font-size: .8rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+  transition: all .15s;
+}
+.export-btn:hover { background: var(--orange-strong); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,140,0,.3); }
+.help-btn {
+  width: 36px; height: 36px; border: 1.5px solid #DDD; border-radius: 50%;
+  background: none; cursor: pointer; font-weight: 700; color: #888; font-size: .85rem;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── Layout ── */
+.main { padding: 20px 24px 60px; max-width: 1200px; margin: 0 auto; }
+.mode-banner {
+  background: white; border-left: 4px solid var(--orange);
+  padding: 10px 16px; border-radius: 0 8px 8px 0;
+  display: flex; align-items: center; gap: 10px; font-size: .82rem;
+  box-shadow: var(--shadow); margin-bottom: 16px;
+}
+.mode-banner--truck { border-left-color: var(--teal); }
+.mode-banner strong { white-space: nowrap; }
+
+/* ── Generic panel ── */
+.panel {
+  background: white; border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; overflow: hidden;
+}
+.panel-header {
+  padding: 16px 20px 12px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+}
+.eyebrow { font-size: .67rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--orange); margin-bottom: 3px; }
+.panel-title { font-size: 1.05rem; font-weight: 700; color: var(--dark); margin-bottom: 3px; }
+.panel-sub { font-size: .8rem; color: var(--muted); }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.btn { padding: 7px 14px; border-radius: 8px; font-size: .8rem; font-weight: 600; cursor: pointer; border: none; transition: all .15s; }
+.btn-primary { background: var(--orange); color: white; }
+.btn-primary:hover { background: var(--orange-strong); }
+.btn-ghost { background: none; color: var(--dark); border: 1.5px solid var(--border); }
+.btn-ghost:hover { background: #f5f5f5; border-color: #bbb; }
+.btn-success { background: var(--green); color: white; }
+.btn-success:hover { background: #1a6040; }
+.btn-purple { background: var(--purple); color: white; }
+.btn-sm { padding: 5px 11px; font-size: .75rem; }
+
+/* ── Stats ── */
+.stats-row { display: flex; gap: 10px; padding: 14px 20px; border-bottom: 1px solid var(--border); background: #fafbfd; flex-wrap: wrap; }
+.stat-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; min-width: 120px; flex: 1; }
+.stat-label { font-size: .7rem; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+.stat-value { font-size: 1.35rem; font-weight: 800; color: var(--dark); }
+.stat-value--orange { color: var(--orange); }
+.stat-value--green { color: var(--green); }
+.stat-helper { font-size: .67rem; color: var(--muted); margin-top: 2px; }
+
+/* ── Chips ── */
+.chip { padding: 3px 10px; border-radius: 999px; font-size: .7rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+.chip--ok { background: var(--green-soft); color: var(--green); }
+.chip--warn { background: var(--yellow-soft); color: var(--yellow); }
+.chip--blue { background: var(--blue-soft); color: var(--blue); }
+.chip--slate { background: var(--slate-soft); color: var(--slate); }
+.chip--orange { background: var(--orange-soft); color: var(--orange-strong); }
+.chip--red { background: var(--red-soft); color: var(--red); }
+.chip--purple { background: var(--purple-soft); color: var(--purple); }
+.chip--green { background: var(--green-soft); color: var(--green); }
+.status-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: .7rem; font-weight: 600; }
+.status--draft { background: var(--yellow-soft); color: var(--yellow); }
+.status--confirmed { background: var(--blue-soft); color: var(--blue); }
+.status--approved { background: var(--green-soft); color: var(--green); }
+.status--locked { background: var(--slate-soft); color: var(--slate); }
+.status--ready { background: var(--purple-soft); color: var(--purple); }
+
+/* ══════════════════════════════════════════════
+   CREW PAYROLL WORKFLOW — the new centerpiece
+══════════════════════════════════════════════ */
+
+/* Phase indicator bar */
+.workflow-phases {
+  display: flex; align-items: center; gap: 0;
+  padding: 14px 20px; border-bottom: 1px solid var(--border); background: #fafbfd;
+  overflow-x: auto;
+}
+.phase {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border-radius: 8px; cursor: pointer;
+  font-size: .8rem; font-weight: 600; color: var(--muted); white-space: nowrap;
+  transition: all .15s;
+}
+.phase:hover { background: #f0f0f0; }
+.phase.active { background: var(--orange-soft); color: var(--orange); }
+.phase.done { color: var(--green); }
+.phase-num {
+  width: 22px; height: 22px; border-radius: 50%; border: 2px solid currentColor;
+  display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 800; flex-shrink: 0;
+}
+.phase.done .phase-num { background: var(--green); border-color: var(--green); color: white; }
+.phase.active .phase-num { background: var(--orange); border-color: var(--orange); color: white; }
+.phase-arrow { color: #ccc; font-size: 1.1rem; margin: 0 4px; flex-shrink: 0; }
+
+/* Crew accordion */
+.crew-section { border-bottom: 1px solid var(--border); }
+.crew-section:last-child { border-bottom: none; }
+.crew-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 20px; cursor: pointer; transition: background .15s;
+  user-select: none;
+}
+.crew-header:hover { background: #fafbfd; }
+.crew-header.open { background: var(--orange-soft); border-bottom: 1px solid rgba(255,140,0,.2); }
+.crew-chevron { font-size: .75rem; color: var(--muted); transition: transform .2s; flex-shrink: 0; }
+.crew-chevron.open { transform: rotate(90deg); color: var(--orange); }
+.crew-title { font-weight: 700; font-size: .95rem; flex: 1; }
+.crew-meta { font-size: .75rem; color: var(--muted); }
+.crew-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.crew-body { display: none; }
+.crew-body.open { display: block; }
+
+/* Mini employee row (compact, good for 10 people) */
+.emp-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 20px; border-bottom: 1px solid #f0f3f9;
+  font-size: .82rem; transition: background .12s; cursor: pointer;
+}
+.emp-row:last-child { border-bottom: none; }
+.emp-row:hover { background: #fafbfd; }
+.emp-row.selected { background: var(--orange-soft); }
+.emp-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 800; color: white; flex-shrink: 0;
+}
+.emp-row-name { font-weight: 600; width: 130px; flex-shrink: 0; }
+.emp-row-hours { width: 55px; font-weight: 700; flex-shrink: 0; }
+.emp-row-status { width: 130px; flex-shrink: 0; }
+.emp-row-net { font-weight: 800; color: var(--orange); width: 90px; flex-shrink: 0; }
+.emp-row-type { width: 50px; flex-shrink: 0; }
+.emp-row-check { flex: 1; }
+.days-mini { display: flex; gap: 3px; }
+.day-dot {
+  width: 20px; height: 20px; border-radius: 4px; border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .58rem; font-weight: 700; color: var(--muted); background: #fafbfd;
+}
+.day-dot--filled { background: var(--orange-soft); border-color: var(--orange); color: var(--orange-strong); }
+.day-dot--confirmed { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+.day-dot--off { opacity: .35; }
+
+/* Crew payroll summary footer */
+.crew-payroll-footer {
+  padding: 14px 20px; background: #fafbfd; border-top: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.crew-totals { display: flex; gap: 20px; flex-wrap: wrap; }
+.crew-total-item { display: flex; flex-direction: column; gap: 2px; }
+.crew-total-item span { font-size: .68rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.crew-total-item strong { font-size: 1rem; font-weight: 800; color: var(--dark); }
+.crew-total-item.big strong { font-size: 1.2rem; color: var(--orange); }
+
+/* Handshake / approve button */
+.crew-approve-btn {
+  padding: 10px 22px; background: var(--green); color: white; border: none;
+  border-radius: 10px; font-size: .9rem; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; gap: 8px; transition: all .15s; white-space: nowrap;
+}
+.crew-approve-btn:hover { background: #1a6040; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(36,122,77,.3); }
+.crew-approve-btn.approved { background: var(--slate); cursor: default; }
+.crew-approve-btn.approved:hover { transform: none; box-shadow: none; background: var(--slate); }
+
+/* ── Payroll Handoff section ── */
+.handoff-section {
+  padding: 20px; display: grid; gap: 14px;
+}
+.handoff-card {
+  border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  transition: box-shadow .15s; cursor: pointer;
+}
+.handoff-card:hover { box-shadow: var(--shadow-lg); }
+.handoff-card-header {
+  padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid var(--border); background: #fafbfd;
+}
+.handoff-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;
+}
+.handoff-card-body { padding: 14px 16px; }
+.handoff-title { font-weight: 700; font-size: .92rem; }
+.handoff-desc { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+.handoff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+
+.csv-preview {
+  font-family: ui-monospace, monospace; font-size: .72rem; background: #1e1e2e;
+  color: #cdd6f4; border-radius: 8px; padding: 12px 14px; overflow-x: auto;
+  line-height: 1.6; margin-top: 10px;
+}
+.csv-preview .csv-header { color: #89dceb; font-weight: 700; }
+.csv-preview .csv-row { color: #a6e3a1; }
+
+/* ── Week context bar ── */
+.week-context-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+.week-chip { padding: 3px 10px; border-radius: 999px; font-size: .7rem; font-weight: 700; background: var(--green-soft); color: var(--green); }
+.week-note { font-size: .75rem; color: var(--muted); }
+
+/* ── Team table ── */
+.team-table { width: 100%; border-collapse: collapse; font-size: .83rem; }
+.team-table th { text-align: left; padding: 10px 14px; font-size: .68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; border-bottom: 2px solid var(--border); background: #fafbfd; }
+.team-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.team-table tr:last-child td { border-bottom: none; }
+.team-table tr:hover td { background: #fafbfd; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: .68rem; color: white; flex-shrink: 0; }
+.emp-cell { display: flex; align-items: center; gap: 9px; }
+
+/* ── Truck view ── */
+.strip-btn { padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 10px; background: white; cursor: pointer; text-align: left; min-width: 110px; transition: all .15s; font-size: .8rem; }
+.strip-btn.active { border-color: var(--orange); background: var(--orange-soft); }
+.strip-btn strong { display: block; font-size: .82rem; font-weight: 700; }
+.strip-btn span { font-size: .7rem; color: var(--muted); }
+.strip-btn em { display: block; font-style: normal; font-size: .65rem; color: var(--muted); margin-top: 2px; }
+.day-tab { padding: 8px 14px; border: 1.5px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0; background: #f5f5f5; cursor: pointer; font-size: .8rem; font-weight: 600; color: var(--muted); transition: all .15s; }
+.day-tab.active { background: white; border-color: var(--orange); color: var(--dark); }
+.day-tab.today { color: var(--blue); }
+.time-field { display: flex; flex-direction: column; gap: 4px; font-size: .8rem; font-weight: 600; color: var(--muted); }
+.time-field input[type="time"] { padding: 10px 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; font-weight: 700; color: var(--dark); background: white; cursor: pointer; width: 130px; }
+.time-field input[type="time"]:focus { border-color: var(--orange); outline: none; }
+.adj-btn { padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 8px; background: white; font-size: .78rem; font-weight: 700; cursor: pointer; color: var(--dark); }
+.adj-btn:hover { background: var(--orange-soft); border-color: var(--orange); }
+.confirm-strip { background: var(--green-soft); border: 1px solid var(--green); border-radius: 10px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-size: .85rem; }
+.btn-confirm { background: var(--green); color: white; border: none; border-radius: 8px; padding: 8px 18px; font-weight: 700; cursor: pointer; }
+
+/* ── Pages ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── Missing time banner ── */
+.missing-banner { background: rgba(255,140,0,0.06); border-left: 4px solid var(--orange); padding: 12px 18px; border-radius: 0 8px 8px 0; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+
+/* ── Mobile employee view ── */
+.employee-view { max-width: 420px; margin: 0 auto; }
+.employee-header { background: var(--dark); color: white; padding: 20px 16px 12px; border-radius: var(--radius) var(--radius) 0 0; }
+.employee-header .eyebrow { color: var(--teal); }
+.employee-header h2 { font-size: 1.3rem; font-weight: 800; margin: 4px 0; }
+.emp-week-label { font-size: .78rem; color: #aaa; }
+.emp-days-scroll { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; }
+.emp-day-btn { min-width: 58px; border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 6px; text-align: center; cursor: pointer; background: white; font-size: .72rem; flex-shrink: 0; transition: all .15s; }
+.emp-day-btn.today { border-color: var(--blue); background: var(--blue-soft); }
+.emp-day-btn.active { border-color: var(--orange); background: var(--orange-soft); }
+.emp-day-btn .day-h { font-size: .82rem; font-weight: 800; color: var(--orange); margin-top: 4px; }
+.emp-time-entry { padding: 16px; border: 1px solid var(--border); border-radius: 0 0 var(--radius) var(--radius); background: white; }
+.big-time-display { text-align: center; padding: 20px; background: var(--dark); border-radius: 12px; margin-bottom: 14px; }
+.big-time-display .time-val { font-size: 2.5rem; font-weight: 900; color: white; letter-spacing: .05em; }
+.big-time-display .time-sub { font-size: .8rem; color: #aaa; margin-top: 4px; }
+.tap-adjust { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.tap-btn { padding: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: white; font-size: .85rem; font-weight: 700; cursor: pointer; text-align: center; transition: all .15s; }
+.tap-btn .tap-label { font-size: .68rem; color: var(--muted); font-weight: 500; margin-bottom: 4px; }
+.tap-btn:hover { background: var(--orange-soft); border-color: var(--orange); }
+
+/* ── Annotations ── */
+.annotation {
+  background: #fffbe6; border: 1px solid #f5d020; border-radius: 8px;
+  padding: 8px 12px; font-size: .76rem; color: #7a5900; margin: 8px 20px;
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.annotation::before { content: "💬"; flex-shrink: 0; }
+
+/* ── Select ── */
+select.sel { padding: 7px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: .82rem; background: white; cursor: pointer; }
+
+@media (max-width: 700px) {
+  .emp-row-hours, .emp-row-type, .emp-row-check, .days-mini { display: none; }
+  .handoff-grid { grid-template-columns: 1fr; }
+  .crew-totals { gap: 12px; }
+  .stats-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ ROLE BAR ═══ -->
+<div id="role-bar">
+  <span>View As:</span>
+  <button class="role-btn active" onclick="switchRole('admin')" id="btn-admin">👔 Admin / Office</button>
+  <button class="role-btn" onclick="switchRole('foreman')" id="btn-foreman">🚛 Foreman / Truck</button>
+  <button class="role-btn" onclick="switchRole('employee')" id="btn-employee">👷 Employee / Mobile</button>
+  <div class="spacer"></div>
+  <span class="note">Mockup v2 — not connected to live data</span>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     ADMIN VIEW
+══════════════════════════════════════════════════════════════ -->
+<div id="view-admin" class="view">
+  <div class="app-header">
+    <div class="header-top">
+      <div class="brand">
+        <div class="logo-box">M</div>
+        <span class="brand-name">Weekly time review and payroll-prep for contractor crews.</span>
+      </div>
+      <div class="header-meta">
+        Signed in as <strong style="color:var(--dark)">Jeff Mohler</strong>
+        <span class="role-pill">admin</span>
+        <span style="color:#aaa">ABC Contracting Co.</span>
+      </div>
+    </div>
+    <nav class="app-nav">
+      <button class="nav-btn active" onclick="adminTab('dashboard',this)">Dashboard</button>
+      <button class="nav-btn" onclick="adminTab('team',this)">Team</button>
+      <button class="nav-btn" onclick="adminTab('company-settings',this)">Company Settings</button>
+      <button class="nav-btn" onclick="adminTab('account-settings',this)">Account Settings</button>
+      <button class="nav-btn" onclick="adminTab('archive',this)">Archive</button>
+      <span class="nav-spacer"></span>
+      <button class="export-btn" onclick="showPayrollModal()">📥 Export Payroll</button>
+      <button class="help-btn">?</button>
+      <span class="mode-pill mode-pill--office">Office</span>
+      <label style="font-size:.78rem;color:#666;font-weight:500;display:flex;align-items:center;gap:6px">
+        Week <input type="date" value="2026-04-21" style="border:2px solid #EEE;border-radius:6px;padding:4px 8px;font-size:.8rem">
+      </label>
+      <button class="nav-btn" style="color:#888">Sign out</button>
+    </nav>
+  </div>
+
+  <div class="main">
+
+    <!-- ═══ DASHBOARD PAGE ═══ -->
+    <div id="admin-dashboard" class="page active">
+      <div class="mode-banner">
+        <strong>Office mode</strong>
+        <span>Review each crew's week, approve it, then hand off to payroll. Team, settings, and archive live in their own pages.</span>
+      </div>
+
+      <!-- Top stats -->
+      <div class="panel">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Total gross (all crews)</div>
+            <div class="stat-value">$14,320</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Net estimate (all crews)</div>
+            <div class="stat-value stat-value--orange">$12,881</div>
+            <div class="stat-helper">The number your accountant wants</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Reimbursements</div>
+            <div class="stat-value">$312</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Missing confirmations</div>
+            <div class="stat-value stat-value--orange" id="missing-count">4</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Crews ready for payroll</div>
+            <div class="stat-value stat-value--green" id="ready-count">0 / 3</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="annotation">
+        <b>Brainstorm note:</b> The old page had the crew board and office dashboard both here, scrolling forever. New idea below: one panel per crew, collapsed by default. You review the crew, confirm it's good, hit "Approve Crew for Payroll" — then the Export button lights up. Like a handshake before the check.
+      </div>
+
+      <!-- ══ CREW PAYROLL PANEL ══ -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Crew Payroll Review</p>
+            <h2 class="panel-title">Review each crew, approve, then export</h2>
+            <p class="panel-sub">Expand a crew to review hours and net estimates. Approve when it looks right. All 3 crews approved = export unlocks.</p>
+          </div>
+          <div class="toolbar">
+            <select class="sel" onchange="filterCrew(this.value)">
+              <option value="all">All 3 crews</option>
+              <option value="masonry">Masonry Crew</option>
+              <option value="framing">Framing Crew</option>
+              <option value="electric">Electric Crew</option>
+            </select>
+            <button class="btn btn-primary" id="export-all-btn" disabled style="opacity:.4;cursor:not-allowed" onclick="exportAll()">
+              📥 Export All Crews
+            </button>
+          </div>
+        </div>
+
+        <!-- Phase bar -->
+        <div class="workflow-phases">
+          <div class="phase active" id="phase-1">
+            <div class="phase-num">1</div>
+            Review weeks
+          </div>
+          <div class="phase-arrow">›</div>
+          <div class="phase" id="phase-2">
+            <div class="phase-num">2</div>
+            Approve each crew
+          </div>
+          <div class="phase-arrow">›</div>
+          <div class="phase" id="phase-3">
+            <div class="phase-num">3</div>
+            Export &amp; hand off
+          </div>
+        </div>
+
+        <!-- ─── CREW 1: MASONRY ─── -->
+        <div class="crew-section" id="crew-masonry">
+          <div class="crew-header" onclick="toggleCrew('masonry')">
+            <span class="crew-chevron" id="chevron-masonry">›</span>
+            <div style="flex:1">
+              <div class="crew-title">Masonry Crew <span style="font-weight:400;color:var(--muted);font-size:.82rem">· 4 workers</span></div>
+            </div>
+            <div class="crew-badges">
+              <span class="chip chip--warn" id="masonry-missing">2 missing confirm</span>
+              <span class="chip chip--orange">Gross: $4,860</span>
+              <span class="chip chip--orange">Net: $4,312</span>
+              <span class="status-badge status--draft" id="masonry-status">Needs review</span>
+            </div>
+          </div>
+          <div class="crew-body" id="body-masonry">
+            <!-- column labels -->
+            <div style="display:flex;align-items:center;gap:12px;padding:8px 20px;background:#fafbfd;border-bottom:1px solid var(--border);font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">
+              <div style="width:30px;flex-shrink:0"></div>
+              <div style="width:130px;flex-shrink:0">Name</div>
+              <div style="width:55px;flex-shrink:0">Hours</div>
+              <div style="width:130px;flex-shrink:0">Status</div>
+              <div style="flex:1">M T W T F S S</div>
+              <div style="width:50px;flex-shrink:0">Type</div>
+              <div style="width:90px;flex-shrink:0">Net Est.</div>
+            </div>
+            <!-- 4 workers -->
+            <div class="emp-row" onclick="toggleEmpDetail(this,'masonry-carlos')">
+              <div class="emp-avatar" style="background:#e86931">CM</div>
+              <div class="emp-row-name">Carlos Mendoza</div>
+              <div class="emp-row-hours">37.5h</div>
+              <div class="emp-row-status"><span class="status-badge status--approved">Foreman Approved</span></div>
+              <div class="emp-row-check days-mini">
+                <div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">W</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div>
+              </div>
+              <div class="emp-row-type"><span class="chip chip--blue" style="font-size:.65rem">W2</span></div>
+              <div class="emp-row-net">$1,248</div>
+            </div>
+            <div class="emp-row" onclick="toggleEmpDetail(this,'masonry-jose')">
+              <div class="emp-avatar" style="background:#b7791f">JR</div>
+              <div class="emp-row-name">Jose Ramirez</div>
+              <div class="emp-row-hours">40.0h</div>
+              <div class="emp-row-status"><span class="status-badge status--approved">Foreman Approved</span></div>
+              <div class="emp-row-check days-mini">
+                <div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">W</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div>
+              </div>
+              <div class="emp-row-type"><span class="chip chip--blue" style="font-size:.65rem">W2</span></div>
+              <div class="emp-row-net">$1,360</div>
+            </div>
+            <div class="emp-row" onclick="toggleEmpDetail(this,'masonry-luis')">
+              <div class="emp-avatar" style="background:#6d28d9">LG</div>
+              <div class="emp-row-name">Luis Garcia</div>
+              <div class="emp-row-hours">32.0h</div>
+              <div class="emp-row-status"><span class="status-badge status--confirmed">Confirmed</span></div>
+              <div class="emp-row-check days-mini">
+                <div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--filled">W</div><div class="day-dot day-dot--filled">T</div><div class="day-dot day-dot--off">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div>
+              </div>
+              <div class="emp-row-type"><span class="chip chip--blue" style="font-size:.65rem">W2</span></div>
+              <div class="emp-row-net">$912</div>
+            </div>
+            <div class="emp-row" onclick="toggleEmpDetail(this,'masonry-roberto')">
+              <div class="emp-avatar" style="background:#b43c3c">RV</div>
+              <div class="emp-row-name">Roberto Vargas</div>
+              <div class="emp-row-hours">24.0h</div>
+              <div class="emp-row-status"><span class="status-badge status--draft">Draft</span></div>
+              <div class="emp-row-check days-mini">
+                <div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--filled">T</div><div class="day-dot">W</div><div class="day-dot">T</div><div class="day-dot">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div>
+              </div>
+              <div class="emp-row-type"><span class="chip chip--blue" style="font-size:.65rem">W2</span></div>
+              <div class="emp-row-net">$792</div>
+            </div>
+
+            <div class="crew-payroll-footer">
+              <div class="crew-totals">
+                <div class="crew-total-item"><span>Gross pay</span><strong>$4,860</strong></div>
+                <div class="crew-total-item"><span>Withholding est.</span><strong>$548</strong></div>
+                <div class="crew-total-item"><span>Reimbursements</span><strong>+$96</strong></div>
+                <div class="crew-total-item big"><span>Total net checks</span><strong>$4,312</strong></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+                <div style="font-size:.74rem;color:var(--yellow);background:var(--yellow-soft);padding:5px 12px;border-radius:8px">
+                  ⚠ 2 timesheets still in Draft
+                </div>
+                <button class="crew-approve-btn" id="approve-masonry" onclick="approveCrew('masonry',event)">
+                  ✓ Approve Masonry for Payroll
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── CREW 2: FRAMING (10 guys to show clutter question) ─── -->
+        <div class="crew-section" id="crew-framing">
+          <div class="crew-header" onclick="toggleCrew('framing')">
+            <span class="crew-chevron" id="chevron-framing">›</span>
+            <div style="flex:1">
+              <div class="crew-title">Framing Crew <span style="font-weight:400;color:var(--muted);font-size:.82rem">· 10 workers</span></div>
+            </div>
+            <div class="crew-badges">
+              <span class="chip chip--warn" id="framing-missing">2 missing confirm</span>
+              <span class="chip chip--orange">Gross: $6,200</span>
+              <span class="chip chip--orange">Net: $5,540</span>
+              <span class="status-badge status--draft" id="framing-status">Needs review</span>
+            </div>
+          </div>
+          <div class="crew-body" id="body-framing">
+            <div class="annotation" style="margin:10px 20px">
+              This is the "10 guys" scenario you were worried about. With the compact row layout, 10 workers fit in about 400px of vertical space — no worse than a Slack channel. You can still scan names, hours, and net estimates at a glance without scrolling forever.
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:8px 20px;background:#fafbfd;border-bottom:1px solid var(--border);font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">
+              <div style="width:30px;flex-shrink:0"></div>
+              <div style="width:130px;flex-shrink:0">Name</div>
+              <div style="width:55px;flex-shrink:0">Hours</div>
+              <div style="width:130px;flex-shrink:0">Status</div>
+              <div style="flex:1">M T W T F S S</div>
+              <div style="width:50px;flex-shrink:0">Type</div>
+              <div style="width:90px;flex-shrink:0">Net Est.</div>
+            </div>
+            <!-- 10 rows -->
+            <div class="emp-row"><div class="emp-avatar" style="background:#2b5fce">MT</div><div class="emp-row-name">Mike Torres</div><div class="emp-row-hours">40.0h</div><div class="emp-row-status"><span class="status-badge status--approved">Foreman Approved</span></div><div class="emp-row-check days-mini"><div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">W</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div></div><div class="emp-row-type"><span class="chip chip--slate" style="font-size:.65rem">1099</span></div><div class="emp-row-net">$920</div></div>
+            <div class="emp-row"><div class="emp-avatar" style="background:#247a4d">AP</div><div class="emp-row-name">Andre Patterson</div><div class="emp-row-hours">38.5h</div><div class="emp-row-status"><span class="status-badge status--approved">Foreman Approved</span></div><div class="emp-row-check days-mini"><div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">W</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div></div><div class="emp-row-type"><span class="chip chip--blue" style="font-size:.65rem">W2</span></div><div class="emp-row-net">$1,062</div></div>
+            <div class="emp-row"><div class="emp-avatar" style="background:#e86931">DC</div><div class="emp-row-name">Diego Cruz</div><div class="emp-row-hours">40.0h</div><div class="emp-row-status"><span class="status-badge status--confirmed">Confirmed</span></div><div class="emp-row-check days-mini"><div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">W</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div></div><div class="emp-row-type"><span class="chip chip--blue" style="font-size:.65rem">W2</span></div><div class="emp-row-net">$1,100</div></div>
+            <div class="emp-row"><div class="emp-avatar" style="background:#6d28d9">TJ</div><div class="emp-row-name">Tony Johnson</div><div class="emp-row-hours">35.0h</div><div class="emp-row-status"><span class="status-badge status--confirmed">Confirmed</span></div><div class="emp-row-check days-mini"><div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">W</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div></div><div class="emp-row-type"><span class="chip chip--blue" style="font-size:.65rem">W2</span></div><div class="emp-row-net">$940</div></div>
+            <div class="emp-row"><div class="emp-avatar" style="background:#b7791f">SL</div><div class="emp-row-name">Sam Liu</div><div class="emp-row-hours">40.0h</div><div class="emp-row-status"><span class="status-badge status--approved">Foreman Approved</span></div><div class="emp-row-check days-mini"><div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">W</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div></div><div class="emp-row-type"><span class="chip chip--slate" style="font-size:.65rem">1099</span></div><div class="emp-row-net">$880</div></div>
+            <div class="emp-row"><div class="emp-avatar" style="background:#44516a">PN</div><div class="emp-row-name">Pedro Navarro</div><div class="emp-row-hours">32.0h</div><div class="emp-row-status"><span class="status-badge status--confirmed">Confirmed</span></div><div class="emp-row-check days-mini"><div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--filled">W</div><div class="day-dot day-dot--filled">T</div><div class="day-dot day-dot--off">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div></div><div class="emp-row-type"><span class="chip chip--blue" style="font-size:.65rem">W2</span></div><div class="emp-row-net">$838</div></div>
+            <div class="emp-row"><div class="emp-avatar" style="background:#b43c3c">EW</div><div class="emp-row-name">Eric Walker</div><div class="emp-row-hours">40.0h</div><div class="emp-row-status"><span class="status-badge status--draft">Draft</span></div><div class="emp-row-check days-mini"><div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--filled">T</div><div class="day-dot day-dot--filled">W</div><div class="day-dot">T</div><div class="day-dot">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div></div><div class="emp-row-type"><span class="chip chip--blue" style="font-size:.65rem">W2</span></div><div class="emp-row-net">$1,080</div></div>
+            <div class="emp-row"><div class="emp-avatar" style="background:#2b5fce">KM</div><div class="emp-row-name">Kevin Mills</div><div class="emp-row-hours">38.0h</div><div class="emp-row-status"><span class="status-badge status--approved">Foreman Approved</span></div><div class="emp-row-check days-mini"><div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">W</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div></div><div class="emp-row-type"><span class="chip chip--blue" style="font-size:.65rem">W2</span></div><div class="emp-row-net">$1,040</div></div>
+            <div class="emp-row"><div class="emp-avatar" style="background:#247a4d">FB</div><div class="emp-row-name">Frank Bauer</div><div class="emp-row-hours">36.0h</div><div class="emp-row-status"><span class="status-badge status--confirmed">Confirmed</span></div><div class="emp-row-check days-mini"><div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">W</div><div class="day-dot day-dot--filled">T</div><div class="day-dot day-dot--filled">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div></div><div class="emp-row-type"><span class="chip chip--slate" style="font-size:.65rem">1099</span></div><div class="emp-row-net">$828</div></div>
+            <div class="emp-row"><div class="emp-avatar" style="background:#e86931">RH</div><div class="emp-row-name">Ray Hernandez</div><div class="emp-row-hours">40.0h</div><div class="emp-row-status"><span class="status-badge status--draft">Draft</span></div><div class="emp-row-check days-mini"><div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--filled">W</div><div class="day-dot">T</div><div class="day-dot">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div></div><div class="emp-row-type"><span class="chip chip--blue" style="font-size:.65rem">W2</span></div><div class="emp-row-net">$952</div></div>
+
+            <div class="crew-payroll-footer">
+              <div class="crew-totals">
+                <div class="crew-total-item"><span>Gross pay</span><strong>$6,200</strong></div>
+                <div class="crew-total-item"><span>Withholding est.</span><strong>$660</strong></div>
+                <div class="crew-total-item"><span>Reimbursements</span><strong>+$142</strong></div>
+                <div class="crew-total-item big"><span>Total net checks</span><strong>$5,540</strong></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+                <div style="font-size:.74rem;color:var(--yellow);background:var(--yellow-soft);padding:5px 12px;border-radius:8px">
+                  ⚠ 2 timesheets still in Draft
+                </div>
+                <button class="crew-approve-btn" id="approve-framing" onclick="approveCrew('framing',event)">
+                  ✓ Approve Framing for Payroll
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── CREW 3: ELECTRIC ─── -->
+        <div class="crew-section" id="crew-electric">
+          <div class="crew-header" onclick="toggleCrew('electric')">
+            <span class="crew-chevron" id="chevron-electric">›</span>
+            <div style="flex:1">
+              <div class="crew-title">Electric Crew <span style="font-weight:400;color:var(--muted);font-size:.82rem">· 3 workers</span></div>
+            </div>
+            <div class="crew-badges">
+              <span class="chip chip--ok" id="electric-missing">All confirmed</span>
+              <span class="chip chip--orange">Gross: $3,260</span>
+              <span class="chip chip--orange">Net: $3,029</span>
+              <span class="status-badge status--draft" id="electric-status">Needs review</span>
+            </div>
+          </div>
+          <div class="crew-body" id="body-electric">
+            <div style="display:flex;align-items:center;gap:12px;padding:8px 20px;background:#fafbfd;border-bottom:1px solid var(--border);font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">
+              <div style="width:30px;flex-shrink:0"></div>
+              <div style="width:130px;flex-shrink:0">Name</div>
+              <div style="width:55px;flex-shrink:0">Hours</div>
+              <div style="width:130px;flex-shrink:0">Status</div>
+              <div style="flex:1">M T W T F S S</div>
+              <div style="width:50px;flex-shrink:0">Type</div>
+              <div style="width:90px;flex-shrink:0">Net Est.</div>
+            </div>
+            <div class="emp-row"><div class="emp-avatar" style="background:#247a4d">DW</div><div class="emp-row-name">Darius Washington</div><div class="emp-row-hours">37.5h</div><div class="emp-row-status"><span class="status-badge status--approved">Foreman Approved</span></div><div class="emp-row-check days-mini"><div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">W</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div></div><div class="emp-row-type"><span class="chip chip--blue" style="font-size:.65rem">W2</span></div><div class="emp-row-net">$1,140</div></div>
+            <div class="emp-row"><div class="emp-avatar" style="background:#6d28d9">BK</div><div class="emp-row-name">Ben Kowalski</div><div class="emp-row-hours">40.0h</div><div class="emp-row-status"><span class="status-badge status--approved">Foreman Approved</span></div><div class="emp-row-check days-mini"><div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">W</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div></div><div class="emp-row-type"><span class="chip chip--blue" style="font-size:.65rem">W2</span></div><div class="emp-row-net">$1,104</div></div>
+            <div class="emp-row"><div class="emp-avatar" style="background:#2b5fce">NP</div><div class="emp-row-name">Nate Park</div><div class="emp-row-hours">32.0h</div><div class="emp-row-status"><span class="status-badge status--approved">Foreman Approved</span></div><div class="emp-row-check days-mini"><div class="day-dot day-dot--confirmed">M</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--confirmed">W</div><div class="day-dot day-dot--confirmed">T</div><div class="day-dot day-dot--off">F</div><div class="day-dot day-dot--off">S</div><div class="day-dot day-dot--off">S</div></div><div class="emp-row-type"><span class="chip chip--slate" style="font-size:.65rem">1099</span></div><div class="emp-row-net">$785</div></div>
+
+            <div class="crew-payroll-footer">
+              <div class="crew-totals">
+                <div class="crew-total-item"><span>Gross pay</span><strong>$3,260</strong></div>
+                <div class="crew-total-item"><span>Withholding est.</span><strong>$231</strong></div>
+                <div class="crew-total-item"><span>Reimbursements</span><strong>+$74</strong></div>
+                <div class="crew-total-item big"><span>Total net checks</span><strong>$3,029</strong></div>
+              </div>
+              <button class="crew-approve-btn" id="approve-electric" onclick="approveCrew('electric',event)">
+                ✓ Approve Electric for Payroll
+              </button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /crew panel -->
+
+      <!-- ══ PAYROLL HANDOFF SECTION ══ -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Payroll Handoff</p>
+            <h2 class="panel-title">What happens after "this is their check amount"?</h2>
+            <p class="panel-sub">My Guys Time calculates the numbers. Here's how to get them to your CPA, your payroll service, or your own check register.</p>
+          </div>
+          <span class="chip chip--purple" style="font-size:.78rem">Pick your path</span>
+        </div>
+
+        <div class="annotation" style="margin:14px 20px 0">
+          <b>Brainstorm note:</b> You don't need to build check printing. That becomes a payroll processor business — licenses, compliance, the whole nightmare. Your job is to get the right number into the right person's hands. These 3 paths cover 95% of your users.
+        </div>
+
+        <div class="handoff-section">
+          <div class="handoff-grid">
+
+            <!-- Path 1: CPA / Accountant CSV -->
+            <div class="handoff-card">
+              <div class="handoff-card-header">
+                <div class="handoff-icon" style="background:#fff3db">📊</div>
+                <div>
+                  <div class="handoff-title">Export CSV for your accountant</div>
+                  <div class="handoff-desc">Best for: CPA does your payroll in QuickBooks or by hand</div>
+                </div>
+                <span class="chip chip--ok" style="margin-left:auto;white-space:nowrap">Most common</span>
+              </div>
+              <div class="handoff-card-body">
+                <p style="font-size:.82rem;color:var(--muted);margin-bottom:10px">
+                  One click generates a clean CSV with each worker's name, hours, gross, withholding, reimbursements, and net check. Your CPA drops it straight into QuickBooks. <strong>This is already built.</strong>
+                </p>
+                <div class="csv-preview">
+<span class="csv-header">Name,Type,Hours,Gross,Federal,State,Reimb,Deduct,Net</span>
+<span class="csv-row">Carlos Mendoza,W2,37.5,1350.00,108.00,40.00,46.00,0.00,1248.00</span>
+<span class="csv-row">Jose Ramirez,W2,40.0,1440.00,115.20,43.20,78.40,0.00,1360.00</span>
+<span class="csv-row">Mike Torres,1099,40.0,1000.00,0.00,0.00,0.00,80.00,920.00</span>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:12px">
+                  <button class="btn btn-primary btn-sm">📥 Download payroll CSV</button>
+                  <button class="btn btn-ghost btn-sm">📄 Weekly summary PDF</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Path 2: Gusto / ADP import -->
+            <div class="handoff-card">
+              <div class="handoff-card-header">
+                <div class="handoff-icon" style="background:#ede9fe">🔗</div>
+                <div>
+                  <div class="handoff-title">Import into Gusto, ADP, or Paychex</div>
+                  <div class="handoff-desc">Best for: companies already using a payroll service</div>
+                </div>
+                <span class="chip chip--purple" style="margin-left:auto;white-space:nowrap">Future</span>
+              </div>
+              <div class="handoff-card-body">
+                <p style="font-size:.82rem;color:var(--muted);margin-bottom:10px">
+                  These services all accept CSV uploads. If you know what columns Gusto/ADP expects, we can format the export to match — making My Guys Time a direct feeder.
+                </p>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+                  <div style="padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.8rem;font-weight:600;color:var(--muted)">Gusto CSV format</div>
+                  <div style="padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.8rem;font-weight:600;color:var(--muted)">ADP Workforce CSV</div>
+                  <div style="padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.8rem;font-weight:600;color:var(--muted)">Paychex export</div>
+                </div>
+                <p style="font-size:.75rem;color:var(--muted)">Each of these is just a differently-formatted CSV. The data is already there.</p>
+              </div>
+            </div>
+
+            <!-- Path 3: Pay by hand / Zelle -->
+            <div class="handoff-card">
+              <div class="handoff-card-header">
+                <div class="handoff-icon" style="background:#e5f6ec">✋</div>
+                <div>
+                  <div class="handoff-title">Pay by hand (cash, check, Zelle)</div>
+                  <div class="handoff-desc">Best for: small crews who pay direct</div>
+                </div>
+                <span class="chip chip--ok" style="margin-left:auto;white-space:nowrap">Very common</span>
+              </div>
+              <div class="handoff-card-body">
+                <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">
+                  A lot of guys in the trades just need to know <em>the number</em> without sending anything anywhere. Give each person a clear "write this check for $___" view. Printable pay stub that's clean enough to hand over.
+                </p>
+                <div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden">
+                  <div style="background:#fafbfd;padding:10px 14px;font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)">
+                    Pay stub — Week of Apr 21, 2026
+                  </div>
+                  <div style="padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:.82rem">
+                    <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Carlos Mendoza — W2</span><span>37.5h @ $36/hr</span></div>
+                    <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Gross pay</span><span>$1,350.00</span></div>
+                    <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Federal withholding</span><span>— $108.00</span></div>
+                    <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">State (PA)</span><span>— $40.50</span></div>
+                    <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Gas reimbursement</span><span>+ $46.00</span></div>
+                    <div style="display:flex;justify-content:space-between;font-weight:800;font-size:.92rem;padding-top:6px;border-top:2px solid var(--border)"><span>Write check for</span><span style="color:var(--orange)">$1,247.50</span></div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:12px">
+                  <button class="btn btn-ghost btn-sm">🖨 Print all pay stubs</button>
+                  <button class="btn btn-ghost btn-sm">📱 Text to workers</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom: What you DO NOT need to build -->
+          <div style="background:var(--slate-soft);border:1px solid var(--border);border-radius:10px;padding:16px 18px;">
+            <div style="font-size:.8rem;font-weight:700;color:var(--slate);margin-bottom:8px">⛔ What you don't need to build (and why)</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;font-size:.78rem;color:var(--muted)">
+              <div style="display:flex;gap:8px"><span>✗</span><span><strong style="color:var(--dark)">Direct deposit</strong> — requires ACH processor license and banking partnerships</span></div>
+              <div style="display:flex;gap:8px"><span>✗</span><span><strong style="color:var(--dark)">Check printing</strong> — MICR ink, check stock, printer setup — your users' banks or QBO already do this</span></div>
+              <div style="display:flex;gap:8px"><span>✗</span><span><strong style="color:var(--dark)">Tax filing</strong> — W-2s, 940s, 941s — that's a licensed payroll processor job, not yours</span></div>
+              <div style="display:flex;gap:8px"><span>✗</span><span><strong style="color:var(--dark)">Full payroll engine</strong> — that's Gusto's $40/mo product; your $20 bridge wins on simplicity</span></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /handoff panel -->
+
+      <!-- ══ REPORTING CADENCE PANEL ══ -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Reporting Cadence</p>
+            <h2 class="panel-title">What your CPA needs and when</h2>
+            <p class="panel-sub">Weekly exports confirm the paycheck. Monthly and quarterly summaries keep the tax calendar from biting you.</p>
+          </div>
+          <div style="background:var(--red-soft);border:1px solid #f5c0c0;border-radius:10px;padding:10px 14px;max-width:300px;font-size:.76rem;color:var(--red);line-height:1.5">
+            <strong style="display:block;margin-bottom:3px">⚠ Liability boundary</strong>
+            My Guys Time tracks hours and estimates taxes. It does <em>not</em> file 940s, 941s, or any tax form. Always verify totals with your CPA before any tax payment.
+          </div>
+        </div>
+
+        <!-- Cadence timeline -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0;border-bottom:1px solid var(--border)">
+
+          <!-- Weekly -->
+          <div style="padding:20px;border-right:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <div style="width:36px;height:36px;border-radius:10px;background:var(--orange-soft);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">📋</div>
+              <div>
+                <div style="font-weight:700;font-size:.92rem">Weekly export</div>
+                <div style="font-size:.72rem;color:var(--muted)">Every Friday or after you approve crews</div>
+              </div>
+            </div>
+            <p style="font-size:.8rem;color:var(--muted);line-height:1.55;margin-bottom:12px">
+              Confirms what you paid. Your CPA uses this to post payroll entries. Already built — this is your current CSV export.
+            </p>
+            <div style="background:#fafbfd;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.75rem;color:var(--muted);margin-bottom:12px">
+              <strong style="display:block;color:var(--dark);margin-bottom:5px">Includes:</strong>
+              Each worker · Hours · Gross · Federal WH est. · State WH est. · Reimbursements · Net check
+            </div>
+            <button class="btn btn-primary btn-sm">📥 Export this week</button>
+          </div>
+
+          <!-- Monthly -->
+          <div style="padding:20px;border-right:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <div style="width:36px;height:36px;border-radius:10px;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">📆</div>
+              <div>
+                <div style="font-weight:700;font-size:.92rem">Monthly rollup</div>
+                <div style="font-size:.72rem;color:var(--muted)">End of each month</div>
+              </div>
+            </div>
+            <p style="font-size:.8rem;color:var(--muted);line-height:1.55;margin-bottom:12px">
+              Totals all weeks in the month. Your CPA reconciles books monthly. Also useful for seeing if your tax reserve account is keeping up.
+            </p>
+            <div style="background:#fafbfd;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.75rem;color:var(--muted);margin-bottom:12px">
+              <strong style="display:block;color:var(--dark);margin-bottom:5px">Includes:</strong>
+              All weekly exports rolled up · Monthly gross per worker · Monthly WH totals · Running YTD start
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-ghost btn-sm">📥 April rollup CSV</button>
+              <span class="chip chip--purple" style="font-size:.68rem">In roadmap</span>
+            </div>
+          </div>
+
+          <!-- Quarterly -->
+          <div style="padding:20px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <div style="width:36px;height:36px;border-radius:10px;background:var(--green-soft);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">📊</div>
+              <div>
+                <div style="font-weight:700;font-size:.92rem">Quarterly summary</div>
+                <div style="font-size:.72rem;color:var(--muted)">Before 941 deadlines (Apr 30, Jul 31, Oct 31, Jan 31)</div>
+              </div>
+            </div>
+            <p style="font-size:.8rem;color:var(--muted);line-height:1.55;margin-bottom:12px">
+              The highest-value report for your CPA. Shows YTD wages and estimated withholdings so they can calculate what you owe on your 941 before the bill surprises you.
+            </p>
+            <div style="background:var(--yellow-soft);border:1px solid #f0d060;border-radius:8px;padding:10px 12px;font-size:.75rem;color:#7a5900;margin-bottom:12px">
+              <strong style="display:block;margin-bottom:3px">What we show vs. what we don't</strong>
+              ✓ YTD gross wages &nbsp;·&nbsp; ✓ Estimated WH we tracked<br>
+              ✗ Actual 941 liability &nbsp;·&nbsp; ✗ FUTA/SUTA calculations &nbsp;·&nbsp; ✗ Form values
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-ghost btn-sm">📊 Q1 2026 summary</button>
+              <span class="chip chip--purple" style="font-size:.68rem">In roadmap</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- YTD preview table (the actual numbers) -->
+        <div style="padding:20px">
+          <div style="font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">
+            YTD Summary — Jan 1 → Apr 25, 2026 &nbsp;·&nbsp; <span style="color:var(--orange)">Q1 complete · Q2 in progress</span>
+          </div>
+
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+              <thead>
+                <tr style="background:#fafbfd">
+                  <th style="text-align:left;padding:9px 12px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--border)">Worker</th>
+                  <th style="text-align:right;padding:9px 12px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--border)">Type</th>
+                  <th style="text-align:right;padding:9px 12px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--border)">YTD Gross</th>
+                  <th style="text-align:right;padding:9px 12px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--border)">Fed WH est.</th>
+                  <th style="text-align:right;padding:9px 12px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--border)">State WH est.</th>
+                  <th style="text-align:right;padding:9px 12px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--border)">YTD Net paid</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:9px 12px"><strong>Carlos Mendoza</strong></td>
+                  <td style="padding:9px 12px;text-align:right"><span class="chip chip--blue" style="font-size:.65rem">W2</span></td>
+                  <td style="padding:9px 12px;text-align:right;font-weight:700">$21,060</td>
+                  <td style="padding:9px 12px;text-align:right">$1,685</td>
+                  <td style="padding:9px 12px;text-align:right">$631</td>
+                  <td style="padding:9px 12px;text-align:right;font-weight:700;color:var(--orange)">$19,342</td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:9px 12px"><strong>Jose Ramirez</strong></td>
+                  <td style="padding:9px 12px;text-align:right"><span class="chip chip--blue" style="font-size:.65rem">W2</span></td>
+                  <td style="padding:9px 12px;text-align:right;font-weight:700">$22,464</td>
+                  <td style="padding:9px 12px;text-align:right">$1,797</td>
+                  <td style="padding:9px 12px;text-align:right">$674</td>
+                  <td style="padding:9px 12px;text-align:right;font-weight:700;color:var(--orange)">$20,601</td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:9px 12px"><strong>Mike Torres</strong></td>
+                  <td style="padding:9px 12px;text-align:right"><span class="chip chip--slate" style="font-size:.65rem">1099</span></td>
+                  <td style="padding:9px 12px;text-align:right;font-weight:700">$14,320</td>
+                  <td style="padding:9px 12px;text-align:right;color:var(--muted)">—</td>
+                  <td style="padding:9px 12px;text-align:right;color:var(--muted)">—</td>
+                  <td style="padding:9px 12px;text-align:right;font-weight:700;color:var(--orange)">$14,320</td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:9px 12px"><strong>Darius Washington</strong></td>
+                  <td style="padding:9px 12px;text-align:right"><span class="chip chip--blue" style="font-size:.65rem">W2</span></td>
+                  <td style="padding:9px 12px;text-align:right;font-weight:700">$17,784</td>
+                  <td style="padding:9px 12px;text-align:right">$1,423</td>
+                  <td style="padding:9px 12px;text-align:right">$534</td>
+                  <td style="padding:9px 12px;text-align:right;font-weight:700;color:var(--orange)">$16,326</td>
+                </tr>
+                <tr style="border-bottom:2px solid var(--border);background:#fafbfd">
+                  <td style="padding:9px 12px;font-weight:800" colspan="2">Totals (all workers)</td>
+                  <td style="padding:9px 12px;text-align:right;font-weight:800">$75,628</td>
+                  <td style="padding:9px 12px;text-align:right;font-weight:800">$4,905</td>
+                  <td style="padding:9px 12px;text-align:right;font-weight:800">$1,839</td>
+                  <td style="padding:9px 12px;text-align:right;font-weight:800;color:var(--orange)">$70,589</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- The disclaimer box — the most important thing on this section -->
+          <div style="margin-top:14px;background:var(--red-soft);border:1.5px solid #f5c0c0;border-radius:10px;padding:14px 16px;display:flex;gap:14px;align-items:flex-start">
+            <div style="font-size:1.4rem;flex-shrink:0">⚠️</div>
+            <div>
+              <div style="font-weight:700;color:var(--red);font-size:.88rem;margin-bottom:5px">
+                These are tracked estimates — not official tax figures
+              </div>
+              <p style="font-size:.78rem;color:#7a3030;line-height:1.6">
+                My Guys Time calculates withholding estimates based on the rates and settings you entered. The numbers in this table are <strong>not</strong> IRS-verified tax liability amounts. Your 941 quarterly deposit, 940 annual FUTA amount, and state unemployment (SUTA) obligations must be calculated and filed by your CPA or payroll professional using the actual payroll records. Use this summary as a starting-point reference — hand it to your accountant, not to the IRS.
+              </p>
+              <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-ghost btn-sm">📊 Export YTD summary CSV</button>
+                <button class="btn btn-ghost btn-sm">📄 Print Q1 CPA summary</button>
+                <button class="btn btn-ghost btn-sm" style="color:var(--blue)">📧 Email to my CPA</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 941 deadline reminder widget -->
+          <div style="margin-top:14px;background:var(--blue-soft);border:1px solid #b8cfff;border-radius:10px;padding:14px 16px">
+            <div style="font-weight:700;font-size:.85rem;color:var(--blue);margin-bottom:10px">📅 Tax calendar reminders</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;font-size:.78rem">
+              <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+                <div style="font-weight:700;color:var(--dark)">941 — Q1 2026</div>
+                <div style="color:var(--green);font-weight:600;margin-top:3px">✓ Due Apr 30 — passed</div>
+                <div style="color:var(--muted);margin-top:3px">Your CPA filed this</div>
+              </div>
+              <div style="background:white;border:1.5px solid var(--orange);border-radius:8px;padding:10px 12px">
+                <div style="font-weight:700;color:var(--dark)">941 — Q2 2026</div>
+                <div style="color:var(--orange);font-weight:700;margin-top:3px">⚡ Due Jul 31 — 97 days</div>
+                <div style="color:var(--muted);margin-top:3px">Start saving now</div>
+              </div>
+              <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+                <div style="font-weight:700;color:var(--dark)">941 — Q3 2026</div>
+                <div style="color:var(--muted);font-weight:600;margin-top:3px">Due Oct 31</div>
+                <div style="color:var(--muted);margin-top:3px">Q3 not started yet</div>
+              </div>
+              <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+                <div style="font-weight:700;color:var(--dark)">940 — Annual FUTA</div>
+                <div style="color:var(--muted);font-weight:600;margin-top:3px">Due Jan 31, 2027</div>
+                <div style="color:var(--muted);margin-top:3px">Based on full year W2 wages</div>
+              </div>
+            </div>
+            <div style="margin-top:10px;font-size:.72rem;color:var(--blue);background:white;border-radius:6px;padding:6px 10px;border:1px solid #b8cfff">
+              💡 <strong>Reminder only:</strong> These dates are shown to help you stay aware. My Guys Time does not calculate what you owe on these forms. That's your CPA's job — and we make it easy by giving them clean data on time.
+            </div>
+          </div>
+
+        </div><!-- /ytd section -->
+      </div><!-- /reporting cadence panel -->
+
+    </div><!-- /dashboard page -->
+
+    <!-- ═══ TEAM PAGE ═══ -->
+    <div id="admin-team" class="page">
+      <div class="panel">
+        <div class="panel-header">
+          <div><p class="eyebrow">Team Management</p><h2 class="panel-title">Active employees and crew setup</h2></div>
+          <button class="btn btn-primary">+ Invite Worker</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="team-table">
+            <thead><tr><th>Employee</th><th>Role</th><th>Crew</th><th>Type</th><th>Rate</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><div class="emp-cell"><div class="avatar" style="background:#e86931">CM</div><div><strong>Carlos Mendoza</strong><div style="font-size:.72rem;color:var(--muted)">Masonry Crew Foreman</div></div></div></td><td>Foreman</td><td>Masonry</td><td><span class="chip chip--blue">W2</span></td><td>$36/hr</td><td><span class="chip chip--ok">Active</span></td><td><button class="btn btn-ghost btn-sm">Edit</button></td></tr>
+              <tr><td><div class="emp-cell"><div class="avatar" style="background:#2b5fce">MT</div><div><strong>Mike Torres</strong><div style="font-size:.72rem;color:var(--muted)">Framing Crew</div></div></div></td><td>Employee</td><td>Framing</td><td><span class="chip chip--slate">1099</span></td><td>$23/hr</td><td><span class="chip chip--ok">Active</span></td><td><button class="btn btn-ghost btn-sm">Edit</button></td></tr>
+              <tr><td><div class="emp-cell"><div class="avatar" style="background:#247a4d">DW</div><div><strong>Darius Washington</strong><div style="font-size:.72rem;color:var(--muted)">Electric Crew</div></div></div></td><td>Employee</td><td>Electric</td><td><span class="chip chip--blue">W2</span></td><td>$32/hr</td><td><span class="chip chip--ok">Active</span></td><td><button class="btn btn-ghost btn-sm">Edit</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ COMPANY SETTINGS ═══ -->
+    <div id="admin-company-settings" class="page">
+      <div class="panel">
+        <div class="panel-header"><div><p class="eyebrow">Company Settings</p><h2 class="panel-title">Company profile and payroll defaults</h2></div></div>
+        <div style="padding:20px;display:grid;gap:14px;max-width:520px">
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:.8rem;font-weight:600;color:var(--muted)">Company name<input type="text" value="ABC Contracting Co." style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem"></label>
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:.8rem;font-weight:600;color:var(--muted)">State<select style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem"><option>Pennsylvania (PA)</option><option>New York (NY)</option></select></label>
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:.8rem;font-weight:600;color:var(--muted)">Payroll disclaimer<textarea rows="2" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem">Estimates only — verify before issuing checks.</textarea></label>
+          <button class="btn btn-primary" style="width:fit-content">Save settings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ACCOUNT SETTINGS ═══ -->
+    <div id="admin-account-settings" class="page">
+      <div class="panel">
+        <div class="panel-header"><div><p class="eyebrow">Account Settings</p><h2 class="panel-title">Your login and display name</h2></div></div>
+        <div style="padding:20px;display:grid;gap:14px;max-width:420px">
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:.8rem;font-weight:600;color:var(--muted)">Full name<input type="text" value="Jeff Mohler" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem"></label>
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:.8rem;font-weight:600;color:var(--muted)">Email<input type="email" value="jeff@abccontracting.com" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem"></label>
+          <button class="btn btn-primary" style="width:fit-content">Update account</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ARCHIVE ═══ -->
+    <div id="admin-archive" class="page">
+      <div class="panel">
+        <div class="panel-header"><div><p class="eyebrow">Archive</p><h2 class="panel-title">Archived employee records</h2></div></div>
+        <div style="padding:40px;text-align:center;color:var(--muted);font-size:.9rem">No archived employees.</div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /view-admin -->
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     FOREMAN VIEW
+══════════════════════════════════════════════════════════════ -->
+<div id="view-foreman" class="view" style="display:none">
+  <div class="app-header">
+    <div class="header-top">
+      <div class="brand"><div class="logo-box">M</div><span class="brand-name">Current-week crew timecards.</span></div>
+      <div class="header-meta"><strong>Carlos Mendoza</strong><span class="role-pill">foreman</span></div>
+    </div>
+    <nav class="app-nav">
+      <button class="nav-btn active">Dashboard</button>
+      <button class="nav-btn">Account Settings</button>
+      <span class="nav-spacer"></span>
+      <button class="help-btn">?</button>
+      <span class="mode-pill mode-pill--truck">Truck</span>
+      <span style="font-size:.78rem;color:#888">Week: 2026-04-21</span>
+      <button class="nav-btn" style="color:#888">Sign out</button>
+    </nav>
+  </div>
+  <div class="main">
+    <div class="mode-banner mode-banner--truck">
+      <strong>Truck mode</strong>
+      <span>Centered on the current week. Fast day-by-day entry. No office clutter.</span>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Weekly Crew Board</p>
+          <h2 class="panel-title">Truck time entry — current week</h2>
+          <div class="week-context-row">
+            <span class="week-chip">Current week</span>
+            <span class="week-note">Tap an employee, then tap a day to edit.</span>
+          </div>
+        </div>
+        <select class="sel"><option>Masonry Crew</option></select>
+      </div>
+      <!-- Employee strip -->
+      <div style="display:flex;gap:8px;padding:12px 16px;overflow-x:auto;border-bottom:1px solid var(--border);background:#fafbfd">
+        <button class="strip-btn active" onclick="foremanSelectEmp(this)"><strong>Carlos M.</strong><span>Masonry</span><em>Foreman Approved</em></button>
+        <button class="strip-btn" onclick="foremanSelectEmp(this)"><strong>Jose R.</strong><span>Masonry</span><em>Approved</em></button>
+        <button class="strip-btn" onclick="foremanSelectEmp(this)"><strong>Luis G.</strong><span>Masonry</span><em>Confirmed</em></button>
+        <button class="strip-btn" onclick="foremanSelectEmp(this)"><strong>Roberto V.</strong><span>Masonry</span><em>Draft</em></button>
+      </div>
+      <!-- Day tabs -->
+      <div style="display:flex;gap:6px;padding:12px 16px 0;overflow-x:auto;border-bottom:1px solid var(--border)">
+        <button class="day-tab" onclick="selectDay(this)">M 21</button>
+        <button class="day-tab" onclick="selectDay(this)">T 22</button>
+        <button class="day-tab today active" onclick="selectDay(this)">W 23</button>
+        <button class="day-tab" onclick="selectDay(this)">T 24</button>
+        <button class="day-tab" onclick="selectDay(this)">F 25</button>
+        <button class="day-tab" onclick="selectDay(this)">S 26</button>
+        <button class="day-tab" onclick="selectDay(this)">S 27</button>
+      </div>
+      <!-- Time editor -->
+      <div style="padding:16px 20px;display:grid;gap:12px">
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div class="time-field">Start<input type="time" value="07:00" id="truck-start"></div>
+          <div class="time-field">End<input type="time" value="15:30" id="truck-end"></div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="adj-btn" onclick="adjustTime('start',-15)">−15m Start</button>
+          <button class="adj-btn" onclick="adjustTime('start',15)">+15m Start</button>
+          <button class="adj-btn" onclick="adjustTime('end',-15)">−15m End</button>
+          <button class="adj-btn" onclick="adjustTime('end',15)">+15m End</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:.82rem">
+          <span style="font-weight:600;color:var(--muted)">Lunch:</span>
+          <select class="sel"><option>0 min</option><option selected>30 min</option><option>45 min</option><option>60 min</option></select>
+          <span id="truck-hours-calc" style="font-size:.9rem;font-weight:800;color:var(--orange)">7.5h</span>
+        </div>
+        <div class="confirm-strip">
+          <div><strong style="display:block">7.5h logged</strong><span style="font-size:.78rem;color:var(--green)">Wed Apr 23, 2026</span></div>
+          <button class="btn-confirm">Confirm day ✓</button>
+        </div>
+      </div>
+      <div style="padding:0 16px 16px">
+        <div style="font-size:.75rem;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Week actions</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-success">✓ Submit week for review</button>
+          <button class="btn btn-ghost">View week summary</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     EMPLOYEE VIEW (mobile)
+══════════════════════════════════════════════════════════════ -->
+<div id="view-employee" class="view" style="display:none">
+  <div style="background:white;border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:44px;z-index:100;box-shadow:var(--shadow)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo-box" style="width:30px;height:30px;font-size:11px">M</div>
+      <div><div style="font-weight:700;font-size:.88rem">Time entry</div><div style="font-size:.7rem;color:var(--muted)">Darius W. — employee</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="mode-pill mode-pill--truck" style="font-size:.6rem;padding:3px 8px">Truck</span>
+      <button class="help-btn" style="width:30px;height:30px;font-size:.75rem">?</button>
+    </div>
+  </div>
+  <div style="padding:12px">
+    <div style="background:white;border:1px solid #E7ECF5;border-radius:20px;padding:14px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:12px">
+      <span style="color:var(--teal);font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase">Truck mode</span>
+      <h1 style="font-size:1.2rem;font-weight:800;color:var(--dark);margin:4px 0">Time entry for this week</h1>
+      <p style="font-size:.82rem;color:#5B6472;line-height:1.45">Tap the day. Set your hours. Confirm. Done.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <span style="background:#F3F4F6;color:#4B5563;padding:.38rem .7rem;border-radius:999px;font-size:.75rem;font-weight:600">Week of 04/21/2026</span>
+        <span style="background:rgba(0,188,212,.12);color:#0F7C89;padding:.38rem .7rem;border-radius:999px;font-size:.75rem;font-weight:700">Truck workflow</span>
+      </div>
+    </div>
+    <div class="employee-view">
+      <div style="background:white;border:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;overflow:hidden">
+        <div class="employee-header">
+          <div class="eyebrow">Electric Crew</div>
+          <h2>Darius Washington</h2>
+          <div class="emp-week-label">Week of Apr 21, 2026 · 24.0h so far</div>
+        </div>
+        <div class="emp-days-scroll">
+          <div class="emp-day-btn"><div class="day-label">Mon</div><div class="day-h">7.5h</div></div>
+          <div class="emp-day-btn"><div class="day-label">Tue</div><div class="day-h">7.5h</div></div>
+          <div class="emp-day-btn today active"><div class="day-label">Wed</div><div class="day-h">7.5h</div></div>
+          <div class="emp-day-btn"><div class="day-label">Thu</div><div class="day-h">—</div></div>
+          <div class="emp-day-btn"><div class="day-label">Fri</div><div class="day-h">—</div></div>
+          <div class="emp-day-btn" style="opacity:.4"><div class="day-label">Sat</div><div class="day-h">—</div></div>
+          <div class="emp-day-btn" style="opacity:.4"><div class="day-label">Sun</div><div class="day-h">—</div></div>
+        </div>
+      </div>
+      <div class="emp-time-entry">
+        <div class="big-time-display">
+          <div class="time-val">7:00 – 3:30</div>
+          <div class="time-sub">Wed Apr 23 · 7.5h · 30m lunch</div>
+        </div>
+        <div class="tap-adjust">
+          <button class="tap-btn"><div class="tap-label">Start time</div><div>7:00 AM</div></button>
+          <button class="tap-btn"><div class="tap-label">End time</div><div>3:30 PM</div></button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+          <button class="adj-btn">−15m</button><button class="adj-btn">+15m</button><button class="adj-btn">−30m</button><button class="adj-btn">+30m</button>
+        </div>
+        <div class="confirm-strip" style="margin-bottom:14px">
+          <div><strong style="display:block">7.5h logged</strong><span style="font-size:.75rem;color:var(--green)">Confirm this day's hours</span></div>
+          <button class="btn-confirm">Confirm ✓</button>
+        </div>
+        <div style="background:#fafbfd;border:1px solid var(--border);border-radius:10px;padding:12px;font-size:.82rem">
+          <div style="font-weight:700;margin-bottom:6px">Week status</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+            <span class="status-badge status--draft">Draft</span>
+            <span style="font-size:.75rem;color:var(--muted)">3 confirmed · 2 pending</span>
+          </div>
+          <button class="btn btn-success" style="width:100%">Submit week for confirmation</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <nav style="position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;height:64px;z-index:200;box-shadow:0 -4px 16px rgba(15,23,42,.06)">
+    <button style="background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--orange);min-width:60px;cursor:pointer">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span style="font-size:.6rem;font-weight:700">Home</span>
+    </button>
+    <button style="background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:#999;min-width:60px;cursor:pointer">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>
+      <span style="font-size:.6rem;font-weight:500">Account</span>
+    </button>
+    <button style="background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:#999;min-width:60px;cursor:pointer">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <span style="font-size:.6rem;font-weight:500">Sign out</span>
+    </button>
+  </nav>
+  <div style="height:80px"></div>
+</div>
+
+
+<!-- ══ PAYROLL EXPORT MODAL ══ -->
+<div id="payroll-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:20px">
+  <div style="background:white;border-radius:16px;max-width:560px;width:100%;box-shadow:var(--shadow-lg);overflow:hidden">
+    <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <p class="eyebrow">Payroll Export</p>
+        <h2 class="panel-title">Week of Apr 21, 2026</h2>
+        <p class="panel-sub" id="modal-crew-count">Approve all 3 crews to unlock full export.</p>
+      </div>
+      <button onclick="document.getElementById('payroll-modal').style.display='none'" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#999;line-height:1">×</button>
+    </div>
+    <div style="padding:20px 24px;display:grid;gap:12px">
+      <div style="border:1.5px solid var(--border);border-radius:10px;padding:14px 16px">
+        <div style="font-weight:700;margin-bottom:10px;font-size:.9rem">Export options</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn btn-primary">📊 Payroll summary CSV (all approved crews)</button>
+          <button class="btn btn-ghost">⏱ Time detail CSV (raw hour entries)</button>
+          <button class="btn btn-ghost">📄 Printable weekly summary</button>
+          <button class="btn btn-ghost">🖨 All pay stubs (one per worker)</button>
+        </div>
+      </div>
+      <div style="background:#fafbfd;border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:.8rem;color:var(--muted)">
+        <strong style="color:var(--dark);display:block;margin-bottom:4px">Approval status</strong>
+        <div style="display:flex;flex-direction:column;gap:6px" id="modal-crew-statuses">
+          <div style="display:flex;justify-content:space-between"><span>Masonry Crew (4)</span><span class="status-badge status--draft" id="modal-masonry">Needs review</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Framing Crew (10)</span><span class="status-badge status--draft" id="modal-framing">Needs review</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Electric Crew (3)</span><span class="status-badge status--draft" id="modal-electric">Needs review</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Role switcher ──
+function switchRole(role) {
+  document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+  document.getElementById('view-' + role).style.display = 'block';
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + role).classList.add('active');
+}
+
+// ── Admin nav tabs ──
+function adminTab(page, btn) {
+  document.querySelectorAll('#view-admin .page').forEach(p => p.classList.remove('active'));
+  document.getElementById('admin-' + page).classList.add('active');
+  document.querySelectorAll('#view-admin .nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Crew accordion ──
+function toggleCrew(name) {
+  const body = document.getElementById('body-' + name);
+  const chevron = document.getElementById('chevron-' + name);
+  const header = body.previousElementSibling;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chevron.classList.toggle('open', !isOpen);
+  header.classList.toggle('open', !isOpen);
+}
+
+// ── Crew approval ──
+const approved = { masonry: false, framing: false, electric: false };
+function approveCrew(name, e) {
+  e.stopPropagation();
+  if (approved[name]) return;
+  approved[name] = true;
+
+  // Update approve button
+  const btn = document.getElementById('approve-' + name);
+  btn.classList.add('approved');
+  btn.textContent = '✓ ' + name.charAt(0).toUpperCase() + name.slice(1) + ' — Approved';
+
+  // Update crew status chip
+  const statusEl = document.getElementById(name + '-status');
+  statusEl.className = 'status-badge status--ready';
+  statusEl.textContent = 'Approved for payroll';
+
+  // Update modal
+  const modalEl = document.getElementById('modal-' + name);
+  if (modalEl) { modalEl.className = 'status-badge status--ready'; modalEl.textContent = 'Approved'; }
+
+  // Update workflow phases
+  const allApproved = approved.masonry && approved.framing && approved.electric;
+  const anyApproved = approved.masonry || approved.framing || approved.electric;
+
+  if (anyApproved) {
+    document.getElementById('phase-2').classList.add('active');
+  }
+
+  // Update ready count
+  const readyCount = Object.values(approved).filter(Boolean).length;
+  document.getElementById('ready-count').textContent = readyCount + ' / 3';
+
+  if (allApproved) {
+    // Unlock export button
+    const exportBtn = document.getElementById('export-all-btn');
+    exportBtn.disabled = false;
+    exportBtn.style.opacity = '1';
+    exportBtn.style.cursor = 'pointer';
+
+    // Phase 3 active
+    document.getElementById('phase-3').classList.add('active');
+    document.getElementById('modal-crew-count').textContent = 'All 3 crews approved. Ready to export.';
+
+    // Brief flash on export button
+    exportBtn.style.background = 'var(--green)';
+    setTimeout(() => { exportBtn.style.background = ''; }, 1200);
+  }
+}
+
+// ── Filter crew visibility ──
+function filterCrew(value) {
+  const crews = ['masonry', 'framing', 'electric'];
+  crews.forEach(c => {
+    const el = document.getElementById('crew-' + c);
+    el.style.display = (value === 'all' || value === c) ? '' : 'none';
+  });
+}
+
+// ── Payroll modal ──
+function showPayrollModal() {
+  const modal = document.getElementById('payroll-modal');
+  modal.style.display = 'flex';
+}
+document.getElementById('payroll-modal').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+
+// ── Foreman helpers ──
+function foremanSelectEmp(btn) {
+  document.querySelectorAll('.strip-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function selectDay(btn) {
+  document.querySelectorAll('.day-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Time adjust ──
+function adjustTime(field, minutes) {
+  const id = field === 'start' ? 'truck-start' : 'truck-end';
+  const input = document.getElementById(id);
+  if (!input) return;
+  const [h, m] = input.value.split(':').map(Number);
+  const total = Math.max(0, Math.min(23*60+59, h*60 + m + minutes));
+  input.value = String(Math.floor(total/60)).padStart(2,'0') + ':' + String(total%60).padStart(2,'0');
+  recalcHours();
+}
+function recalcHours() {
+  const s = document.getElementById('truck-start')?.value;
+  const e = document.getElementById('truck-end')?.value;
+  if (!s || !e) return;
+  const [sh,sm] = s.split(':').map(Number);
+  const [eh,em] = e.split(':').map(Number);
+  const hrs = Math.max(0, ((eh*60+em) - (sh*60+sm) - 30) / 60).toFixed(1);
+  const el = document.getElementById('truck-hours-calc');
+  if (el) el.textContent = hrs + 'h';
+}
+</script>
+</body>
+</html>

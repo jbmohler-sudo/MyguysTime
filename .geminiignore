@@ -2,24 +2,25 @@
 # Project: MyGuys_App
 
 # Dependencies
-node_modules/
-jspm_packages/
+node_modules
+jspm_packages
 
 # Build and Output
-dist/
-dist-ssr/
-build/
-.vercel/
-out/
+dist
+dist-ssr
+dist-server
+build
+.vercel
+out
 
 # Vite / Dev tools
-.vite/
+.vite
 *.local
 
 # Prisma / Database
 # Generated Prisma client can be massive and confusing for AI context
-node_modules/.prisma/
-prisma/migrations/
+.prisma
+migrations
 
 # Logs and System Files
 logs
@@ -32,14 +33,19 @@ yarn-error.log*
 Thumbs.db
 
 # Testing
-coverage/
-.nyc_output/
+coverage
+.nyc_output
 
 # Editor specific
-.vscode/
-.idea/
+.vscode
+.idea
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Other
+.claude
+.git
+tmp_video_frames2

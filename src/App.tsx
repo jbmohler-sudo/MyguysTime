@@ -7,6 +7,8 @@ import { CompanySetupScreen } from "./components/CompanySetupScreen";
 import { PublicHomepage } from "./components/PublicHomepage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LoginPage } from "./pages/LoginPage";
+import { DemoShell } from "./demo/DemoShell";
+import type { DemoRole } from "./demo/demoData";
 
 import { SignupAfterMagicLink } from "./components/SignupAfterMagicLink";
 import { SignupScreen } from "./components/SignupScreen";
@@ -412,6 +414,17 @@ function AppContent() {
 
 
 
+
+  // ─── Static demo routes — zero Supabase, safe on public homepage host ────────
+  const demoRouteMap: Record<string, DemoRole> = {
+    "/demo/admin": "admin",
+    "/demo/foreman": "foreman",
+    "/demo/employee": "employee",
+  };
+  const demoRole = demoRouteMap[path];
+  if (demoRole) {
+    return <DemoShell role={demoRole} />;
+  }
 
   if (showPublicHomepage) {
     return <PublicHomepage />;
