@@ -166,20 +166,6 @@ function AppContent() {
     });
   }, [defaultWeekStart, token]);
 
-  async function handleLogin(email: string, password: string) {
-    const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    });
-
-    if (signInError || !sessionData.session?.access_token) {
-      throw signInError ?? new Error("Unable to sign in.");
-    }
-
-    setStoredToken(sessionData.session.access_token);
-    navigate("/dashboard");
-  }
-
   async function handleLogout() {
     await supabase.auth.signOut();
     setStoredToken(null);
@@ -497,8 +483,7 @@ function AppContent() {
     }
     return (
       <LoginPage
-        error={error}
-        onLogin={handleLogin}
+        onSuccess={() => navigate("/dashboard")}
         onShowForgotPassword={() => navigate("/forgot-password")}
         onShowSignup={() => {
           setAuthMode("signup");

@@ -1,53 +1,58 @@
 import { FormEvent, useState } from "react";
-
+import { supabase } from "../lib/supabase";
 
 interface LoginPageProps {
-  error?: string;
-  onLogin: (email: string, password: string) => Promise<void>;
+  onSuccess: () => void;
   onShowForgotPassword: () => void;
   onShowSignup: () => void;
 }
 
-export function LoginPage({ error, onLogin, onShowForgotPassword, onShowSignup }: LoginPageProps) {
+export function LoginPage({ onSuccess, onShowForgotPassword, onShowSignup }: LoginPageProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [localError, setLocalError] = useState("");
+  const [error, setError] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
-    setLocalError("");
+    setError("");
 
-    try {
-      await onLogin(email, password);
-    } catch (submitError) {
-      setLocalError(submitError instanceof Error ? submitError.message : "Unable to sign in.");
-    } finally {
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+
+    if (signInError) {
+      setError(signInError.message);
       setSubmitting(false);
+      return;
     }
+
+    onSuccess();
   }
 
   return (
     <div className="login-shell">
       <section className="login-card auth-card">
-        <p className="eyebrow">Crew Timecard MVP</p>
+        <p className="eyebrow">Crew Timecard</p>
         <h1>Sign In</h1>
         <p className="hero-copy">
-          Welcome back.
+          Welcome back. Please sign in with your company credentials.
         </p>
 
         <form className="login-form" onSubmit={handleSubmit}>
           <label>
             Email
-            <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" />
+            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
           </label>
           <label>
             Password
             <input
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               type="password"
+              required
             />
           </label>
           <button disabled={submitting} type="submit">
@@ -55,7 +60,7 @@ export function LoginPage({ error, onLogin, onShowForgotPassword, onShowSignup }
           </button>
         </form>
 
-        {localError || error ? <p className="error-banner">{localError || error}</p> : null}
+        {error ? <p className="error-banner">{error}</p> : null}
 
         <div className="auth-switch">
           <span>Starting a new company?</span>
