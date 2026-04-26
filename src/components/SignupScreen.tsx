@@ -81,6 +81,7 @@ export function SignupScreen({ onSignup, onShowLogin, error }: SignupScreenProps
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 type="password"
+                autoComplete="new-password"
               />
             </label>
             <label>
@@ -89,6 +90,7 @@ export function SignupScreen({ onSignup, onShowLogin, error }: SignupScreenProps
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 type="password"
+                autoComplete="new-password"
               />
             </label>
           </div>

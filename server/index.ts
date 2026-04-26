@@ -1027,6 +1027,63 @@ app.post("/api/debug/sentry-test", authenticate, asyncHandler(async (req: Authen
 }));
 
 
+app.post("/api/auth/signup", asyncHandler(async (req, res) => {
+  const { fullName, companyName, email, password } = req.body as {
+    fullName?: unknown;
+    companyName?: unknown;
+    email?: unknown;
+    password?: unknown;
+  };
+
+  const cleanFullName = typeof fullName === "string" ? fullName.trim() : "";
+  const cleanCompanyName = typeof companyName === "string" ? companyName.trim() : "";
+  const cleanEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+  const cleanPassword = typeof password === "string" ? password : "";
+
+  if (!cleanFullName || !cleanCompanyName || !cleanEmail || !cleanPassword) {
+    res.status(400).json({ error: "All fields are required." });
+    return;
+  }
+
+  const existing = await prisma.user.findUnique({ where: { email: cleanEmail } });
+  if (existing) {
+    res.status(409).json({ error: "An account with that email already exists." });
+    return;
+  }
+
+  const supabase = getSupabaseAuthClient();
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email: cleanEmail,
+    password: cleanPassword,
+  });
+
+  if (authError || !authData.user) {
+    res.status(400).json({ error: authError?.message ?? "Could not create auth account." });
+    return;
+  }
+
+  const company = await prisma.company.create({
+    data: {
+      companyName: cleanCompanyName,
+      ownerName: cleanFullName,
+      stateCode: SIGNUP_DEFAULT_STATE_CODE,
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      supabaseId: authData.user.id,
+      companyId: company.id,
+      email: cleanEmail,
+      fullName: cleanFullName,
+      role: "ADMIN",
+      status: "ACTIVE",
+    },
+  });
+
+  res.status(201).json({ token: "" });
+}));
+
 app.get("/api/auth/me", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   const auth = req.auth!;
   const weekStart = parseWeekStart(typeof req.query.weekStart === "string" ? req.query.weekStart : undefined);

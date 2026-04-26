@@ -46,7 +46,7 @@ self.addEventListener("fetch", (event) => {
         }
       }
 
-      throw error;
+      return new Response(null, { status: 503, statusText: "Service Unavailable" });
     }
   })());
 });
