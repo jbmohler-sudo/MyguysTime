@@ -1067,6 +1067,7 @@ app.post("/api/auth/signup", asyncHandler(async (req, res) => {
       companyName: cleanCompanyName,
       ownerName: cleanFullName,
       stateCode: SIGNUP_DEFAULT_STATE_CODE,
+      payrollSettings: { create: {} },
     },
   });
 
