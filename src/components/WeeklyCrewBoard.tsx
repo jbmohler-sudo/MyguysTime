@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CrewSummary, EmployeeWeek, TimesheetStatus, Viewer } from "../domain/models";
 import { prettyStatus } from "../domain/permissions";
 import { EmployeeCard } from "./EmployeeCard";
+import type { ExpenseSubmissionInput } from "../domain/models";
 
 type UiMode = "truck" | "office";
 
@@ -17,6 +18,7 @@ interface WeeklyCrewBoardProps {
   currentWeekStart: string;
   onGoToCurrentWeek: () => void;
   onUpdateDay: (timesheetId: string, dayEntryId: string, payload: Record<string, unknown>) => Promise<void>;
+  onCreateExpenseSubmission: (timesheetId: string, payload: ExpenseSubmissionInput) => Promise<void>;
   onApplyCrewDefaults: (payload: {
     crewId: string;
     weekStart: string;
@@ -40,6 +42,7 @@ export function WeeklyCrewBoard({
   currentWeekStart,
   onGoToCurrentWeek,
   onUpdateDay,
+  onCreateExpenseSubmission,
   onApplyCrewDefaults,
   onStatusChange,
   onReopenWeek,
@@ -192,6 +195,7 @@ export function WeeklyCrewBoard({
             employeeWeek={employeeWeek}
             todayIso={todayIso}
             onUpdateDay={onUpdateDay}
+            onCreateExpenseSubmission={onCreateExpenseSubmission}
             onStatusChange={onStatusChange}
             onReopenWeek={onReopenWeek}
           />

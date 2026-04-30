@@ -9,7 +9,7 @@ import { AppShell } from "../components/AppShell";
 import { OnboardingProvider } from "../hooks/useOnboarding";
 import { ToastProvider } from "../hooks/useToast";
 import { ViewProvider } from "../context/ViewContext";
-import type { BootstrapPayload, TimesheetStatus } from "../domain/models";
+import type { BootstrapPayload, ExpenseSubmissionInput, TimesheetStatus } from "../domain/models";
 import { getDemoPayload, type DemoRole } from "./demoData";
 
 interface DemoShellProps {
@@ -117,6 +117,33 @@ export function DemoShell({ role }: DemoShellProps) {
     }));
   }
 
+  async function handleCreateExpenseSubmission(
+    timesheetId: string,
+    payload: ExpenseSubmissionInput,
+  ): Promise<void> {
+    setData((curr) => ({
+      ...curr,
+      employeeWeeks: curr.employeeWeeks.map((week) => {
+        if (week.id !== timesheetId) return week;
+        return {
+          ...week,
+          expenseSubmissions: [
+            {
+              id: `demo-expense-${Date.now()}`,
+              category: payload.category,
+              amount: payload.amount,
+              note: payload.note ?? "",
+              hasReceipt: payload.hasReceipt,
+              submittedAt: new Date().toISOString(),
+              submittedByFullName: curr.viewer.fullName,
+            },
+            ...week.expenseSubmissions,
+          ],
+        };
+      }),
+    }));
+  }
+
   // ─── No-op stubs for features that don't apply in demo ───────────────────────
 
   async function noop(): Promise<void> {}
@@ -150,6 +177,7 @@ export function DemoShell({ role }: DemoShellProps) {
             onReopenWeek={handleReopenWeek}
             onUpdateAdjustment={handleUpdateAdjustment}
             onSubmitPrivateReport={noop}
+            onCreateExpenseSubmission={handleCreateExpenseSubmission}
             onExport={noop}
             onUpdateCompanySettings={noop}
             onListEmployees={noopList}

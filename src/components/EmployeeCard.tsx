@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { DayEntry, EmployeeWeek, TimesheetStatus, Viewer } from "../domain/models";
+import type { DayEntry, EmployeeWeek, ExpenseSubmissionInput, TimesheetStatus, Viewer } from "../domain/models";
 import { adjustTimeValue, formatCurrency, formatDayCardDate } from "../domain/format";
 import { PayrollYtdSummaryGrid, workerTypeLabel } from "./PayrollYtdSummaryGrid";
 
@@ -21,8 +21,140 @@ interface EmployeeCardProps {
   employeeWeek: EmployeeWeek;
   todayIso: string;
   onUpdateDay: (timesheetId: string, dayEntryId: string, payload: Record<string, unknown>) => Promise<void>;
+  onCreateExpenseSubmission: (timesheetId: string, payload: ExpenseSubmissionInput) => Promise<void>;
   onStatusChange: (timesheetId: string, status: TimesheetStatus, note?: string) => Promise<void>;
   onReopenWeek: (timesheetId: string, reopenTo: TimesheetStatus, note: string) => Promise<void>;
+}
+
+const EXPENSE_OPTIONS = [
+  { value: "gas", label: "Gas" },
+  { value: "materials", label: "Materials" },
+  { value: "petty_cash", label: "Petty cash" },
+  { value: "advance", label: "Advance" },
+  { value: "other", label: "Other" },
+] as const;
+
+function formatExpenseTimestamp(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function ExpenseCapturePanel({
+  employeeWeek,
+  disabled,
+  onCreateExpenseSubmission,
+}: {
+  employeeWeek: EmployeeWeek;
+  disabled: boolean;
+  onCreateExpenseSubmission: EmployeeCardProps["onCreateExpenseSubmission"];
+}) {
+  const [category, setCategory] = useState<(typeof EXPENSE_OPTIONS)[number]["value"]>("gas");
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [hasReceipt, setHasReceipt] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  async function submitExpense() {
+    const parsedAmount = Number(amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      setError("Enter an amount greater than 0.");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      await onCreateExpenseSubmission(employeeWeek.id, {
+        category,
+        amount: parsedAmount,
+        note: note.trim(),
+        hasReceipt,
+      });
+      setAmount("");
+      setNote("");
+      setHasReceipt(false);
+      setCategory("gas");
+    } catch (submissionError) {
+      setError(submissionError instanceof Error ? submissionError.message : "Could not save expense.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="reopen-panel">
+      <label>
+        Add expense
+        <select disabled={disabled || saving} value={category} onChange={(event) => setCategory(event.target.value as (typeof EXPENSE_OPTIONS)[number]["value"])}>
+          {EXPENSE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        Amount
+        <input
+          disabled={disabled || saving}
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="20.00"
+          value={amount}
+          onChange={(event) => setAmount(event.target.value)}
+        />
+      </label>
+      <label>
+        Note
+        <input
+          disabled={disabled || saving}
+          type="text"
+          placeholder="Gas for saw run"
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+        />
+      </label>
+      <label className="checkbox-row">
+        <input
+          checked={hasReceipt}
+          disabled={disabled || saving}
+          type="checkbox"
+          onChange={(event) => setHasReceipt(event.target.checked)}
+        />
+        Have receipt
+      </label>
+      {error ? <div className="workflow-banner"><strong>Expense not saved</strong><span>{error}</span></div> : null}
+      <div className="status-actions">
+        <button disabled={disabled || saving} onClick={() => void submitExpense()} type="button">
+          {saving ? "Saving..." : "Save expense"}
+        </button>
+      </div>
+      {employeeWeek.expenseSubmissions.length > 0 ? (
+        <div className="audit-trail">
+          <strong>Week expense log</strong>
+          {employeeWeek.expenseSubmissions.map((expense) => (
+            <div className="audit-row" key={expense.id}>
+              <span className="audit-row__headline">
+                {EXPENSE_OPTIONS.find((option) => option.value === expense.category)?.label ?? expense.category} {formatCurrency(expense.amount)}
+              </span>
+              <span>
+                {expense.submittedByFullName} - {formatExpenseTimestamp(expense.submittedAt)}
+              </span>
+              <span className="audit-row__note">
+                {expense.note || "No note recorded."} {expense.hasReceipt ? "Receipt on hand." : "No receipt marked."}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
 }
 
 function formatTruckDayTabLabel(dayLabel: string, value: string) {
@@ -178,6 +310,7 @@ export function EmployeeCard({
   employeeWeek,
   todayIso,
   onUpdateDay,
+  onCreateExpenseSubmission,
   onStatusChange,
   onReopenWeek,
 }: EmployeeCardProps) {
@@ -195,6 +328,10 @@ export function EmployeeCard({
     (effectiveViewer.role === "admin" || effectiveViewer.role === "foreman") &&
     employeeWeek.status !== "office_locked" &&
     employeeWeek.status !== "needs_revision";
+  const canCaptureExpense =
+    editable &&
+    (viewer.role === "employee" || viewer.role === "foreman" || viewer.role === "admin") &&
+    employeeWeek.status !== "office_locked";
 
   let workflowMessage = "Review each day, then move the week forward when everything looks right.";
   if (effectiveViewer.role === "employee") {
@@ -388,37 +525,49 @@ export function EmployeeCard({
             heading={`${employeeWeek.ytdSummary.calendarYear} YTD reporting`}
             subcopy={`${workerTypeLabel(employeeWeek.workerType)} totals only. This is reporting, not tax filing.`}
           />
+          <ExpenseCapturePanel
+            employeeWeek={employeeWeek}
+            disabled={!canCaptureExpense}
+            onCreateExpenseSubmission={onCreateExpenseSubmission}
+          />
         </>
       ) : (
-        <div className="truck-week-actions">
-          {effectiveViewer.role === "employee" && canConfirmWeek(effectiveViewer.role, effectiveViewer.employeeId, employeeWeek) ? (
-            <button
-              className="button-strong"
-              onClick={() => void onStatusChange(employeeWeek.id, "employee_confirmed")}
-              type="button"
-            >
-              Confirm
-            </button>
-          ) : null}
-          {effectiveViewer.role === "foreman" && canApproveWeek(effectiveViewer.role, employeeWeek) ? (
-            <button
-              className="button-strong"
-              onClick={() => void onStatusChange(employeeWeek.id, "foreman_approved")}
-              type="button"
-            >
-              Approve week
-            </button>
-          ) : null}
-          {effectiveViewer.role === "admin" && canOfficeLock(effectiveViewer.role, employeeWeek) ? (
-            <button
-              className="button-strong"
-              onClick={() => void onStatusChange(employeeWeek.id, "office_locked")}
-              type="button"
-            >
-              Lock for payroll
-            </button>
-          ) : null}
-        </div>
+        <>
+          <div className="truck-week-actions">
+            {effectiveViewer.role === "employee" && canConfirmWeek(effectiveViewer.role, effectiveViewer.employeeId, employeeWeek) ? (
+              <button
+                className="button-strong"
+                onClick={() => void onStatusChange(employeeWeek.id, "employee_confirmed")}
+                type="button"
+              >
+                Confirm
+              </button>
+            ) : null}
+            {effectiveViewer.role === "foreman" && canApproveWeek(effectiveViewer.role, employeeWeek) ? (
+              <button
+                className="button-strong"
+                onClick={() => void onStatusChange(employeeWeek.id, "foreman_approved")}
+                type="button"
+              >
+                Approve week
+              </button>
+            ) : null}
+            {effectiveViewer.role === "admin" && canOfficeLock(effectiveViewer.role, employeeWeek) ? (
+              <button
+                className="button-strong"
+                onClick={() => void onStatusChange(employeeWeek.id, "office_locked")}
+                type="button"
+              >
+                Lock for payroll
+              </button>
+            ) : null}
+          </div>
+          <ExpenseCapturePanel
+            employeeWeek={employeeWeek}
+            disabled={!canCaptureExpense}
+            onCreateExpenseSubmission={onCreateExpenseSubmission}
+          />
+        </>
       )}
 
       {canFlagRevision ? (

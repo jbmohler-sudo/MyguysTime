@@ -849,6 +849,41 @@ await runCase("payroll estimate updates correctly after adjustment edits", async
   }
 });
 
+await runCase("employee can add a simple expense with receipt flag", async () => {
+  const app = await bootApp();
+  try {
+    const token = await app.login("marco@crewtime.local", "employee123");
+    const meResponse = await app.api(`/api/auth/me?weekStart=${WEEK_START}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const mePayload = await meResponse.json();
+    const timesheet = mePayload.employeeWeeks[0];
+
+    const expenseResponse = await app.api(`/api/timesheets/${timesheet.id}/expenses`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        category: "gas",
+        amount: 20,
+        note: "Fuel for pickup run.",
+        hasReceipt: true,
+      }),
+    });
+    const expensePayload = await expenseResponse.json();
+
+    assert.equal(expenseResponse.status, 201);
+    assert.equal(expensePayload.timesheet.expenseSubmissions.length, 1);
+    assert.equal(expensePayload.timesheet.expenseSubmissions[0].category, "gas");
+    assert.equal(expensePayload.timesheet.expenseSubmissions[0].amount, 20);
+    assert.equal(expensePayload.timesheet.expenseSubmissions[0].hasReceipt, true);
+  } finally {
+    await app.shutdown();
+  }
+});
+
 await runCase("new admin sees onboarding until setup is completed", async () => {
   const app = await bootApp();
   try {

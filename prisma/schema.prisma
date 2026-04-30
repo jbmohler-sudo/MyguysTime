@@ -28,6 +28,7 @@ model User {
   sentInvites    UserInvite[]    @relation("UserInvitesSent")
   createdReports PrivateReport[] @relation("PrivateReportAuthor")
   payrollExports PayrollExport[] @relation("PayrollExportByUser")
+  submittedExpenses ExpenseSubmission[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -52,6 +53,7 @@ model Company {
   employees                    Employee[]
   userInvites                  UserInvite[]
   payrollExports               PayrollExport[]
+  expenseSubmissions           ExpenseSubmission[]
 }
 
 model Crew {
@@ -104,6 +106,7 @@ model Employee {
   adjustments       WeeklyAdjustment[]
   payrollEstimates  PayrollEstimate[]
   reports           PrivateReport[]
+  expenseSubmissions ExpenseSubmission[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 
@@ -223,6 +226,7 @@ model TimesheetWeek {
   crew                  Crew            @relation(fields: [crewId], references: [id])
   dayEntries            TimeEntryDay[]
   adjustment            WeeklyAdjustment?
+  expenseSubmissions    ExpenseSubmission[]
   payrollEstimate       PayrollEstimate?
   statusAuditEvents     TimesheetStatusAudit[]
   createdAt             DateTime        @default(now())
@@ -273,6 +277,28 @@ model WeeklyAdjustment {
   timesheetWeek         TimesheetWeek @relation(fields: [timesheetWeekId], references: [id])
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
+}
+
+model ExpenseSubmission {
+  id               String        @id @default(cuid())
+  companyId        String
+  employeeId       String
+  timesheetWeekId  String
+  category         String
+  amountCents      Int
+  note             String?
+  hasReceipt       Boolean       @default(false)
+  submittedByUserId String
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  company          Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  employee         Employee      @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  timesheetWeek    TimesheetWeek @relation(fields: [timesheetWeekId], references: [id], onDelete: Cascade)
+  submittedByUser  User          @relation(fields: [submittedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([companyId, timesheetWeekId])
+  @@index([employeeId, createdAt])
+  @@index([submittedByUserId])
 }
 
 model PayrollEstimate {
