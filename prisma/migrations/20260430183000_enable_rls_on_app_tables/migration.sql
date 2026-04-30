@@ -1,0 +1,20 @@
+-- Lock down application tables in Supabase.
+-- This app reads and writes data through the server's direct Prisma connection,
+-- so client-facing Supabase roles should not have open table access by default.
+
+ALTER TABLE "Company" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "CompanyPayrollSettings" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Crew" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "CrewAssignment" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "CrewDayDefault" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Employee" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "PayrollEstimate" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "PayrollExport" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "PrivateReport" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "StatePayrollRule" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "TimeEntryDay" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "TimesheetStatusAudit" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "TimesheetWeek" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "User" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "UserInvite" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "WeeklyAdjustment" ENABLE ROW LEVEL SECURITY;
