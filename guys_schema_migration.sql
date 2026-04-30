@@ -228,3 +228,23 @@ CREATE INDEX IF NOT EXISTS "idx_TimeEntryDay_timesheetWeekId" ON "TimeEntryDay"(
 CREATE INDEX IF NOT EXISTS "idx_PayrollEstimate_employeeId" ON "PayrollEstimate"("employeeId");
 CREATE INDEX IF NOT EXISTS "idx_PayrollEstimate_timesheetWeekId" ON "PayrollEstimate"("timesheetWeekId");
 CREATE INDEX IF NOT EXISTS "idx_TimesheetWeek_companyId" ON "TimesheetWeek"("companyId");
+
+-- Enable RLS on all application tables.
+-- The app accesses these tables through the backend service layer, so there are
+-- intentionally no anon/authenticated policies here by default.
+ALTER TABLE "Company" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "CompanyPayrollSettings" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Crew" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "CrewAssignment" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "CrewDayDefault" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Employee" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "PayrollEstimate" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "PayrollExport" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "PrivateReport" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "StatePayrollRule" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "TimeEntryDay" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "TimesheetStatusAudit" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "TimesheetWeek" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "User" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "UserInvite" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "WeeklyAdjustment" ENABLE ROW LEVEL SECURITY;
