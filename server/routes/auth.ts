@@ -12,6 +12,40 @@ import {
 
 const router = Router();
 
+async function findSupabaseAuthUserByEmail(
+  supabase: ReturnType<typeof getSupabaseAuthClient>,
+  email: string,
+) {
+  let page = 1;
+
+  while (page <= 10) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage: 200,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const matchedUser = data.users.find(
+      (candidate) => candidate.email?.trim().toLowerCase() === email,
+    );
+
+    if (matchedUser) {
+      return matchedUser;
+    }
+
+    if (data.users.length < 200) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  return null;
+}
+
 router.post("/auth/signup", asyncHandler(async (req, res) => {
   const { fullName, companyName, email, password } = req.body as {
     fullName?: string;
@@ -55,43 +89,108 @@ router.post("/auth/signup", asyncHandler(async (req, res) => {
     }
 
     const supabase = getSupabaseAuthClient();
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: normalizedEmail,
-      password,
-      email_confirm: true,
-    });
+    const existingAuthUser = await findSupabaseAuthUserByEmail(supabase, normalizedEmail);
 
-    if (authError || !authData.user) {
-      const errorMsg = authError?.message || "Failed to create authentication account.";
-      res.status(400).json({ error: errorMsg });
-      return;
+    let supabaseUserId: string;
+    let createdAuthUser = false;
+
+    if (existingAuthUser) {
+      const { data: authData, error: authError } = await supabase.auth.admin.updateUserById(
+        existingAuthUser.id,
+        {
+          email: normalizedEmail,
+          password,
+          email_confirm: true,
+        },
+      );
+
+      if (authError || !authData.user) {
+        const errorMsg = authError?.message || "Failed to recover authentication account.";
+        res.status(400).json({ error: errorMsg });
+        return;
+      }
+
+      supabaseUserId = authData.user.id;
+    } else {
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: normalizedEmail,
+        password,
+        email_confirm: true,
+      });
+
+      if (authError || !authData.user) {
+        const errorMsg = authError?.message || "Failed to create authentication account.";
+        res.status(400).json({ error: errorMsg });
+        return;
+      }
+
+      supabaseUserId = authData.user.id;
+      createdAuthUser = true;
     }
 
-    const company = await prisma.company.create({
-      data: {
-        companyName: trimmedCompanyName,
-        stateCode: SIGNUP_DEFAULT_STATE_CODE,
-        updatedAt: new Date(),
-      },
-    });
+    let user;
 
-    await prisma.companyPayrollSettings.create({
-      data: {
-        companyId: company.id,
-        updatedAt: new Date(),
-      },
-    });
+    try {
+      user = await prisma.$transaction(async (tx) => {
+        const reusableCompany = await tx.company.findFirst({
+          where: {
+            companyName: trimmedCompanyName,
+            users: {
+              none: {},
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          select: {
+            id: true,
+          },
+        });
 
-    const user = await prisma.user.create({
-      data: {
-        supabaseId: authData.user.id,
-        companyId: company.id,
-        email: normalizedEmail,
-        fullName: trimmedFullName,
-        role: "ADMIN",
-        status: "ACTIVE",
-      },
-    });
+        const companyId = reusableCompany?.id ?? (
+          await tx.company.create({
+            data: {
+              companyName: trimmedCompanyName,
+              stateCode: SIGNUP_DEFAULT_STATE_CODE,
+              updatedAt: new Date(),
+            },
+            select: {
+              id: true,
+            },
+          })
+        ).id;
+
+        await tx.companyPayrollSettings.upsert({
+          where: {
+            companyId,
+          },
+          update: {
+            updatedAt: new Date(),
+          },
+          create: {
+            companyId,
+            updatedAt: new Date(),
+          },
+        });
+
+        return tx.user.create({
+          data: {
+            supabaseId: supabaseUserId,
+            companyId,
+            email: normalizedEmail,
+            fullName: trimmedFullName,
+            role: "ADMIN",
+            status: "ACTIVE",
+          },
+        });
+      });
+    } catch (dbError) {
+      if (createdAuthUser) {
+        await supabase.auth.admin.deleteUser(supabaseUserId);
+      }
+
+      throw dbError;
+    }
 
     res.status(201).json({
       user: {
@@ -99,7 +198,7 @@ router.post("/auth/signup", asyncHandler(async (req, res) => {
         email: user.email,
         fullName: user.fullName,
         role: user.role.toLowerCase(),
-        companyId: company.id,
+        companyId: user.companyId,
       },
     });
   } catch (error) {
