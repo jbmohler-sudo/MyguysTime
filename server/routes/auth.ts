@@ -28,7 +28,9 @@ async function findSupabaseAuthUserByEmail(
       throw error;
     }
 
-    const matchedUser = data.users.find(
+    const users = (data?.users ?? []) as Array<{ id: string; email?: string | null }>;
+
+    const matchedUser = users.find(
       (candidate) => candidate.email?.trim().toLowerCase() === email,
     );
 
@@ -36,7 +38,7 @@ async function findSupabaseAuthUserByEmail(
       return matchedUser;
     }
 
-    if (data.users.length < 200) {
+    if (users.length < 200) {
       break;
     }
 
@@ -57,14 +59,6 @@ router.post("/auth/signup", asyncHandler(async (req, res) => {
   const trimmedFullName = fullName?.trim() || "";
   const trimmedCompanyName = companyName?.trim() || "";
   const normalizedEmail = email?.trim().toLowerCase() || "";
-  const debugSignup = req.header("x-debug-signup") === "true";
-  const databaseHost = (() => {
-    try {
-      return new URL(process.env.DATABASE_URL || "").hostname || null;
-    } catch {
-      return null;
-    }
-  })();
 
   if (!trimmedFullName) {
     res.status(400).json({ error: "Full name is required." });
@@ -91,27 +85,8 @@ router.post("/auth/signup", asyncHandler(async (req, res) => {
       where: { email: normalizedEmail },
     });
 
-    console.log("[auth:signup] lookup", {
-      normalizedEmail,
-      foundExistingUser: Boolean(existingUser),
-      existingUserId: existingUser?.id ?? null,
-      existingUserCompanyId: existingUser?.companyId ?? null,
-      databaseHost,
-    });
-
     if (existingUser) {
-      res.status(409).json({
-        error: "An account with this email already exists.",
-        ...(debugSignup ? {
-          debug: {
-            normalizedEmail,
-            foundExistingUser: true,
-            existingUserId: existingUser.id,
-            existingUserCompanyId: existingUser.companyId,
-            databaseHost,
-          },
-        } : {}),
-      });
+      res.status(409).json({ error: "An account with this email already exists." });
       return;
     }
 
