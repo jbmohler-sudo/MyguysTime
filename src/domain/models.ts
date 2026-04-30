@@ -55,6 +55,16 @@ export interface AdjustmentSummary {
   notes: string;
 }
 
+export interface ExpenseSubmissionSummary {
+  id: string;
+  category: string;
+  amount: number;
+  note: string;
+  hasReceipt: boolean;
+  submittedAt: string;
+  submittedByFullName: string;
+}
+
 export interface StatusAuditEntry {
   id: string;
   fromStatus: TimesheetStatus;
@@ -107,6 +117,7 @@ export interface EmployeeWeek {
   confirmedDays: number;
   missingConfirmationDays: number;
   adjustment: AdjustmentSummary;
+  expenseSubmissions: ExpenseSubmissionSummary[];
   payrollEstimate: PayrollEstimateSummary;
   ytdSummary: YtdPayrollSummary;
   exportedAt: string | null;
@@ -265,6 +276,13 @@ export interface PrivateReportInput {
   category: string;
   severity: string;
   factualDescription: string;
+}
+
+export interface ExpenseSubmissionInput {
+  category: string;
+  amount: number;
+  note?: string;
+  hasReceipt: boolean;
 }
 
 export interface OnboardingEmployeeInput {

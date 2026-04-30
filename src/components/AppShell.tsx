@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   BootstrapPayload,
   EmployeeInput,
+  ExpenseSubmissionInput,
   InviteInput,
   InviteSummary,
   ManagedEmployee,
@@ -67,6 +68,7 @@ interface AppShellProps {
     },
   ) => Promise<void>;
   onSubmitPrivateReport: (payload: PrivateReportInput) => Promise<void>;
+  onCreateExpenseSubmission: (timesheetId: string, payload: ExpenseSubmissionInput) => Promise<void>;
   onExport: (kind: "payroll-summary" | "time-detail" | "weekly-summary") => Promise<void>;
   onUpdateCompanySettings: (payload: {
     companyName?: string;
@@ -107,6 +109,7 @@ export function AppShell({
   onReopenWeek,
   onUpdateAdjustment,
   onSubmitPrivateReport,
+  onCreateExpenseSubmission,
   onExport,
   onUpdateCompanySettings,
   onCreateEmployee,
@@ -764,10 +767,11 @@ export function AppShell({
                   weekStart={data.weekStart}
                   todayIso={todayIso}
                   currentWeekStart={currentWeekStart}
-                  onGoToCurrentWeek={() => void onRefresh(currentWeekStart)}
-                  onUpdateDay={onUpdateDay}
-                  onApplyCrewDefaults={onApplyCrewDefaults}
-                  onStatusChange={onStatusChange}
+                onGoToCurrentWeek={() => void onRefresh(currentWeekStart)}
+                onUpdateDay={onUpdateDay}
+                onCreateExpenseSubmission={onCreateExpenseSubmission}
+                onApplyCrewDefaults={onApplyCrewDefaults}
+                onStatusChange={onStatusChange}
                   onReopenWeek={onReopenWeek}
                 />
                 {uiMode === "office" && effectiveViewer.role === "admin" ? (
@@ -1408,6 +1412,7 @@ export function AppShell({
               currentWeekStart={currentWeekStart}
               onGoToCurrentWeek={() => void onRefresh(currentWeekStart)}
               onUpdateDay={onUpdateDay}
+              onCreateExpenseSubmission={onCreateExpenseSubmission}
               onApplyCrewDefaults={onApplyCrewDefaults}
               onStatusChange={onStatusChange}
               onReopenWeek={onReopenWeek}

@@ -18,6 +18,7 @@ import {
   applyCrewDefaults,
   completeCompanySetup,
   createEmployee,
+  createExpenseSubmission,
   createInvite,
   downloadExport,
   fetchBootstrap,
@@ -38,6 +39,7 @@ import {
   updateTimesheetStatus,
 } from "./lib/api";
 import type { EmployeeInput, InviteInput } from "./domain/models";
+import type { ExpenseSubmissionInput } from "./domain/models";
 import { getCurrentHostname, isPublicHomepageHost } from "./lib/host";
 import { supabase } from "./lib/supabase";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
@@ -275,6 +277,15 @@ function AppContent() {
 
     await submitPrivateReport(token, payload);
     await handleRefresh();
+  }
+
+  async function handleCreateExpenseSubmission(timesheetId: string, payload: ExpenseSubmissionInput) {
+    if (!token) {
+      return;
+    }
+
+    const response = await createExpenseSubmission(token, timesheetId, payload);
+    replaceTimesheet(response.timesheet);
   }
 
   async function handleUpdateCompanySettings(payload: {
@@ -537,6 +548,7 @@ function AppContent() {
         onReopenWeek={handleReopenWeek}
         onUpdateAdjustment={handleUpdateAdjustment}
         onSubmitPrivateReport={handleSubmitPrivateReport}
+        onCreateExpenseSubmission={handleCreateExpenseSubmission}
         onExport={handleExport}
         onUpdateCompanySettings={handleUpdateCompanySettings}
         onListEmployees={handleListEmployees}

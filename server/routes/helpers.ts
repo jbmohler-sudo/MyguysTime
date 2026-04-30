@@ -619,6 +619,7 @@ export async function recalculateTimesheet(timesheetId: string, companyId: strin
       employee: true,
       dayEntries: { orderBy: { dayIndex: "asc" } },
       adjustment: true,
+      expenseSubmissions: { orderBy: { createdAt: "desc" } },
       payrollEstimate: true,
     },
   });
@@ -673,6 +674,7 @@ export async function getAuthorizedTimesheet(req: AuthenticatedRequest, timeshee
       crew: true,
       dayEntries: { orderBy: { dayIndex: "asc" } },
       adjustment: true,
+      expenseSubmissions: { orderBy: { createdAt: "desc" } },
       payrollEstimate: true,
       statusAuditEvents: { orderBy: { createdAt: "desc" } },
     },
@@ -746,6 +748,15 @@ export function serializeTimesheet(
       deductionAdvance: currencyFromCents(timesheet.adjustment?.deductionCents ?? 0),
       notes: timesheet.adjustment?.note ?? "",
     },
+    expenseSubmissions: timesheet.expenseSubmissions.map((expense) => ({
+      id: expense.id,
+      category: expense.category.toLowerCase(),
+      amount: currencyFromCents(expense.amountCents),
+      note: expense.note ?? "",
+      hasReceipt: expense.hasReceipt,
+      submittedAt: expense.createdAt.toISOString(),
+      submittedByFullName: usersById.get(expense.submittedByUserId) ?? "Unknown user",
+    })),
     payrollEstimate: {
       regularHours: (timesheet.payrollEstimate?.regularMinutes ?? 0) / 60,
       overtimeHours: (timesheet.payrollEstimate?.overtimeMinutes ?? 0) / 60,
@@ -876,6 +887,7 @@ export async function buildBootstrap(userId: string, role: UserRole, companyId: 
       crew: true,
       dayEntries: { orderBy: { dayIndex: "asc" } },
       adjustment: true,
+      expenseSubmissions: { orderBy: { createdAt: "desc" } },
       payrollEstimate: true,
       statusAuditEvents: { orderBy: { createdAt: "desc" } },
     },
@@ -908,6 +920,7 @@ export async function buildBootstrap(userId: string, role: UserRole, companyId: 
     new Set(
       timesheets.flatMap((timesheet) => [
         ...timesheet.statusAuditEvents.map((event) => event.createdByUserId),
+        ...timesheet.expenseSubmissions.map((expense) => expense.submittedByUserId),
         ...(timesheet.exportedByUserId ? [timesheet.exportedByUserId] : []),
       ]),
     ),

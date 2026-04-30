@@ -4,6 +4,7 @@ import type {
   CompanyOnboardingInput,
   CompanySettingsSummary,
   EmployeeInput,
+  ExpenseSubmissionInput,
   InviteInput,
   InviteSummary,
   ManagedEmployee,
@@ -151,6 +152,21 @@ export async function updateAdjustment(
     `/timesheets/${timesheetId}/adjustment`,
     {
       method: "PATCH",
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+}
+
+export async function createExpenseSubmission(
+  token: string,
+  timesheetId: string,
+  payload: ExpenseSubmissionInput,
+) {
+  return request<{ timesheet: BootstrapPayload["employeeWeeks"][number] }>(
+    `/timesheets/${timesheetId}/expenses`,
+    {
+      method: "POST",
       body: JSON.stringify(payload),
     },
     token,

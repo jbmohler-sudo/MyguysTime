@@ -24,6 +24,7 @@ import {
 } from "./helpers.js";
 
 const router = Router();
+const EXPENSE_CATEGORY_LABELS = new Set(["gas", "materials", "petty_cash", "advance", "other"]);
 
 router.patch("/timesheets/:timesheetId/days/:dayEntryId", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   const timesheetId = getParam(req.params.timesheetId);
@@ -275,6 +276,86 @@ router.patch("/timesheets/:timesheetId/adjustment", authenticate, asyncHandler(a
   const auditUsersById = new Map([[req.auth!.userId, currentUser.fullName]]);
   const refreshedYtdSummaries = await buildYtdSummaries([refreshed!], refreshed!.weekStartDate);
   res.json({
+    timesheet: serializeTimesheet(
+      refreshed!,
+      req.auth!.role,
+      auditUsersById,
+      refreshedYtdSummaries.get(refreshed!.employeeId) ??
+        createEmptyYtdSummary(asWorkerType(refreshed!.employee.workerType), refreshed!.weekStartDate.getFullYear()),
+    ),
+  });
+}));
+
+router.post("/timesheets/:timesheetId/expenses", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const timesheetId = getParam(req.params.timesheetId);
+  const timesheet = await getAuthorizedTimesheet(req, timesheetId);
+  if (!timesheet) {
+    res.status(403).json({ error: "You cannot add expenses to this timesheet." });
+    return;
+  }
+
+  if (timesheet.status === "OFFICE_LOCKED") {
+    res.status(409).json({ error: "Office-locked weeks cannot accept new expenses." });
+    return;
+  }
+
+  const user = await getCurrentUserOrThrow(req.auth!.userId);
+  if (
+    req.auth!.role === "EMPLOYEE" &&
+    (user.employeeId !== timesheet.employeeId ||
+      !canEmployeeEditStatus(asTimesheetStatus(timesheet.status)))
+  ) {
+    res.status(403).json({ error: "Employees can only add expenses to their own editable week." });
+    return;
+  }
+  if (
+    ["ADMIN", "FOREMAN"].includes(req.auth!.role) &&
+    !canAdminOrForemanEditStatus(asTimesheetStatus(timesheet.status))
+  ) {
+    res.status(409).json({ error: "Locked weeks must be reopened before adding expenses." });
+    return;
+  }
+
+  const { category, amount, note, hasReceipt } = req.body as {
+    category?: string;
+    amount?: number;
+    note?: string;
+    hasReceipt?: boolean;
+  };
+
+  const normalizedCategory = category?.trim().toLowerCase() ?? "";
+  if (!EXPENSE_CATEGORY_LABELS.has(normalizedCategory)) {
+    res.status(400).json({ error: "Expense type must be gas, materials, petty cash, advance, or other." });
+    return;
+  }
+
+  if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) {
+    res.status(400).json({ error: "Expense amount must be greater than 0." });
+    return;
+  }
+
+  if (typeof hasReceipt !== "boolean") {
+    res.status(400).json({ error: "Receipt status must be yes or no." });
+    return;
+  }
+
+  await prisma.expenseSubmission.create({
+    data: {
+      companyId: req.auth!.companyId,
+      employeeId: timesheet.employeeId,
+      timesheetWeekId: timesheet.id,
+      category: normalizedCategory.toUpperCase(),
+      amountCents: Math.round(amount * 100),
+      note: note?.trim() ? note.trim() : null,
+      hasReceipt,
+      submittedByUserId: req.auth!.userId,
+    },
+  });
+
+  const refreshed = await getAuthorizedTimesheet(req, timesheet.id);
+  const auditUsersById = new Map([[req.auth!.userId, user.fullName]]);
+  const refreshedYtdSummaries = await buildYtdSummaries([refreshed!], refreshed!.weekStartDate);
+  res.status(201).json({
     timesheet: serializeTimesheet(
       refreshed!,
       req.auth!.role,
