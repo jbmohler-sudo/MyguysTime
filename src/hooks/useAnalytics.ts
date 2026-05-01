@@ -1,10 +1,12 @@
+import { capturePostHogEvent } from "../lib/posthog";
+
 /**
  * Analytics hook for tracking user interactions
  * Supports: page views, feature usage, errors, performance metrics
- * 
+ *
  * Usage:
  *   const analytics = useAnalytics();
- *   analytics.trackEvent('add_employee_modal_opened', { crew: 'Truck 1' });
+ *   analytics.trackEvent("add_employee_modal_opened", { crew: "Truck 1" });
  */
 
 interface AnalyticsEvent {
@@ -15,7 +17,7 @@ interface AnalyticsEvent {
 
 interface AnalyticsConfig {
   enabled: boolean;
-  endpoint?: string; // Future: send to analytics service
+  endpoint?: string;
   userId?: string;
   sessionId?: string;
 }
@@ -41,16 +43,11 @@ export const useAnalytics = () => {
     };
 
     eventQueue.push(event);
+    capturePostHogEvent(name, properties);
 
-    // Log to console in development
-    if (process.env.NODE_ENV === "development") {
-      console.log(`📊 Analytics: ${name}`, properties || "");
+    if (import.meta.env.DEV) {
+      console.log("[analytics]", name, properties || "");
     }
-
-    // Future: send to backend/analytics service in batches
-    // if (eventQueue.length > 10) {
-    //   flushEvents();
-    // }
   };
 
   const trackPageView = (page: string, properties?: Record<string, string | number | boolean>) => {
@@ -103,7 +100,6 @@ export const useAnalytics = () => {
   };
 };
 
-// Export for testing/debugging
 export const __TEST__ = {
   getConfig: () => config,
   getEventQueue: () => eventQueue,

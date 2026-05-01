@@ -22,6 +22,7 @@ import {
   timeStringToMinutes,
   writeStatusAudit,
 } from "./helpers.js";
+import { posthog } from "../posthog.js";
 
 const router = Router();
 const EXPENSE_CATEGORY_LABELS = new Set(["gas", "materials", "petty_cash", "advance", "other"]);
@@ -351,6 +352,16 @@ router.post("/timesheets/:timesheetId/expenses", authenticate, asyncHandler(asyn
     },
   });
 
+  posthog?.capture({
+    distinctId: req.auth!.userId,
+    event: "expense_submitted",
+    properties: {
+      timesheet_id: timesheet.id,
+      category: normalizedCategory,
+      company_id: req.auth!.companyId,
+    },
+  });
+
   const refreshed = await getAuthorizedTimesheet(req, timesheet.id);
   const auditUsersById = new Map([[req.auth!.userId, user.fullName]]);
   const refreshedYtdSummaries = await buildYtdSummaries([refreshed!], refreshed!.weekStartDate);
@@ -509,6 +520,18 @@ router.patch("/timesheets/:timesheetId/status", authenticate, asyncHandler(async
     res.status(400).json({ error: "Unsupported status transition." });
     return;
   }
+
+  posthog?.capture({
+    distinctId: auth.userId,
+    event: "timesheet_status_changed",
+    properties: {
+      timesheet_id: timesheet.id,
+      from_status: timesheet.status,
+      to_status: nextStatus,
+      role: auth.role.toLowerCase(),
+      company_id: auth.companyId,
+    },
+  });
 
   const refreshed = await getAuthorizedTimesheet(req, timesheet.id);
   const auditUsersById = new Map([[auth.userId, user.fullName]]);

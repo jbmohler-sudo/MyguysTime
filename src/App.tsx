@@ -41,6 +41,12 @@ import {
 import type { EmployeeInput, InviteInput } from "./domain/models";
 import type { ExpenseSubmissionInput } from "./domain/models";
 import { getCurrentHostname, isPublicHomepageHost } from "./lib/host";
+import {
+  capturePostHogEvent,
+  capturePostHogPageview,
+  identifyPostHogUser,
+  resetPostHogUser,
+} from "./lib/posthog";
 import { supabase } from "./lib/supabase";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 const TOKEN_STORAGE_KEY = "crew-timecard-token";
@@ -99,6 +105,10 @@ function AppContent() {
     }
   }, [path]);
 
+  useEffect(() => {
+    capturePostHogPageview(path);
+  }, [path]);
+
   async function loadApp(nextToken: string, weekStart?: string) {
     setLoading(true);
     setError("");
@@ -144,6 +154,12 @@ function AppContent() {
         setData(null);
       }
 
+      if (accessToken && event === "SIGNED_IN") {
+        capturePostHogEvent("login_succeeded", {
+          path,
+        });
+      }
+
       if (event === "PASSWORD_RECOVERY" && window.location.pathname !== "/reset-password") {
         navigate("/reset-password");
       }
@@ -157,6 +173,7 @@ function AppContent() {
 
   useEffect(() => {
     if (!token) {
+      resetPostHogUser();
       return;
     }
 
@@ -168,11 +185,25 @@ function AppContent() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
+    resetPostHogUser();
     setStoredToken(null);
     setData(null);
     setError("");
     navigate("/");
   }
+
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+
+    identifyPostHogUser({
+      id: data.viewer.id,
+      role: data.viewer.role,
+      companyId: data.companySettings?.id ?? null,
+      companyName: data.companySettings?.companyName ?? null,
+    });
+  }, [data]);
 
   async function handleRefresh(weekStart?: string) {
     if (!token) {
@@ -322,6 +353,13 @@ function AppContent() {
     }
 
     const response = await completeCompanySetup(token, payload);
+    capturePostHogEvent("company_setup_completed", {
+      employee_count: payload.employees.length,
+      week_start_day: payload.weekStartDay,
+      payroll_method: payload.payrollMethod,
+      time_tracking_style: payload.timeTrackingStyle,
+      track_expenses: payload.trackExpenses,
+    });
     setData(response);
   }
 
@@ -372,7 +410,12 @@ function AppContent() {
 
   async function handleDownloadQboCsv(ws: string) {
     if (!token) throw new Error("Not authenticated");
-    return downloadExport(token, `/exports/qbo.csv?weekStart=${encodeURIComponent(ws)}`);
+    const response = await downloadExport(token, `/exports/qbo.csv?weekStart=${encodeURIComponent(ws)}`);
+    capturePostHogEvent("export_downloaded", {
+      export_kind: "qbo_csv",
+      week_start: ws,
+    });
+    return response;
   }
 
   async function handleFetchExportHistory() {
@@ -383,7 +426,14 @@ function AppContent() {
 
   async function handleSendReminders(employeeIds: string[]) {
     if (!token) throw new Error("Not authenticated");
-    return sendSmsReminders(token, employeeIds);
+    const result = await sendSmsReminders(token, employeeIds);
+    capturePostHogEvent("reminder_sent", {
+      channel: "sms",
+      recipient_count: result.count,
+      requested_count: employeeIds.length,
+      sent: result.sent,
+    });
+    return result;
   }
 
   async function handleExport(kind: "payroll-summary" | "time-detail" | "weekly-summary") {
@@ -399,6 +449,10 @@ function AppContent() {
           : `/exports/weekly-summary?weekStart=${data.weekStart}`;
 
     const response = await downloadExport(token, path);
+    capturePostHogEvent("export_downloaded", {
+      export_kind: kind,
+      week_start: data.weekStart,
+    });
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
 
