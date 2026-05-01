@@ -96,7 +96,7 @@ Do not confuse preview-role mode with real auth:
 On 2026-04-30, production had a real auth/data mismatch:
 - `jbmohler@gmail.com` was blocked by a ghost app `User` row
 - password reset did not work because the matching Supabase Auth user was missing
-- a separate bad `JB Mohler Masonry` company record existed with `TX` state and linked crew/employee/timesheet data
+- a separate bad `TX` company record existed with linked crew/employee/timesheet data
 
 What changed:
 - the ghost production signup blocker was removed

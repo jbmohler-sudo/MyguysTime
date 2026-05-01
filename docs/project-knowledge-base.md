@@ -34,7 +34,7 @@ Verified on 2026-04-30:
 - production deploy is live on `app.myguystime.com`
 - `GET /api/health` returns `200`
 - production signup blocker for `jbmohler@gmail.com` was removed
-- a bad `JB Mohler Masonry` Texas company tree was deleted from the env-backed app database
+- a bad `TX` company tree was deleted from the env-backed app database
 - temporary production debug and cleanup hooks used during auth cleanup were removed afterward
 - Supabase-side app tables now have RLS enabled
 

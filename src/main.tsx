@@ -2,11 +2,13 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import * as Sentry from "@sentry/react";
 import App from "./App";
+import { initializePostHog } from "./lib/posthog";
 import { initializeSentry } from "./lib/sentry";
 import "./styles/tokens.css";
 import "./styles.css";
 
 initializeSentry();
+initializePostHog();
 
 const SERVICE_WORKER_VERSION = "2026-04-24-1";
 

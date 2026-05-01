@@ -9,6 +9,7 @@ import {
   hashInviteToken,
   SIGNUP_DEFAULT_STATE_CODE,
 } from "./helpers.js";
+import { posthog } from "../posthog.js";
 
 const router = Router();
 
@@ -195,6 +196,15 @@ router.post("/auth/signup", asyncHandler(async (req, res) => {
       throw dbError;
     }
 
+    posthog?.capture({
+      distinctId: user.id,
+      event: "user_signed_up",
+      properties: {
+        role: user.role.toLowerCase(),
+        company_id: user.companyId,
+      },
+    });
+
     res.status(201).json({
       user: {
         id: user.id,
@@ -343,6 +353,15 @@ router.post("/auth/accept-invite", asyncHandler(async (req, res) => {
       where: { id: invite.id },
       data: {
         acceptedAt: now,
+      },
+    });
+
+    posthog?.capture({
+      distinctId: user.id,
+      event: "invite_accepted",
+      properties: {
+        role: user.role.toLowerCase(),
+        company_id: user.companyId,
       },
     });
 
