@@ -524,23 +524,36 @@ export async function seedDatabase() {
     const existingFixtureTimesheetIds = existingFixtureTimesheets.map((timesheet) => timesheet.id);
 
     if (existingFixtureTimesheetIds.length > 0) {
-      await prisma.expenseSubmission.deleteMany({
-        where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
-      });
-      await prisma.timesheetStatusAudit.deleteMany({
-        where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
-      });
-      await prisma.payrollEstimate.deleteMany({
-        where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
-      });
-      await prisma.weeklyAdjustment.deleteMany({
-        where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
-      });
-      await prisma.timeEntryDay.deleteMany({
-        where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
-      });
-      await prisma.timesheetWeek.deleteMany({
-        where: { id: { in: existingFixtureTimesheetIds } },
+      await prisma.$transaction(async (tx) => {
+        await tx.expenseSubmission.deleteMany({
+          where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
+        });
+        await tx.timesheetStatusAudit.deleteMany({
+          where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
+        });
+        await tx.payrollEstimate.deleteMany({
+          where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
+        });
+        await tx.weeklyAdjustment.deleteMany({
+          where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
+        });
+        await tx.timeEntryDay.deleteMany({
+          where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
+        });
+
+        const remainingPayrollEstimates = await tx.payrollEstimate.count({
+          where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
+        });
+
+        if (remainingPayrollEstimates > 0) {
+          throw new Error(
+            `Fixture timesheet cleanup left ${remainingPayrollEstimates} payroll estimate rows behind.`,
+          );
+        }
+
+        await tx.timesheetWeek.deleteMany({
+          where: { id: { in: existingFixtureTimesheetIds } },
+        });
       });
     }
 
