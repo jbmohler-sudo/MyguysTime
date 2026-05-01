@@ -30,7 +30,7 @@ export interface CrewSummary {
   id: string;
   name: string;
   foremanName: string;
-  dayDefaults: CrewDayDefault[];
+  dayDefaults: readonly CrewDayDefault[];
 }
 
 export interface DayEntry {
@@ -106,6 +106,7 @@ export interface EmployeeWeek {
   exportedAt: string | null;
   exportedByFullName: string | null;
   statusAuditTrail: StatusAuditEntry[];
+  w4CollectedAt?: string | null;
 }
 
 export interface PrivateReport {
@@ -213,6 +214,7 @@ export interface CompanySettingsSummary {
   lastReviewedAt: string | null;
   sourceLabel: string;
   sourceUrl: string;
+  payrollMethod?: string;
 }
 
 export interface StateRuleSummary {

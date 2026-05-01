@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(DATABASE_URL=\"postgresql://postgres.pmwzgagbcfhecozjzyfa:19Carleton01523@aws-1-us-east-2.pooler.supabase.com:6543/postgres?pgbouncer=true\" DIRECT_URL=\"postgresql://postgres.pmwzgagbcfhecozjzyfa:19Carleton01523@aws-1-us-east-2.pooler.supabase.com:5432/postgres\" npx prisma migrate dev --name add_payroll_method_week_start)",
+      "Bash(DATABASE_URL=\"postgresql://postgres.pmwzgagbcfhecozjzyfa:19Carleton01523@aws-1-us-east-2.pooler.supabase.com:6543/postgres?pgbouncer=true\" DIRECT_URL=\"postgresql://postgres.pmwzgagbcfhecozjzyfa:19Carleton01523@aws-1-us-east-2.pooler.supabase.com:5432/postgres\" npx tsx prisma/seed.ts)",
+      "Bash(DATABASE_URL=\"postgresql://postgres.pmwzgagbcfhecozjzyfa:19Carleton01523@aws-1-us-east-2.pooler.supabase.com:6543/postgres?pgbouncer=true\" DIRECT_URL=\"postgresql://postgres.pmwzgagbcfhecozjzyfa:19Carleton01523@aws-1-us-east-2.pooler.supabase.com:5432/postgres\" npx prisma db execute --stdin)",
+      "Bash(2>&1)",
+      "Bash(npx tsx -e ' *)",
+      "Bash(npm run *)",
+      "Bash(git stash *)"
+    ]
+  }
+}

@@ -141,6 +141,8 @@ model CompanyPayrollSettings {
   defaultLunchMinutes           Int      @default(30)
   payType                       String   @default("HOURLY_OVERTIME")
   trackExpenses                 Boolean  @default(true)
+  weekStartDay                   Int      @default(1)
+  payrollMethod                  String   @default("manual")
   payrollPrepDisclaimer          String?
   pfmlEnabled                    Boolean  @default(false)
   pfmlEmployeeRate               Float    @default(0)

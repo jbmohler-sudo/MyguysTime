@@ -14,7 +14,7 @@ import { AccountSettingsPanel } from "./AccountSettingsPanel";
 import { ArchivePanel } from "./ArchivePanel";
 import { InviteEmployeeModal } from "./InviteEmployeeModal";
 import { InviteManagementPanel } from "./InviteManagementPanel";
-import { MissingTimeAlertBanner } from "./MissingTimeAlertBanner";
+import { NotificationBell } from "./NotificationBell";
 import { OnboardingOverlay } from "./OnboardingOverlay";
 import { PayrollExportModal } from "./PayrollExportModal";
 import { CompanySettingsPanel } from "./CompanySettingsPanel";
@@ -25,6 +25,7 @@ import { TeamManagementPanel } from "./TeamManagementPanel";
 import { WeeklyCrewBoard } from "./WeeklyCrewBoard";
 import { useOnboardingContext } from "../hooks/useOnboarding";
 import { Home, Users, Settings, Archive, LogOut } from "lucide-react";
+import { generateAlerts } from "../domain/alerts";
 
 
 const BRAND_ORANGE = "#FF8C00";
@@ -185,6 +186,11 @@ export function AppShell({
   }, [data.employeeWeeks]);
 
   const hasIncompleteTimesheets = incompleteCount > 0;
+
+  const alerts = useMemo(
+    () => generateAlerts(data, onSendReminders),
+    [data, onSendReminders],
+  );
 
   const navItems = useMemo(
     () =>
@@ -352,13 +358,6 @@ export function AppShell({
       const crewBoard = document.querySelector(".weekly-crew-board");
       crewBoard?.scrollIntoView({ behavior: "smooth" });
     }, 0);
-  };
-
-  const handleQuickFixMissingTime = () => {
-    const crewBoardElement = document.querySelector(".crew-board, .weekly-crew-board");
-    if (crewBoardElement) {
-      crewBoardElement.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
   };
 
   const handlePayrollExport = (csvContent: string, fileName: string) => {
@@ -1243,6 +1242,8 @@ export function AppShell({
               <span style={{ fontSize: "0.78rem", color: "#888" }}>Week: {data.weekStart}</span>
             ) : null}
 
+            <NotificationBell alerts={alerts} />
+
             <button
               className="app-nav__item"
               onClick={onLogout}
@@ -1383,14 +1384,6 @@ export function AppShell({
       <main className="content-grid" style={{ padding: "0 20px 40px" }}>
         {activePage === "dashboard" ? (
           <>
-            {uiMode === "office" ? (
-              <MissingTimeAlertBanner
-                employeeWeeks={data.employeeWeeks}
-                onQuickFix={handleQuickFixMissingTime}
-                onSendReminders={onSendReminders}
-              />
-            ) : null}
-
             <WeeklyCrewBoard
               uiMode={uiMode}
               viewer={effectiveViewer}

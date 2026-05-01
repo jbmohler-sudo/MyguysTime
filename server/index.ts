@@ -25,6 +25,7 @@ type TimesheetStatus = "DRAFT" | "NEEDS_REVISION" | "EMPLOYEE_CONFIRMED" | "FORE
 type WorkerType = "EMPLOYEE" | "CONTRACTOR_1099";
 type TimeTrackingStyle = "FOREMAN" | "WORKER_SELF_ENTRY" | "MIXED";
 type PayType = "HOURLY" | "HOURLY_OVERTIME";
+type PayrollMethod = "SERVICE" | "MANUAL" | "MIXED";
 const PAYROLL_PREP_DISCLAIMER = `Important: Payroll Estimates
 
 This app is designed to help you track hours and estimate pay and withholdings.
@@ -123,6 +124,10 @@ function payTypeToClient(value: PayType) {
   return value === "HOURLY" ? "hourly" as const : "hourly_overtime" as const;
 }
 
+function payrollMethodToClient(value: PayrollMethod) {
+  return value.toLowerCase() as "service" | "manual" | "mixed";
+}
+
 function createEmptyYtdSummary(workerType: WorkerType, calendarYear: number) {
   return {
     calendarYear,
@@ -187,8 +192,10 @@ function buildPayrollSettingsDefaults(
     defaultStateWithholdingMode?: "PERCENTAGE" | "MANUAL_OVERRIDE";
     defaultStateWithholdingValue?: number;
     timeTrackingStyle?: TimeTrackingStyle;
+    weekStartDay?: number;
     defaultLunchMinutes?: 0 | 30 | 60;
     payType?: PayType;
+    payrollMethod?: PayrollMethod;
     trackExpenses?: boolean;
   },
 ) {
@@ -203,8 +210,10 @@ function buildPayrollSettingsDefaults(
     defaultStateWithholdingMode: stateMode,
     defaultStateWithholdingValue: stateValue,
     timeTrackingStyle: overrides?.timeTrackingStyle ?? "FOREMAN",
+    weekStartDay: overrides?.weekStartDay ?? 1,
     defaultLunchMinutes: overrides?.defaultLunchMinutes ?? 30,
     payType: overrides?.payType ?? "HOURLY_OVERTIME",
+    payrollMethod: overrides?.payrollMethod ?? "MANUAL",
     trackExpenses: overrides?.trackExpenses ?? true,
     payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
     pfmlEnabled: stateCode === "MA" ? Boolean(stateRule?.defaultPfmlEnabled) : false,
@@ -270,6 +279,7 @@ function serializeCompanySettings(
     id: company.id,
     companyName: company.companyName,
     ownerName: company.ownerName ?? "",
+    weekStartDay: settings.weekStartDay,
     companyState: company.stateCode,
     stateName: stateRule.stateName,
     supportLevel: stateSupportLevel,
@@ -287,6 +297,7 @@ function serializeCompanySettings(
     timeTrackingStyle: timeTrackingStyleToClient(settings.timeTrackingStyle as TimeTrackingStyle),
     defaultLunchMinutes: settings.defaultLunchMinutes,
     payType: payTypeToClient(settings.payType as PayType),
+    payrollMethod: payrollMethodToClient(settings.payrollMethod as PayrollMethod),
     trackExpenses: settings.trackExpenses,
     payrollPrepDisclaimer:
       settings.payrollPrepDisclaimer || PAYROLL_PREP_DISCLAIMER,
@@ -318,6 +329,19 @@ function normalizeManagedEmployeeWorkerType(value: string | undefined) {
   return null;
 }
 
+function normalizeFederalFilingStatus(value: unknown) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "single" || normalized === "married_jointly" || normalized === "head_of_household") {
+    return normalized;
+  }
+
+  return null;
+}
+
 function serializeManagedEmployee(
   employee: Awaited<ReturnType<typeof prisma.employee.findFirstOrThrow>> & {
     defaultCrew: { id: string; name: string } | null;
@@ -331,6 +355,9 @@ function serializeManagedEmployee(
     displayName: employee.displayName,
     workerType: workerTypeToClient(asWorkerType(employee.workerType)),
     hourlyRate: currencyFromCents(employee.hourlyRateCents),
+    federalFilingStatus: normalizeFederalFilingStatus(employee.federalFilingStatus) ?? "single",
+    w4Step3Amount: employee.w4Step3Amount,
+    w4CollectedAt: employee.w4CollectedAt?.toISOString() ?? null,
     active: employee.employmentStatus === "ACTIVE",
     defaultCrewId: employee.defaultCrewId,
     defaultCrewName: employee.defaultCrew?.name ?? null,
@@ -431,6 +458,23 @@ function buildInviteUrl(req: express.Request, token: string) {
 
 function isFiniteNonNegativeNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+function normalizeWeekStartDay(value: unknown) {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 6 ? value : null;
+}
+
+function normalizePayrollMethod(value: unknown) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim().toUpperCase();
+  if (normalized === "SERVICE" || normalized === "MANUAL" || normalized === "MIXED") {
+    return normalized as PayrollMethod;
+  }
+
+  return null;
 }
 
 async function writeStatusAudit(
@@ -678,6 +722,9 @@ function serializeTimesheet(
     crewId: timesheet.crewId,
     crewName: timesheet.crew.name,
     hourlyRate: viewerRole === "EMPLOYEE" ? null : currencyFromCents(timesheet.employee.hourlyRateCents),
+    federalFilingStatus: normalizeFederalFilingStatus(timesheet.employee.federalFilingStatus) ?? "single",
+    w4Step3Amount: timesheet.employee.w4Step3Amount,
+    w4CollectedAt: timesheet.employee.w4CollectedAt?.toISOString() ?? null,
     status: statusToClient(asTimesheetStatus(timesheet.status)),
     entries: timesheet.dayEntries.map((entry) => ({
       id: entry.id,
@@ -707,6 +754,7 @@ function serializeTimesheet(
       overtimeHours: (timesheet.payrollEstimate?.overtimeMinutes ?? 0) / 60,
       grossPay: currencyFromCents(timesheet.payrollEstimate?.grossPayCents ?? 0),
       federalWithholding: currencyFromCents(timesheet.payrollEstimate?.federalWithholdingCents ?? 0),
+      w4NotOnFile: timesheet.employee.w4CollectedAt === null,
       stateWithholding: currencyFromCents(timesheet.payrollEstimate?.stateWithholdingCents ?? 0),
       pfmlWithholding: currencyFromCents(timesheet.payrollEstimate?.pfmlWithholdingCents ?? 0),
       extraStateWithholdingLabel: timesheet.payrollEstimate?.extraStateWithholdingLabel ?? "",
@@ -979,6 +1027,64 @@ app.post("/api/debug/sentry-test", authenticate, asyncHandler(async (req: Authen
 }));
 
 
+app.post("/api/auth/signup", asyncHandler(async (req, res) => {
+  const { fullName, companyName, email, password } = req.body as {
+    fullName?: unknown;
+    companyName?: unknown;
+    email?: unknown;
+    password?: unknown;
+  };
+
+  const cleanFullName = typeof fullName === "string" ? fullName.trim() : "";
+  const cleanCompanyName = typeof companyName === "string" ? companyName.trim() : "";
+  const cleanEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+  const cleanPassword = typeof password === "string" ? password : "";
+
+  if (!cleanFullName || !cleanCompanyName || !cleanEmail || !cleanPassword) {
+    res.status(400).json({ error: "All fields are required." });
+    return;
+  }
+
+  const existing = await prisma.user.findUnique({ where: { email: cleanEmail } });
+  if (existing) {
+    res.status(409).json({ error: "An account with that email already exists." });
+    return;
+  }
+
+  const supabase = getSupabaseAuthClient();
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email: cleanEmail,
+    password: cleanPassword,
+  });
+
+  if (authError || !authData.user) {
+    res.status(400).json({ error: authError?.message ?? "Could not create auth account." });
+    return;
+  }
+
+  const company = await prisma.company.create({
+    data: {
+      companyName: cleanCompanyName,
+      ownerName: cleanFullName,
+      stateCode: SIGNUP_DEFAULT_STATE_CODE,
+      payrollSettings: { create: {} },
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      supabaseId: authData.user.id,
+      companyId: company.id,
+      email: cleanEmail,
+      fullName: cleanFullName,
+      role: "ADMIN",
+      status: "ACTIVE",
+    },
+  });
+
+  res.status(201).json({ token: "" });
+}));
+
 app.get("/api/auth/me", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
   const auth = req.auth!;
   const weekStart = parseWeekStart(typeof req.query.weekStart === "string" ? req.query.weekStart : undefined);
@@ -1039,18 +1145,22 @@ app.post("/api/company-setup", authenticate, asyncHandler(async (req: Authentica
   const {
     companyName,
     ownerName,
+    weekStartDay,
     employees,
     timeTrackingStyle,
     lunchDeductionMinutes,
     payType,
+    payrollMethod,
     trackExpenses,
   } = req.body as {
     companyName?: string;
     ownerName?: string;
+    weekStartDay?: number;
     employees?: Array<{ displayName?: string; hourlyRate?: number; workerType?: string }>;
     timeTrackingStyle?: string;
     lunchDeductionMinutes?: number;
     payType?: string;
+    payrollMethod?: string;
     trackExpenses?: boolean;
   };
 
@@ -1070,9 +1180,21 @@ app.post("/api/company-setup", authenticate, asyncHandler(async (req: Authentica
     return;
   }
 
+  const nextWeekStartDay = normalizeWeekStartDay(weekStartDay);
+  if (nextWeekStartDay === null) {
+    res.status(400).json({ error: "Week starts on must be a valid day of the week." });
+    return;
+  }
+
   const nextPayType = payType?.trim().toUpperCase() as PayType | undefined;
   if (!nextPayType || !["HOURLY", "HOURLY_OVERTIME"].includes(nextPayType)) {
     res.status(400).json({ error: "Pay type is required." });
+    return;
+  }
+
+  const nextPayrollMethod = normalizePayrollMethod(payrollMethod);
+  if (!nextPayrollMethod) {
+    res.status(400).json({ error: "Payroll method is required." });
     return;
   }
 
@@ -1123,8 +1245,10 @@ app.post("/api/company-setup", authenticate, asyncHandler(async (req: Authentica
     where: { companyId: updatedCompany.id },
     data: {
       timeTrackingStyle: nextTimeTrackingStyle,
+      weekStartDay: nextWeekStartDay,
       defaultLunchMinutes: lunchDeductionMinutes,
       payType: nextPayType,
+      payrollMethod: nextPayrollMethod,
       trackExpenses,
     },
   });
@@ -1152,6 +1276,9 @@ app.post("/api/company-setup", authenticate, asyncHandler(async (req: Authentica
         workerType: isContractor ? "CONTRACTOR_1099" : "EMPLOYEE",
         hourlyRateCents,
         overtimeRateCents: nextPayType === "HOURLY" ? hourlyRateCents : null,
+        federalFilingStatus: "single",
+        w4Step3Amount: 0,
+        w4CollectedAt: null,
         defaultCrewId: defaultCrew.id,
         usesCompanyFederalDefault: !isContractor,
         usesCompanyStateDefault: !isContractor,
@@ -1193,6 +1320,7 @@ app.patch("/api/company-settings", authenticate, asyncHandler(async (req: Authen
   const {
     companyName,
     companyState,
+    weekStartDay,
     defaultFederalWithholdingMode,
     defaultFederalWithholdingValue,
     defaultStateWithholdingMode,
@@ -1200,9 +1328,11 @@ app.patch("/api/company-settings", authenticate, asyncHandler(async (req: Authen
     payrollPrepDisclaimer,
     pfmlEnabled,
     pfmlEmployeeRate,
+    payrollMethod,
   } = req.body as {
     companyName?: string;
     companyState?: string;
+    weekStartDay?: number;
     defaultFederalWithholdingMode?: string;
     defaultFederalWithholdingValue?: number;
     defaultStateWithholdingMode?: string;
@@ -1210,6 +1340,7 @@ app.patch("/api/company-settings", authenticate, asyncHandler(async (req: Authen
     payrollPrepDisclaimer?: string;
     pfmlEnabled?: boolean;
     pfmlEmployeeRate?: number;
+    payrollMethod?: string;
   };
 
   const nextFederalMode =
@@ -1248,6 +1379,20 @@ app.patch("/api/company-settings", authenticate, asyncHandler(async (req: Authen
     return;
   }
 
+  const nextWeekStartDay = weekStartDay === undefined ? currentSettings.weekStartDay : normalizeWeekStartDay(weekStartDay);
+  if (nextWeekStartDay === null) {
+    res.status(400).json({ error: "Week starts on must be a valid day of the week." });
+    return;
+  }
+
+  const nextPayrollMethod = payrollMethod === undefined
+    ? (currentSettings.payrollMethod as PayrollMethod)
+    : normalizePayrollMethod(payrollMethod);
+  if (!nextPayrollMethod) {
+    res.status(400).json({ error: "Unsupported payroll method." });
+    return;
+  }
+
   const nextStateCode = companyState?.trim().toUpperCase() || currentCompany.stateCode;
   const stateChanged = nextStateCode !== currentCompany.stateCode;
   const nextStateRule =
@@ -1270,6 +1415,7 @@ app.patch("/api/company-settings", authenticate, asyncHandler(async (req: Authen
   const updatedSettings = await prisma.companyPayrollSettings.update({
     where: { companyId: currentCompany.id },
     data: {
+      weekStartDay: nextWeekStartDay,
       defaultFederalWithholdingMode: nextFederalMode,
       defaultFederalWithholdingValue:
         typeof defaultFederalWithholdingValue === "number"
@@ -1289,6 +1435,7 @@ app.patch("/api/company-settings", authenticate, asyncHandler(async (req: Authen
             : currentSettings.defaultStateWithholdingValue,
       payrollPrepDisclaimer:
         payrollPrepDisclaimer !== undefined ? payrollPrepDisclaimer : currentSettings.payrollPrepDisclaimer,
+      payrollMethod: nextPayrollMethod,
       pfmlEnabled:
         typeof pfmlEnabled === "boolean"
           ? pfmlEnabled
@@ -1373,12 +1520,26 @@ app.post("/api/employees", authenticate, asyncHandler(async (req: AuthenticatedR
     return;
   }
 
-  const { firstName, lastName, displayName, workerType, hourlyRate, defaultCrewId, active } = req.body as {
+  const {
+    firstName,
+    lastName,
+    displayName,
+    workerType,
+    hourlyRate,
+    federalFilingStatus,
+    w4Step3Amount,
+    w4CollectedAt,
+    defaultCrewId,
+    active,
+  } = req.body as {
     firstName?: string;
     lastName?: string;
     displayName?: string;
     workerType?: string;
     hourlyRate?: number;
+    federalFilingStatus?: string;
+    w4Step3Amount?: number;
+    w4CollectedAt?: string | null;
     defaultCrewId?: string | null;
     active?: boolean;
   };
@@ -1400,6 +1561,28 @@ app.post("/api/employees", authenticate, asyncHandler(async (req: AuthenticatedR
 
   if (!isFiniteNonNegativeNumber(hourlyRate)) {
     res.status(400).json({ error: "Hourly rate must be a non-negative number." });
+    return;
+  }
+
+  const nextFederalFilingStatus = normalizeFederalFilingStatus(federalFilingStatus ?? "single");
+  if (!nextFederalFilingStatus) {
+    res.status(400).json({ error: "Federal filing status must be single, married jointly, or head of household." });
+    return;
+  }
+
+  if (w4Step3Amount !== undefined && !isFiniteNonNegativeNumber(w4Step3Amount)) {
+    res.status(400).json({ error: "W-4 Step 3 amount must be a non-negative number." });
+    return;
+  }
+
+  const parsedW4CollectedAt =
+    w4CollectedAt === undefined
+      ? null
+      : w4CollectedAt === null
+        ? null
+        : new Date(w4CollectedAt);
+  if (parsedW4CollectedAt && Number.isNaN(parsedW4CollectedAt.getTime())) {
+    res.status(400).json({ error: "W-4 collected date is invalid." });
     return;
   }
 
@@ -1432,6 +1615,9 @@ app.post("/api/employees", authenticate, asyncHandler(async (req: AuthenticatedR
       employmentStatus: active ? "ACTIVE" : "ARCHIVED",
       hourlyRateCents,
       overtimeRateCents: payrollSettings.payType === "HOURLY" ? hourlyRateCents : null,
+      federalFilingStatus: nextFederalFilingStatus,
+      w4Step3Amount: w4Step3Amount ?? 0,
+      w4CollectedAt: parsedW4CollectedAt,
       defaultCrewId: cleanDefaultCrewId,
       usesCompanyFederalDefault: !isContractor,
       usesCompanyStateDefault: !isContractor,
@@ -1477,12 +1663,26 @@ app.patch("/api/employees/:employeeId", authenticate, asyncHandler(async (req: A
     return;
   }
 
-  const { firstName, lastName, displayName, workerType, hourlyRate, defaultCrewId, active } = req.body as {
+  const {
+    firstName,
+    lastName,
+    displayName,
+    workerType,
+    hourlyRate,
+    federalFilingStatus,
+    w4Step3Amount,
+    w4CollectedAt,
+    defaultCrewId,
+    active,
+  } = req.body as {
     firstName?: string;
     lastName?: string;
     displayName?: string;
     workerType?: string;
     hourlyRate?: number;
+    federalFilingStatus?: string;
+    w4Step3Amount?: number;
+    w4CollectedAt?: string | null;
     defaultCrewId?: string | null;
     active?: boolean;
   };
@@ -1504,6 +1704,28 @@ app.patch("/api/employees/:employeeId", authenticate, asyncHandler(async (req: A
 
   if (!isFiniteNonNegativeNumber(hourlyRate)) {
     res.status(400).json({ error: "Hourly rate must be a non-negative number." });
+    return;
+  }
+
+  const nextFederalFilingStatus = normalizeFederalFilingStatus(federalFilingStatus ?? currentEmployee.federalFilingStatus);
+  if (!nextFederalFilingStatus) {
+    res.status(400).json({ error: "Federal filing status must be single, married jointly, or head of household." });
+    return;
+  }
+
+  if (w4Step3Amount !== undefined && !isFiniteNonNegativeNumber(w4Step3Amount)) {
+    res.status(400).json({ error: "W-4 Step 3 amount must be a non-negative number." });
+    return;
+  }
+
+  const parsedW4CollectedAt =
+    w4CollectedAt === undefined
+      ? currentEmployee.w4CollectedAt
+      : w4CollectedAt === null
+        ? null
+        : new Date(w4CollectedAt);
+  if (parsedW4CollectedAt && Number.isNaN(parsedW4CollectedAt.getTime())) {
+    res.status(400).json({ error: "W-4 collected date is invalid." });
     return;
   }
 
@@ -1540,6 +1762,9 @@ app.patch("/api/employees/:employeeId", authenticate, asyncHandler(async (req: A
       employmentStatus: nextEmploymentStatus,
       hourlyRateCents,
       overtimeRateCents: payrollSettings.payType === "HOURLY" ? hourlyRateCents : null,
+      federalFilingStatus: nextFederalFilingStatus,
+      w4Step3Amount: w4Step3Amount ?? currentEmployee.w4Step3Amount,
+      w4CollectedAt: parsedW4CollectedAt,
       defaultCrewId: cleanDefaultCrewId,
       usesCompanyFederalDefault: !isContractor,
       usesCompanyStateDefault: !isContractor,
