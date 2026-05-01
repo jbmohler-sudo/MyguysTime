@@ -153,6 +153,7 @@ router.post("/auth/signup", asyncHandler(async (req, res) => {
           await tx.company.create({
             data: {
               companyName: trimmedCompanyName,
+              ownerName: trimmedFullName,
               stateCode: SIGNUP_DEFAULT_STATE_CODE,
               updatedAt: new Date(),
             },
@@ -346,6 +347,7 @@ router.post("/auth/accept-invite", asyncHandler(async (req, res) => {
     });
 
     res.status(201).json({
+      email: user.email,
       user: {
         id: user.id,
         email: user.email,

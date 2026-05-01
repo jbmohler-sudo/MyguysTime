@@ -1,9 +1,23 @@
 import assert from "node:assert/strict";
+import { createClient } from "@supabase/supabase-js";
 import { startServer } from "../dist-server/server/index.js";
 import { prisma } from "../dist-server/server/db.js";
 import { seedDatabase } from "../dist-server/prisma/seed.js";
 
 const WEEK_START = "2026-04-13";
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error("Set SUPABASE_URL and SUPABASE_ANON_KEY before running tests.");
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+  },
+});
 
 async function bootApp() {
   await prisma.$disconnect().catch(() => undefined);
@@ -18,13 +32,13 @@ async function bootApp() {
   }
 
   async function login(email, password) {
-    const response = await api("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
     });
-    assert.equal(response.status, 200);
-    return (await response.json()).token;
+    assert.equal(error, null);
+    assert.ok(data.session?.access_token);
+    return data.session.access_token;
   }
 
   async function signup(fullName, companyName, email, password) {
@@ -34,7 +48,7 @@ async function bootApp() {
       body: JSON.stringify({ fullName, companyName, email, password }),
     });
     assert.equal(response.status, 201);
-    return (await response.json()).token;
+    return login(email, password);
   }
 
   async function shutdown() {
@@ -169,10 +183,12 @@ await runCase("new admin can complete onboarding after signup", async () => {
       body: JSON.stringify({
         companyName: "Noah Demo Builders",
         ownerName: "Noah Builder",
+        weekStartDay: 1,
         employees: [{ displayName: "Crew One", hourlyRate: 28, workerType: "w2" }],
         timeTrackingStyle: "foreman",
         lunchDeductionMinutes: 30,
         payType: "hourly_overtime",
+        payrollMethod: "manual",
         trackExpenses: true,
       }),
     });
@@ -493,16 +509,19 @@ await runCase("accepting invite creates linked login and bootstrap works", async
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         token: inviteToken,
+        fullName: "Invite Target",
         password: "invitepass123",
       }),
     });
     const acceptPayload = await acceptResponse.json();
 
-    assert.equal(acceptResponse.status, 200);
-    assert.ok(acceptPayload.token);
+    assert.equal(acceptResponse.status, 201);
+    assert.equal(acceptPayload.email, inviteEmail);
+
+    const acceptedToken = await app.login(inviteEmail, "invitepass123");
 
     const bootstrapResponse = await app.api(`/api/auth/me?weekStart=${WEEK_START}`, {
-      headers: { Authorization: `Bearer ${acceptPayload.token}` },
+      headers: { Authorization: `Bearer ${acceptedToken}` },
     });
     const bootstrapPayload = await bootstrapResponse.json();
 
@@ -888,9 +907,12 @@ await runCase("new admin sees onboarding until setup is completed", async () => 
   const app = await bootApp();
   try {
     const token = await app.login("admin@crewtime.local", "admin123");
-    const company = await prisma.company.findFirstOrThrow();
+    const adminUser = await prisma.user.findUniqueOrThrow({
+      where: { email: "admin@crewtime.local" },
+      select: { companyId: true },
+    });
     await prisma.company.update({
-      where: { id: company.id },
+      where: { id: adminUser.companyId },
       data: {
         onboardingCompletedAt: null,
         onboardingCompletedByUserId: null,
@@ -913,9 +935,12 @@ await runCase("company setup creates a default crew and current-week timesheets"
   const app = await bootApp();
   try {
     const token = await app.login("admin@crewtime.local", "admin123");
-    const company = await prisma.company.findFirstOrThrow();
+    const adminUser = await prisma.user.findUniqueOrThrow({
+      where: { email: "admin@crewtime.local" },
+      select: { companyId: true },
+    });
     await prisma.company.update({
-      where: { id: company.id },
+      where: { id: adminUser.companyId },
       data: {
         onboardingCompletedAt: null,
         onboardingCompletedByUserId: null,
@@ -931,6 +956,7 @@ await runCase("company setup creates a default crew and current-week timesheets"
       body: JSON.stringify({
         companyName: "Fieldstone Roofing",
         ownerName: "Jeff Mohler",
+        weekStartDay: 1,
         employees: [
           { displayName: "Ana Torres", hourlyRate: 28, workerType: "w2" },
           { displayName: "Ben Cruz", hourlyRate: 24, workerType: "1099" },
@@ -938,6 +964,7 @@ await runCase("company setup creates a default crew and current-week timesheets"
         timeTrackingStyle: "mixed",
         lunchDeductionMinutes: 60,
         payType: "hourly",
+        payrollMethod: "manual",
         trackExpenses: true,
       }),
     });
@@ -952,7 +979,16 @@ await runCase("company setup creates a default crew and current-week timesheets"
     assert.equal(payload.companySettings.payType, "hourly");
     assert.equal(payload.companySettings.trackExpenses, true);
 
-    const crew = await prisma.crew.findFirstOrThrow({ where: { name: "Main Crew" } });
+    const refreshedAdminUser = await prisma.user.findUniqueOrThrow({
+      where: { email: "admin@crewtime.local" },
+      select: { companyId: true },
+    });
+    const crew = await prisma.crew.findFirstOrThrow({
+      where: {
+        name: "Main Crew",
+        companyId: refreshedAdminUser.companyId,
+      },
+    });
     const employees = await prisma.employee.findMany({
       where: { defaultCrewId: crew.id },
       orderBy: { displayName: "asc" },

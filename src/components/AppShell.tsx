@@ -129,6 +129,8 @@ export function AppShell({
   const [isScrolled, setIsScrolled] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const lastScrollYRef = useRef(0);
+  const lastHeaderToggleScrollYRef = useRef(0);
+  const isHeaderVisibleRef = useRef(true);
   const [selectedCrewId, setSelectedCrewId] = useState<string>("all");
   const [openedAt] = useState(() => new Date());
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
@@ -206,14 +208,31 @@ export function AppShell({
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const prev = lastScrollYRef.current;
+      const delta = scrollY - prev;
 
       setIsScrolled(scrollY > 40);
 
       if (scrollY < 80) {
-        setIsHeaderVisible(true);
-      } else if (scrollY > prev + 4) {
+        if (!isHeaderVisibleRef.current) {
+          isHeaderVisibleRef.current = true;
+          setIsHeaderVisible(true);
+        }
+        lastHeaderToggleScrollYRef.current = scrollY;
+      } else if (
+        delta > 10 &&
+        isHeaderVisibleRef.current &&
+        scrollY - lastHeaderToggleScrollYRef.current > 28
+      ) {
+        isHeaderVisibleRef.current = false;
+        lastHeaderToggleScrollYRef.current = scrollY;
         setIsHeaderVisible(false);
-      } else if (scrollY < prev - 4) {
+      } else if (
+        delta < -10 &&
+        !isHeaderVisibleRef.current &&
+        lastHeaderToggleScrollYRef.current - scrollY > 28
+      ) {
+        isHeaderVisibleRef.current = true;
+        lastHeaderToggleScrollYRef.current = scrollY;
         setIsHeaderVisible(true);
       }
 

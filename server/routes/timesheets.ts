@@ -302,10 +302,9 @@ router.post("/timesheets/:timesheetId/expenses", authenticate, asyncHandler(asyn
   const user = await getCurrentUserOrThrow(req.auth!.userId);
   if (
     req.auth!.role === "EMPLOYEE" &&
-    (user.employeeId !== timesheet.employeeId ||
-      !canEmployeeEditStatus(asTimesheetStatus(timesheet.status)))
+    user.employeeId !== timesheet.employeeId
   ) {
-    res.status(403).json({ error: "Employees can only add expenses to their own editable week." });
+    res.status(403).json({ error: "Employees can only add expenses to their own week." });
     return;
   }
   if (

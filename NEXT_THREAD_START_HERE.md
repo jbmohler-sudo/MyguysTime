@@ -1,6 +1,6 @@
 # Next Thread Start Here
 
-Last updated: 2026-04-24
+Last updated: 2026-04-30
 Repo path: `C:\MyGuys_App`
 
 ## What this project is
@@ -24,9 +24,14 @@ This repo is the real active project path now. Do not use `C:\MVP` for new work 
 - Backend: Express + TypeScript
 - ORM: Prisma
 - Database: Postgres (Neon-backed runtime)
-- Auth/session: JWT for real login, plus local preview-role mode for fast phone testing
+- Auth/session: Supabase Auth for real login, plus local preview-role mode for fast phone testing
 - Monitoring: Sentry
 - Hosting: Vercel
+
+Important split:
+- Supabase Auth handles sign-in, reset password, and account identity
+- Neon-backed app data still holds the app `User` row and business data
+- protected backend routes expect the Supabase user to map to Prisma `User.supabaseId`
 
 ## Current app entry flow
 
@@ -39,8 +44,9 @@ Current entry behavior:
   - `Continue as Admin`
   - `Continue as Foreman`
   - `Continue as Employee`
-  - seeded email/password login
+  - Supabase-backed email/password login
   - `Create admin account`
+  - forgot password / reset password flow
 
 Preview-role mode is stored in `localStorage` via `PreviewUserContext` and loads the same shared `AppShell` / `WeeklyCrewBoard` / `EmployeeCard` components used by the real app shell.
 
@@ -79,7 +85,27 @@ Current intended behavior:
 - Switch roles from inside the app using the in-app role switcher
 - Keep the same shared card layout while changing role perspective
 
+Do not confuse preview-role mode with real auth:
+- `/demo/*` and preview buttons are static/local behavior
+- real login and signup go through Supabase + backend account bootstrap
+
 ## Important recent fixes
+
+### 0. Production auth cleanup and signup recovery
+
+On 2026-04-30, production had a real auth/data mismatch:
+- `jbmohler@gmail.com` was blocked by a ghost app `User` row
+- password reset did not work because the matching Supabase Auth user was missing
+- a separate bad `JB Mohler Masonry` company record existed with `TX` state and linked crew/employee/timesheet data
+
+What changed:
+- the ghost production signup blocker was removed
+- the bad `TX` company tree was deleted
+- temporary production debug hooks were used and then removed
+- `server/routes/auth.ts` signup flow was hardened so auth-only partial accounts can be recovered on retry
+
+Operational lesson:
+- if signup says an email exists but reset email does not arrive, check both Neon app data and Supabase Auth before assuming the form is broken
 
 ### 1. Scroll jitter / bounce fix
 
@@ -131,13 +157,16 @@ For the most recent scroll-jitter fix:
 ## Current worktree state
 
 As of this handoff:
-- `git status --short` was clean in `C:\MyGuys_App`
+- there are intentional auth/data/doc updates from 2026-04-30
+- check `server/routes/auth.ts`, `server/auth.ts`, `server/supabase.ts`, `src/lib/supabase.ts`, and `src/App.tsx` before trusting older auth notes
 
 ## Known caveats
 
 - Browser and PWA icons can stay cached aggressively after branding changes
 - Phone behavior can still differ from desktop responsive mode, so visual mobile fixes should be checked on-device when possible
-- `docs/project-knowledge-base.md` is useful, but it is older than this handoff for some mobile/auth details
+- app data and auth identity live in different systems, so account bugs can be cross-system
+- deleting a bad company row may require child-row cleanup first because FKs are restrictive
+- Supabase-side app tables had RLS enabled on 2026-04-30; client table access should not be assumed open
 - `AGENT_SYNC.md` is stale and should not be treated as the main source of truth
 
 ## Best new-thread prompt
@@ -149,5 +178,6 @@ Use project path C:\MyGuys_App.
 Read C:\MyGuys_App\NEXT_THREAD_START_HERE.md first, then inspect the current code before editing.
 We are working on the My Guys Time crew timecard/payroll-prep app, especially the mobile truck experience.
 Preserve the current shared AppShell / WeeklyCrewBoard / EmployeeCard architecture and make minimal targeted changes.
+Treat auth as a Supabase Auth plus Prisma User bridge, not a single-system login.
 After changes, run relevant validation and report what is verified vs unverified.
 ```
