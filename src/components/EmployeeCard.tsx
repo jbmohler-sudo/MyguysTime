@@ -329,8 +329,8 @@ export function EmployeeCard({
     employeeWeek.status !== "office_locked" &&
     employeeWeek.status !== "needs_revision";
   const canCaptureExpense =
-    editable &&
     (viewer.role === "employee" || viewer.role === "foreman" || viewer.role === "admin") &&
+    (viewer.role !== "employee" || viewer.employeeId === employeeWeek.employeeId) &&
     employeeWeek.status !== "office_locked";
 
   let workflowMessage = "Review each day, then move the week forward when everything looks right.";

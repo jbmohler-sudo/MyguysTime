@@ -1,6 +1,6 @@
 # Project Knowledge Base
 
-Last updated: 2026-04-21
+Last updated: 2026-04-30
 
 ## What this app is
 
@@ -22,25 +22,21 @@ It is not:
 - Frontend: React 18 + TypeScript + Vite
 - Backend: Express + TypeScript
 - ORM: Prisma
-- Database: hosted Neon Postgres on Vercel
-- Auth: Supabase
+- Database: Neon-backed Postgres for app data
+- Auth: Supabase Auth
 - Error monitoring: Sentry for React and Express
 - Hosting: Vercel
 
 ## Current production status
 
-Verified on 2026-04-21:
+Verified on 2026-04-30:
 
 - production deploy is live on `app.myguystime.com`
 - `GET /api/health` returns `200`
-- admin login works with seeded credentials
-- authenticated weekly bootstrap loads correctly
-- backend Sentry verification route returned a live event id
-
-Still unverified from this session:
-
-- frontend Sentry verification button delivery in the browser UI
-- Sentry event visibility inside the Sentry dashboard, because no live Sentry connector was available here
+- production signup blocker for `jbmohler@gmail.com` was removed
+- a bad `JB Mohler Masonry` Texas company tree was deleted from the env-backed app database
+- temporary production debug and cleanup hooks used during auth cleanup were removed afterward
+- Supabase-side app tables now have RLS enabled
 
 ## Database and deployment truth
 
@@ -51,6 +47,8 @@ Production database setup:
 - Neon is connected to Vercel with a custom `NEON_` env prefix
 - Prisma uses `DATABASE_URL`
 - production `DATABASE_URL` was mapped to the hosted Neon Prisma URL
+- Supabase is used for auth users and password reset
+- app account rows still live in the app database `User` table
 
 Important Neon env vars currently present in Vercel:
 
@@ -69,6 +67,14 @@ Practical rule:
 
 - use `DATABASE_URL` for Prisma
 - use `NEON_POSTGRES_PRISMA_URL` as the source when you need to restore or remap `DATABASE_URL`
+
+Important auth/data rule:
+
+- do not assume "email exists in Supabase" means "app account exists"
+- real login requires both:
+  - a Supabase Auth user
+  - a matching Prisma `User` row linked by `supabaseId`
+- if signup says an email already exists but password reset sends nothing, check both the app `User` table and Supabase Auth before changing code
 
 ## Local/dev database workflow
 
@@ -119,11 +125,35 @@ This matters because:
 
 This prevents Vercel builds from compiling against a stale generated Prisma client when schema fields change.
 
+### 4. Signup recovery hardening
+
+`POST /api/auth/signup` now does more than a naive create:
+
+- checks for an existing app `User` row first
+- looks for an existing Supabase Auth user by email
+- can recover an auth-only account by updating that auth user instead of failing outright
+- wraps company/settings/user creation in a Prisma transaction
+- deletes a newly created auth user if the database side fails
+- can reuse a same-name orphan company with no users
+
+This was added after production ended up with partial auth/app-account mismatches.
+
+### 5. Supabase RLS lockdown
+
+Even though the app uses Neon for runtime app data, the Supabase-side app tables were found unrestricted and were locked down on 2026-04-30.
+
+Current intended posture:
+
+- Supabase Auth is active
+- app table reads/writes should go through the backend service layer
+- client-facing Supabase roles should not have broad direct table access by default
+
 ## Current feature state
 
 Working core flows:
 
 - sign in
+- create admin account
 - weekly crew board
 - employee daily entry editing
 - employee confirmation
@@ -162,6 +192,19 @@ Explicitly not implemented:
 - Only admin can export payroll summary
 - Only admin can office-lock weeks
 - Reopen flow requires admin and audit note
+
+## Current auth shape
+
+The app is in a mixed but working auth shape:
+
+- frontend login, password reset, and account settings use Supabase Auth
+- backend protected routes resolve the Supabase token back to a Prisma `User`
+- `User.supabaseId` is the durable link between the auth identity and the app account row
+- the browser stores the Supabase access token and sends it as the API bearer token
+
+Operational consequence:
+
+- auth bugs often come from the bridge between Supabase Auth and the Prisma `User` row, not from the login form itself
 
 ## Sentry status
 
@@ -202,11 +245,14 @@ If you need to get oriented quickly:
 - the real source of truth for remapping Prisma is `NEON_POSTGRES_PRISMA_URL`
 - browser-side Sentry verification still needs a manual UI click path to fully confirm frontend delivery
 - source map upload and release tagging are not done yet
+- the same company name can exist in multiple databases/environments, so always verify which runtime database you are looking at before deleting data
+- foreign-key cleanup matters: deleting a bad company row may require deleting crews, employees, timesheets, day rows, audits, adjustments, and payroll estimates first
+- if Vercel build logs mention `server/routes/auth.ts` type issues while local build passes, check TS inference around the Supabase admin `listUsers()` result before assuming runtime breakage
 
 ## Recommended next steps
 
-- confirm the backend Sentry event in Sentry
-- trigger the frontend verification button as an admin and confirm the browser-side event
-- disable Sentry verification flags and redeploy
+- keep auth/data docs in sync whenever the Supabase/Auth bridge changes
+- consider documenting a safe data-cleanup runbook for bad test companies and partial signup records
+- confirm the backend Sentry event in Sentry if observability work resumes
 - add source map upload
 - add release tagging

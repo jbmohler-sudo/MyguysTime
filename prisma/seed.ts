@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { pathToFileURL } from "node:url";
 import { calculateDayTotalMinutes, calculatePayrollEstimate } from "../server/payroll.js";
+import { getSupabaseAuthClient } from "../server/supabase.js";
 import { addDays } from "../server/utils.js";
 
 const PAYROLL_DISCLAIMER_VERSION = "2026-04-20-v1";
@@ -53,6 +54,71 @@ async function createOrUpdateUserAccount(
       acceptedAt: new Date(),
     },
   });
+}
+
+async function findSupabaseAuthUserByEmail(email: string) {
+  const supabase = getSupabaseAuthClient();
+  let page = 1;
+
+  while (page <= 10) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage: 200,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const users = (data?.users ?? []) as Array<{ id: string; email?: string | null }>;
+    const matchedUser = users.find((candidate) => candidate.email?.trim().toLowerCase() === email);
+    if (matchedUser) {
+      return matchedUser;
+    }
+
+    if (users.length < 200) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  return null;
+}
+
+async function ensureSupabaseAuthUser(input: {
+  email: string;
+  password: string;
+}) {
+  const supabase = getSupabaseAuthClient();
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const existingUser = await findSupabaseAuthUserByEmail(normalizedEmail);
+
+  if (existingUser) {
+    const { error } = await supabase.auth.admin.updateUserById(existingUser.id, {
+      email: normalizedEmail,
+      password: input.password,
+      email_confirm: true,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return existingUser.id;
+  }
+
+  const { data, error } = await supabase.auth.admin.createUser({
+    email: normalizedEmail,
+    password: input.password,
+    email_confirm: true,
+  });
+
+  if (error || !data.user) {
+    throw error ?? new Error(`Could not create auth user for ${normalizedEmail}.`);
+  }
+
+  return data.user.id;
 }
 
 export async function seedDatabase() {
@@ -156,38 +222,59 @@ export async function seedDatabase() {
       });
     }
 
+    company = await prisma.company.update({
+      where: { id: company.id },
+      data: {
+        companyName: "Crew Time Masonry & Roofing",
+        ownerName: "Dana Office",
+        stateCode: "MA",
+      },
+    });
+
     const companyRule = await prisma.statePayrollRule.findUniqueOrThrow({
-      where: { stateCode: company.stateCode },
+      where: { stateCode: "MA" },
     });
 
-    // Check if payroll settings already exist for this company
-    const existingSettings = await prisma.companyPayrollSettings.findUnique({
+    await prisma.companyPayrollSettings.upsert({
       where: { companyId: company.id },
+      update: {
+        defaultFederalWithholdingMode: "PERCENTAGE",
+        defaultFederalWithholdingValue: 0.1,
+        defaultStateWithholdingMode: companyRule.defaultStateWithholdingMode,
+        defaultStateWithholdingValue: companyRule.defaultStateWithholdingValue,
+        timeTrackingStyle: "FOREMAN",
+        weekStartDay: 1,
+        defaultLunchMinutes: 30,
+        payType: "HOURLY_OVERTIME",
+        payrollMethod: "MANUAL",
+        trackExpenses: true,
+        payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
+        pfmlEnabled: companyRule.defaultPfmlEnabled,
+        pfmlEmployeeRate: companyRule.defaultPfmlEmployeeRate,
+        extraWithholdingLabel: companyRule.extraWithholdingTypes === "PFML" ? "PFML" : "Manual state withholding",
+        extraWithholdingRate: companyRule.extraWithholdingTypes === "PFML" ? companyRule.defaultPfmlEmployeeRate : null,
+        supportLevelSnapshot: companyRule.supportLevel,
+      },
+      create: {
+        companyId: company.id,
+        defaultFederalWithholdingMode: "PERCENTAGE",
+        defaultFederalWithholdingValue: 0.1,
+        defaultStateWithholdingMode: companyRule.defaultStateWithholdingMode,
+        defaultStateWithholdingValue: companyRule.defaultStateWithholdingValue,
+        timeTrackingStyle: "FOREMAN",
+        weekStartDay: 1,
+        defaultLunchMinutes: 30,
+        payType: "HOURLY_OVERTIME",
+        payrollMethod: "MANUAL",
+        trackExpenses: true,
+        payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
+        pfmlEnabled: companyRule.defaultPfmlEnabled,
+        pfmlEmployeeRate: companyRule.defaultPfmlEmployeeRate,
+        extraWithholdingLabel: companyRule.extraWithholdingTypes === "PFML" ? "PFML" : "Manual state withholding",
+        extraWithholdingRate: companyRule.extraWithholdingTypes === "PFML" ? companyRule.defaultPfmlEmployeeRate : null,
+        supportLevelSnapshot: companyRule.supportLevel,
+      },
     });
-
-    if (!existingSettings) {
-      await prisma.companyPayrollSettings.create({
-        data: {
-          companyId: company.id,
-          defaultFederalWithholdingMode: "PERCENTAGE",
-          defaultFederalWithholdingValue: 0.1,
-          defaultStateWithholdingMode: companyRule.defaultStateWithholdingMode,
-          defaultStateWithholdingValue: companyRule.defaultStateWithholdingValue,
-          timeTrackingStyle: "FOREMAN",
-          weekStartDay: 1,
-          defaultLunchMinutes: 30,
-          payType: "HOURLY_OVERTIME",
-          payrollMethod: "MANUAL",
-          trackExpenses: true,
-          payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
-          pfmlEnabled: companyRule.defaultPfmlEnabled,
-          pfmlEmployeeRate: companyRule.defaultPfmlEmployeeRate,
-          extraWithholdingLabel: companyRule.extraWithholdingTypes === "PFML" ? "PFML" : "Manual state withholding",
-          extraWithholdingRate: companyRule.extraWithholdingTypes === "PFML" ? companyRule.defaultPfmlEmployeeRate : null,
-          supportLevelSnapshot: companyRule.supportLevel,
-        },
-      });
-    }
 
     // Find or create test crews
     let masonryCrew = await prisma.crew.findFirst({
@@ -362,6 +449,19 @@ export async function seedDatabase() {
       });
     }
 
+    const supabaseIdsByEmail = new Map<string, string>();
+    for (const authUser of [
+      { email: "admin@crewtime.local", password: "admin123" },
+      { email: "luis@crewtime.local", password: "foreman123" },
+      { email: "marco@crewtime.local", password: "employee123" },
+      { email: "admin@apexroofing.local", password: "apex_admin123" },
+      { email: "jake@apexroofing.local", password: "apex_foreman123" },
+      { email: "sarah@apexroofing.local", password: "apex_employee123" },
+    ]) {
+      const supabaseId = await ensureSupabaseAuthUser(authUser);
+      supabaseIdsByEmail.set(authUser.email, supabaseId);
+    }
+
     // Find or create admin user
     const adminUser = await createOrUpdateUserAccount(prisma, {
       email: "admin@crewtime.local",
@@ -389,6 +489,19 @@ export async function seedDatabase() {
       employeeId: marco.id,
     });
 
+    await prisma.user.update({
+      where: { email: "admin@crewtime.local" },
+      data: { supabaseId: supabaseIdsByEmail.get("admin@crewtime.local") },
+    });
+    await prisma.user.update({
+      where: { email: "luis@crewtime.local" },
+      data: { supabaseId: supabaseIdsByEmail.get("luis@crewtime.local") },
+    });
+    await prisma.user.update({
+      where: { email: "marco@crewtime.local" },
+      data: { supabaseId: supabaseIdsByEmail.get("marco@crewtime.local") },
+    });
+
     await prisma.company.update({
       where: { id: company.id },
       data: {
@@ -401,6 +514,43 @@ export async function seedDatabase() {
     });
 
     const weekStart = new Date("2026-04-13T00:00:00");
+    const fixtureEmployeeIds = [luis.id, marco.id, troy.id];
+    const existingFixtureTimesheets = await prisma.timesheetWeek.findMany({
+      where: {
+        employeeId: { in: fixtureEmployeeIds },
+      },
+      select: { id: true },
+    });
+    const existingFixtureTimesheetIds = existingFixtureTimesheets.map((timesheet) => timesheet.id);
+
+    if (existingFixtureTimesheetIds.length > 0) {
+      await prisma.expenseSubmission.deleteMany({
+        where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
+      });
+      await prisma.timesheetStatusAudit.deleteMany({
+        where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
+      });
+      await prisma.payrollEstimate.deleteMany({
+        where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
+      });
+      await prisma.weeklyAdjustment.deleteMany({
+        where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
+      });
+      await prisma.timeEntryDay.deleteMany({
+        where: { timesheetWeekId: { in: existingFixtureTimesheetIds } },
+      });
+      await prisma.timesheetWeek.deleteMany({
+        where: { id: { in: existingFixtureTimesheetIds } },
+      });
+    }
+
+    await prisma.crewDayDefault.deleteMany({
+      where: { crewId: masonryCrew.id, weekStartDate: weekStart },
+    });
+    await prisma.privateReport.deleteMany({
+      where: { crewId: masonryCrew.id },
+    });
+
     const entriesByEmployee: Record<string, Array<{ start: number | null; end: number | null; lunch: number; tag?: string; confirmed?: boolean }>> = {
       [luis.id]: [
         { start: 420, end: 935, lunch: 30, tag: "School wall", confirmed: true },
@@ -436,15 +586,6 @@ export async function seedDatabase() {
     });
 
     for (const employee of [luis, marco, troy]) {
-      // Check if timesheet already exists for this employee/week
-      const existingTimesheet = await prisma.timesheetWeek.findFirst({
-        where: { employeeId: employee.id, weekStartDate: weekStart },
-      });
-
-      if (existingTimesheet) {
-        continue; // Skip if already created
-      }
-
       const createdTimesheet = await prisma.timesheetWeek.create({
         data: {
           employeeId: employee.id,
@@ -711,6 +852,19 @@ export async function seedDatabase() {
         },
       });
     }
+
+    await prisma.user.updateMany({
+      where: { email: "admin@apexroofing.local" },
+      data: { supabaseId: supabaseIdsByEmail.get("admin@apexroofing.local") },
+    });
+    await prisma.user.updateMany({
+      where: { email: "jake@apexroofing.local" },
+      data: { supabaseId: supabaseIdsByEmail.get("jake@apexroofing.local") },
+    });
+    await prisma.user.updateMany({
+      where: { email: "sarah@apexroofing.local" },
+      data: { supabaseId: supabaseIdsByEmail.get("sarah@apexroofing.local") },
+    });
 
     return {
       adminUser,

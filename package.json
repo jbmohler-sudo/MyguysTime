@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "test": "tsc -b && node tests/run-tests.mjs"
+    "test": "tsc -b && node tests/run-tests-bootstrap.mjs"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",

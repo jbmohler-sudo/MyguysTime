@@ -1,12 +1,14 @@
 import { Router } from "express";
 import { Sentry, sentryEnabled, sentryVerificationEnabled } from "../sentry.js";
 import { authenticate, type AuthenticatedRequest } from "../auth.js";
+import { prisma } from "../db.js";
 import { asyncHandler, authorizeAdmin } from "./helpers.js";
 
 const router = Router();
 
 router.get("/health", asyncHandler(async (_req, res) => {
-  res.json({ ok: true });
+  await prisma.$queryRaw`SELECT 1`;
+  res.json({ ok: true, db: "ok" });
 }));
 
 router.post("/debug/sentry-test", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
