@@ -492,6 +492,9 @@ await runCase("invite modal focus trap stays stable while typing", async () => {
   assert.match(modalSource, /useFocusTrap\(containerRef, isOpen, handleClose, emailInputRef\)/);
   assert.match(focusTrapSource, /initialFocusRef\?: \{ current: HTMLElement \| null \}/);
   assert.match(focusTrapSource, /initialFocusRef\?\.current \?\? first/);
+  assert.match(focusTrapSource, /const onEscapeRef = useRef\(onEscape\)/);
+  assert.match(focusTrapSource, /onEscapeRef\.current\?\.\(\)/);
+  assert.doesNotMatch(focusTrapSource, /\[isActive, containerRef, onEscape, initialFocusRef\]/);
 });
 
 await runCase("cross-company employee invite by guessed id is blocked", async () => {

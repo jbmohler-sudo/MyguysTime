@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const FOCUSABLE_SELECTORS =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -9,20 +9,48 @@ export function useFocusTrap(
   onEscape?: () => void,
   initialFocusRef?: { current: HTMLElement | null },
 ) {
-  useEffect(() => {
-    if (!isActive) return;
-    const container = containerRef.current;
-    if (!container) return;
+  const onEscapeRef = useRef(onEscape);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
-    const prevFocus = document.activeElement as HTMLElement | null;
+  useEffect(() => {
+    onEscapeRef.current = onEscape;
+  }, [onEscape]);
+
+  useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
 
     const first = container.querySelector<HTMLElement>(FOCUSABLE_SELECTORS);
     const initialFocus = initialFocusRef?.current ?? first;
     initialFocus?.focus();
 
+    return () => {
+      previousFocusRef.current?.focus();
+      previousFocusRef.current = null;
+    };
+  }, [isActive]);
+
+  useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        onEscape?.();
+        onEscapeRef.current?.();
         return;
       }
       if (e.key !== "Tab") return;
@@ -51,8 +79,6 @@ export function useFocusTrap(
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      // Return focus to the element that opened the modal
-      prevFocus?.focus();
     };
-  }, [isActive, containerRef, onEscape, initialFocusRef]);
+  }, [isActive]);
 }
