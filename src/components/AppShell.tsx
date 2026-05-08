@@ -208,9 +208,24 @@ export function AppShell({
     }
 
     const handleScroll = () => {
+      const maxScrollY = Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight,
+      );
       const scrollY = window.scrollY;
       const prev = lastScrollYRef.current;
       const delta = scrollY - prev;
+
+      if (maxScrollY <= 80) {
+        setIsScrolled(false);
+        if (!isHeaderVisibleRef.current) {
+          isHeaderVisibleRef.current = true;
+          setIsHeaderVisible(true);
+        }
+        lastScrollYRef.current = scrollY;
+        lastHeaderToggleScrollYRef.current = scrollY;
+        return;
+      }
 
       setIsScrolled(scrollY > 40);
 
@@ -1016,9 +1031,9 @@ export function AppShell({
           top: 0,
           zIndex: 100,
           boxShadow: isScrolled ? "0 4px 12px rgba(0,0,0,0.08)" : "0 2px 8px rgba(0,0,0,0.06)",
-          padding: isScrolled ? "0.6rem 20px" : "1rem 20px",
+          padding: "1rem 20px",
           transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
-          transition: "padding 0.25s ease, box-shadow 0.25s ease, transform 0.3s ease",
+          transition: "box-shadow 0.25s ease, transform 0.3s ease",
         }}
       >
         <div className="hero__main">
@@ -1037,9 +1052,7 @@ export function AppShell({
             >
               <div
                 style={{
-                  transform: isScrolled ? "scale(0.92)" : "scale(1)",
                   transformOrigin: "left center",
-                  transition: "transform 0.2s ease",
                   display: "flex",
                   alignItems: "center",
                   flexShrink: 0,
@@ -1052,9 +1065,8 @@ export function AppShell({
                   style={{
                     color: BRAND_DARK,
                     fontWeight: 700,
-                    fontSize: isScrolled ? "0.92rem" : "1rem",
+                    fontSize: "1rem",
                     margin: 0,
-                    transition: "font-size 0.2s ease",
                     minWidth: 0,
                   }}
                 >
@@ -1099,12 +1111,11 @@ export function AppShell({
               className="hero-copy"
               style={{
                 color: "#666",
-                fontSize: isScrolled ? "0.78rem" : "0.85rem",
-                margin: isScrolled ? "0.2rem 0 0.35rem" : "0.4rem 0 0.75rem",
-                maxHeight: isScrolled ? 0 : "40px",
-                opacity: isScrolled ? 0 : 1,
+                fontSize: "0.85rem",
+                margin: "0.4rem 0 0.75rem",
+                maxHeight: "40px",
+                opacity: 1,
                 overflow: "hidden",
-                transition: "all 0.2s ease",
               }}
             >
               {pageSubtitle[activePage]}
@@ -1139,15 +1150,18 @@ export function AppShell({
                     onMouseLeave={() => setHoveredNav(null)}
                     style={{
                       background: isActive ? "rgba(255,140,0,0.08)" : isHovered ? "#F5F5F5" : "none",
-                      border: "none",
+                      border: "0 solid transparent",
                       borderBottom: isActive ? `2px solid ${BRAND_ORANGE}` : "2px solid transparent",
+                      boxSizing: "border-box",
                       color: isActive ? BRAND_ORANGE : isHovered ? BRAND_DARK : "#555",
-                      fontWeight: isActive ? 700 : 500,
+                      fontWeight: 700,
                       padding: "8px 14px",
                       borderRadius: "6px 6px 0 0",
                       cursor: "pointer",
                       fontSize: "0.875rem",
-                      transition: "all 0.15s ease",
+                      lineHeight: 1.2,
+                      minHeight: "37px",
+                      transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease",
                     }}
                     type="button"
                   >
@@ -1163,14 +1177,13 @@ export function AppShell({
                 className="app-nav__export-btn"
                 onClick={() => setShowPayrollModal(true)}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow = "0 6px 16px rgba(255,140,0,0.3)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
                   e.currentTarget.style.boxShadow = "none";
                 }}
                 style={{
+                  boxSizing: "border-box",
                   padding: "7px 14px",
                   borderRadius: "6px",
                   backgroundColor: BRAND_ORANGE,
@@ -1179,7 +1192,9 @@ export function AppShell({
                   fontSize: "0.8rem",
                   fontWeight: 600,
                   cursor: "pointer",
-                  transition: "all 0.2s ease",
+                  lineHeight: 1.2,
+                  minHeight: "37px",
+                  transition: "box-shadow 0.2s ease",
                   whiteSpace: "nowrap",
                 }}
                 type="button"
@@ -1297,7 +1312,7 @@ export function AppShell({
               style={{
                 fontSize: "0.75rem",
                 color: "#888",
-                margin: isScrolled ? "0.35rem 0 0" : "0.5rem 0 0",
+                margin: "0.5rem 0 0",
               }}
             >
               Status: {visibleWeeks.map((week) => prettyStatus(week.status)).join(", ")}
