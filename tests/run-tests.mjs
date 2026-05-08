@@ -1,12 +1,16 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { startServer } from "../dist-server/server/index.js";
 import { prisma } from "../dist-server/server/db.js";
 import { seedDatabase } from "../dist-server/prisma/seed.js";
+import { sentInviteEmailEvents } from "../dist-server/server/email/inviteEmail.js";
 
 const WEEK_START = "2026-04-13";
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+process.env.INVITE_EMAIL_TRANSPORT = "test";
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Set SUPABASE_URL and SUPABASE_ANON_KEY before running tests.");
@@ -347,6 +351,7 @@ await runCase("admin cannot edit employee records from another company", async (
 await runCase("admin can create and list invite for employee in same company", async () => {
   const app = await bootApp();
   try {
+    sentInviteEmailEvents.length = 0;
     const token = await app.login("admin@crewtime.local", "admin123");
     const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const employeeCreateResponse = await app.api("/api/employees", {
@@ -387,7 +392,19 @@ await runCase("admin can create and list invite for employee in same company", a
     assert.equal(invitePayload.invite.employeeId, employee.id);
     assert.equal(invitePayload.invite.email, inviteEmail);
     assert.equal(invitePayload.invite.status, "pending");
+    assert.equal(invitePayload.deliveryMode, "test");
     assert.match(invitePayload.inviteUrl, /\?invite=/);
+    assert.equal(sentInviteEmailEvents.length, 1);
+    assert.equal(sentInviteEmailEvents[0].to, inviteEmail);
+    assert.equal(sentInviteEmailEvents[0].role, "EMPLOYEE");
+    assert.equal(sentInviteEmailEvents[0].inviteUrl, invitePayload.inviteUrl);
+
+    const storedInvite = await prisma.userInvite.findUniqueOrThrow({
+      where: { id: invitePayload.invite.id },
+      select: { sendCount: true, lastSentAt: true },
+    });
+    assert.equal(storedInvite.sendCount, 1);
+    assert.ok(storedInvite.lastSentAt instanceof Date);
 
     const listResponse = await app.api("/api/company/invites", {
       headers: { Authorization: `Bearer ${token}` },
@@ -399,6 +416,82 @@ await runCase("admin can create and list invite for employee in same company", a
   } finally {
     await app.shutdown();
   }
+});
+
+await runCase("invalid invite email cannot create invite or send email", async () => {
+  const app = await bootApp();
+  try {
+    sentInviteEmailEvents.length = 0;
+    const token = await app.login("admin@crewtime.local", "admin123");
+
+    const inviteResponse = await app.api("/api/company/invites", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: "not-an-email",
+        role: "employee",
+      }),
+    });
+
+    assert.equal(inviteResponse.status, 400);
+    assert.equal(sentInviteEmailEvents.length, 0);
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("valid invite form payload with crew and role can submit", async () => {
+  const app = await bootApp();
+  try {
+    sentInviteEmailEvents.length = 0;
+    const token = await app.login("admin@crewtime.local", "admin123");
+    const bootstrapResponse = await app.api(`/api/auth/me?weekStart=${WEEK_START}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const bootstrapPayload = await bootstrapResponse.json();
+    const crew = bootstrapPayload.crews[0];
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const inviteEmail = `invite-form-${uniqueSuffix}@crewtime.local`;
+
+    const inviteResponse = await app.api("/api/company/invites", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: inviteEmail,
+        role: "foreman",
+        crewId: crew.id,
+        hourlyRate: 31,
+      }),
+    });
+    const invitePayload = await inviteResponse.json();
+
+    assert.equal(inviteResponse.status, 201);
+    assert.equal(invitePayload.invite.email, inviteEmail);
+    assert.equal(invitePayload.invite.role, "foreman");
+    assert.equal(invitePayload.deliveryMode, "test");
+    assert.equal(sentInviteEmailEvents.length, 1);
+    assert.equal(sentInviteEmailEvents[0].to, inviteEmail);
+    assert.equal(sentInviteEmailEvents[0].role, "FOREMAN");
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("invite modal focus trap stays stable while typing", async () => {
+  const modalSource = fs.readFileSync(path.join(process.cwd(), "src/components/InviteEmployeeModal.tsx"), "utf8");
+  const focusTrapSource = fs.readFileSync(path.join(process.cwd(), "src/hooks/useFocusTrap.ts"), "utf8");
+
+  assert.match(modalSource, /const handleClose = useCallback/);
+  assert.match(modalSource, /const emailInputRef = useRef<HTMLInputElement>/);
+  assert.match(modalSource, /useFocusTrap\(containerRef, isOpen, handleClose, emailInputRef\)/);
+  assert.match(focusTrapSource, /initialFocusRef\?: \{ current: HTMLElement \| null \}/);
+  assert.match(focusTrapSource, /initialFocusRef\?\.current \?\? first/);
 });
 
 await runCase("cross-company employee invite by guessed id is blocked", async () => {

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authenticate, type AuthenticatedRequest } from "../auth.js";
 import { prisma } from "../db.js";
+import { sendInviteEmail } from "../email/inviteEmail.js";
 import {
   asyncHandler,
   authorizeAdmin,
@@ -164,16 +165,56 @@ router.post("/company/invites", authenticate, asyncHandler(async (req: Authentic
       invitedByUser: {
         select: { fullName: true },
       },
+      company: {
+        select: { companyName: true },
+      },
     },
   });
 
   const inviteUrl = buildInviteUrl(req, rawToken);
-  console.log(`[invite:dev-link] ${normalizedEmail} -> ${inviteUrl}`);
+  let deliveryMode: "email" | "dev_link" | "test" = "dev_link";
+
+  try {
+    const emailResult = await sendInviteEmail({
+      to: normalizedEmail,
+      inviteUrl,
+      companyName: createdInvite.company.companyName,
+      invitedByName: createdInvite.invitedByUser.fullName,
+      role: normalizedRole,
+    });
+    deliveryMode = emailResult.deliveryMode;
+  } catch (error) {
+    await prisma.userInvite.delete({ where: { id: createdInvite.id } }).catch(() => undefined);
+    console.error("[invite:send-failed]", error);
+    res.status(502).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Invite was not sent. Check server email configuration and try again.",
+    });
+    return;
+  }
+
+  const sentInvite = await prisma.userInvite.update({
+    where: { id: createdInvite.id },
+    data: {
+      lastSentAt: new Date(),
+      sendCount: { increment: 1 },
+    },
+    include: {
+      employee: {
+        select: { displayName: true },
+      },
+      invitedByUser: {
+        select: { fullName: true },
+      },
+    },
+  });
 
   res.status(201).json({
-    invite: serializeInviteSummary(createdInvite),
+    invite: serializeInviteSummary(sentInvite),
     inviteUrl,
-    deliveryMode: "dev_link",
+    deliveryMode,
   });
 }));
 
@@ -193,6 +234,7 @@ router.post("/company/invites/:inviteId/resend", authenticate, asyncHandler(asyn
     include: {
       employee: { select: { displayName: true } },
       invitedByUser: { select: { fullName: true } },
+      company: { select: { companyName: true } },
     },
   });
 
@@ -211,9 +253,32 @@ router.post("/company/invites/:inviteId/resend", authenticate, asyncHandler(asyn
     return;
   }
 
+  const rawToken = createInviteToken();
+  const inviteUrl = buildInviteUrl(req, rawToken);
+
+  try {
+    await sendInviteEmail({
+      to: invite.email ?? "",
+      inviteUrl,
+      companyName: invite.company.companyName,
+      invitedByName: invite.invitedByUser.fullName,
+      role: invite.role as "EMPLOYEE" | "FOREMAN",
+    });
+  } catch (error) {
+    console.error("[invite:resend-failed]", error);
+    res.status(502).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Invite was not resent. Check server email configuration and try again.",
+    });
+    return;
+  }
+
   const updated = await prisma.userInvite.update({
     where: { id: inviteId },
     data: {
+      tokenHash: hashInviteToken(rawToken),
       lastSentAt: new Date(),
       sendCount: { increment: 1 },
     },
@@ -222,10 +287,6 @@ router.post("/company/invites/:inviteId/resend", authenticate, asyncHandler(asyn
       invitedByUser: { select: { fullName: true } },
     },
   });
-
-  const rawToken = invite.tokenHash;
-  const inviteUrl = buildInviteUrl(req, rawToken);
-  console.log(`[invite:resend] ${invite.email ?? "unknown"} -> ${inviteUrl}`);
 
   res.json({ invite: serializeInviteSummary(updated) });
 }));

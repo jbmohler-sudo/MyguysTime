@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { CrewSummary, InviteInput, InviteSummary } from "../domain/models";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { useAnalytics } from "../hooks/useAnalytics";
@@ -30,9 +30,10 @@ export function InviteEmployeeModal({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
   const analytics = useAnalytics();
 
-  function handleClose() {
+  const handleClose = useCallback(() => {
     if (!isSaving) {
       setEmail("");
       setSelectedCrewId("");
@@ -41,9 +42,9 @@ export function InviteEmployeeModal({
       setError(null);
       onClose();
     }
-  }
+  }, [isSaving, onClose]);
 
-  useFocusTrap(containerRef, isOpen, handleClose);
+  useFocusTrap(containerRef, isOpen, handleClose, emailInputRef);
 
   if (!isOpen) return null;
 
@@ -126,14 +127,17 @@ export function InviteEmployeeModal({
 
         {/* Email */}
         <div style={{ marginBottom: "16px" }}>
-          <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: BRAND_DARK, marginBottom: "6px" }}>
+          <label htmlFor="invite-worker-email" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: BRAND_DARK, marginBottom: "6px" }}>
             Email address *
           </label>
           <input
+            id="invite-worker-email"
+            ref={emailInputRef}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="worker@example.com"
+            autoComplete="email"
             disabled={isSaving}
             style={{
               width: "100%",

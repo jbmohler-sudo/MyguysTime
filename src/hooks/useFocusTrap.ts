@@ -7,6 +7,7 @@ export function useFocusTrap(
   containerRef: { current: HTMLElement | null },
   isActive: boolean,
   onEscape?: () => void,
+  initialFocusRef?: { current: HTMLElement | null },
 ) {
   useEffect(() => {
     if (!isActive) return;
@@ -15,9 +16,9 @@ export function useFocusTrap(
 
     const prevFocus = document.activeElement as HTMLElement | null;
 
-    // Focus first focusable element when modal opens
     const first = container.querySelector<HTMLElement>(FOCUSABLE_SELECTORS);
-    first?.focus();
+    const initialFocus = initialFocusRef?.current ?? first;
+    initialFocus?.focus();
 
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -53,5 +54,5 @@ export function useFocusTrap(
       // Return focus to the element that opened the modal
       prevFocus?.focus();
     };
-  }, [isActive, containerRef, onEscape]);
+  }, [isActive, containerRef, onEscape, initialFocusRef]);
 }
