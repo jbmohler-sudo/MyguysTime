@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { PasswordInput } from "./PasswordInput";
 
 interface SignupScreenProps {
   onSignup: (fullName: string, companyName: string, email: string, password: string) => Promise<void>;
@@ -77,19 +78,17 @@ export function SignupScreen({ onSignup, onShowLogin, error }: SignupScreenProps
           <div className="settings-grid auth-grid">
             <label>
               Password
-              <input
+              <PasswordInput
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                type="password"
                 autoComplete="new-password"
               />
             </label>
             <label>
               Confirm password
-              <input
+              <PasswordInput
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
-                type="password"
                 autoComplete="new-password"
               />
             </label>

@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { PasswordInput } from "../components/PasswordInput";
 import { supabase } from "../lib/supabase";
 
 interface LoginPageProps {
@@ -48,10 +49,9 @@ export function LoginPage({ onSuccess, onShowForgotPassword, onShowSignup }: Log
           </label>
           <label>
             Password
-            <input
+            <PasswordInput
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              type="password"
               required
             />
           </label>

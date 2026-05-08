@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
 import type { AcceptInviteInput } from "../domain/models";
+import { PasswordInput } from "./PasswordInput";
 
 interface AcceptInviteScreenProps {
   inviteToken: string;
@@ -76,18 +77,16 @@ export function AcceptInviteScreen({
           <div className="settings-grid auth-grid">
             <label>
               Password
-              <input
+              <PasswordInput
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                type="password"
               />
             </label>
             <label>
               Confirm password
-              <input
+              <PasswordInput
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
-                type="password"
               />
             </label>
           </div>

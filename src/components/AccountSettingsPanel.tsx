@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { getAuthRedirectUrl, supabase } from "../lib/supabase";
 import type { Viewer } from "../domain/models";
+import { PasswordInput } from "./PasswordInput";
 
 interface AccountSettingsPanelProps {
   viewer: Viewer;
@@ -251,19 +252,17 @@ export function AccountSettingsPanel({ viewer, onUpdateMe }: AccountSettingsPane
           <div className="settings-grid settings-grid--tight">
             <label>
               New password
-              <input
+              <PasswordInput
                 autoComplete="new-password"
                 onChange={(event) => setNextPassword(event.target.value)}
-                type="password"
                 value={nextPassword}
               />
             </label>
             <label>
               Confirm new password
-              <input
+              <PasswordInput
                 autoComplete="new-password"
                 onChange={(event) => setConfirmPassword(event.target.value)}
-                type="password"
                 value={confirmPassword}
               />
             </label>

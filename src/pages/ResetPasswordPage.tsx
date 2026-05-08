@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
+import { PasswordInput } from "../components/PasswordInput";
 import { supabase } from "../lib/supabase";
 
 interface ResetPasswordPageProps {
@@ -112,20 +113,18 @@ export function ResetPasswordPage({ onComplete, onShowLogin }: ResetPasswordPage
         <form className="login-form" onSubmit={handleSubmit}>
           <label>
             New password
-            <input
+            <PasswordInput
               autoComplete="new-password"
               autoFocus
               onChange={(event) => setPassword(event.target.value)}
-              type="password"
               value={password}
             />
           </label>
           <label>
             Confirm new password
-            <input
+            <PasswordInput
               autoComplete="new-password"
               onChange={(event) => setConfirmPassword(event.target.value)}
-              type="password"
               value={confirmPassword}
             />
           </label>

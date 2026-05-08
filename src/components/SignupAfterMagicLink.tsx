@@ -2,6 +2,7 @@ import { useState } from "react";
 import { acceptInvite } from "../lib/api";
 import { supabase } from "../lib/supabase";
 import { useAnalytics } from "../hooks/useAnalytics";
+import { PasswordInput } from "./PasswordInput";
 
 const BRAND_ORANGE = "#FF8C00";
 const BRAND_DARK = "#1A1A1B";
@@ -148,8 +149,7 @@ export function SignupAfterMagicLink({ onComplete }: SignupAfterMagicLinkProps) 
             <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: BRAND_DARK, marginBottom: "6px" }}>
               Password
             </label>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="At least 8 characters"
@@ -176,8 +176,7 @@ export function SignupAfterMagicLink({ onComplete }: SignupAfterMagicLinkProps) 
             <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: BRAND_DARK, marginBottom: "6px" }}>
               Confirm password
             </label>
-            <input
-              type="password"
+            <PasswordInput
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Repeat password"
