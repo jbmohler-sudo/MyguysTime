@@ -29,6 +29,7 @@ export function InviteManagementPanel({
   const [filter, setFilter] = useState<FilterStatus>("all");
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [confirmRevoke, setConfirmRevoke] = useState<InviteSummary | null>(null);
+  const [notice, setNotice] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const analytics = useAnalytics();
 
   const load = useCallback(async () => {
@@ -36,8 +37,11 @@ export function InviteManagementPanel({
     try {
       const data = await onListInvites();
       setInvites(data);
-    } catch {
-      // silent — parent can show global error
+    } catch (error) {
+      setNotice({
+        type: "error",
+        message: error instanceof Error ? error.message : "Could not load sent invites.",
+      });
     } finally {
       setLoading(false);
     }
@@ -52,10 +56,17 @@ export function InviteManagementPanel({
 
   async function handleResend(invite: InviteSummary) {
     setPendingAction(invite.id);
+    setNotice(null);
     try {
       await onResendInvite(invite.id);
       analytics.trackEvent("invite_resent", { email: invite.email });
       await load();
+      setNotice({ type: "success", message: `Invite resent to ${invite.email}.` });
+    } catch (error) {
+      setNotice({
+        type: "error",
+        message: error instanceof Error ? error.message : "Invite was not resent. Please try again.",
+      });
     } finally {
       setPendingAction(null);
     }
@@ -64,10 +75,17 @@ export function InviteManagementPanel({
   async function handleRevoke(invite: InviteSummary) {
     setConfirmRevoke(null);
     setPendingAction(invite.id);
+    setNotice(null);
     try {
       await onRevokeInvite(invite.id);
       analytics.trackEvent("invite_revoked", { email: invite.email });
       await load();
+      setNotice({ type: "success", message: `Invite revoked for ${invite.email}.` });
+    } catch (error) {
+      setNotice({
+        type: "error",
+        message: error instanceof Error ? error.message : "Invite was not revoked. Please try again.",
+      });
     } finally {
       setPendingAction(null);
     }
@@ -132,6 +150,24 @@ export function InviteManagementPanel({
         </div>
       </div>
 
+      {notice && (
+        <div
+          role="status"
+          style={{
+            margin: "12px 20px 0",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            border: `1px solid ${notice.type === "success" ? "#B7E4C7" : "#F5C2C0"}`,
+            background: notice.type === "success" ? "#F1FAF4" : "#FFF5F5",
+            color: notice.type === "success" ? "#1B5E20" : "#B42318",
+            fontSize: "13px",
+            fontWeight: 600,
+          }}
+        >
+          {notice.message}
+        </div>
+      )}
+
       {/* Table */}
       {loading ? (
         <div style={{ padding: "32px 20px" }}>
@@ -189,10 +225,11 @@ export function InviteManagementPanel({
                             color: BRAND_ORANGE,
                             fontSize: "12px",
                             fontWeight: 600,
-                            cursor: "pointer",
+                            cursor: pendingAction === invite.id ? "wait" : "pointer",
+                            opacity: pendingAction === invite.id ? 0.7 : 1,
                           }}
                         >
-                          Resend
+                          {pendingAction === invite.id ? "Sending..." : "Resend"}
                         </button>
                         <button
                           onClick={() => setConfirmRevoke(invite)}
@@ -205,7 +242,8 @@ export function InviteManagementPanel({
                             color: "#C62828",
                             fontSize: "12px",
                             fontWeight: 600,
-                            cursor: "pointer",
+                            cursor: pendingAction === invite.id ? "wait" : "pointer",
+                            opacity: pendingAction === invite.id ? 0.7 : 1,
                           }}
                         >
                           Revoke

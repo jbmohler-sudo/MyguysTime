@@ -260,7 +260,7 @@ export async function listInvites(token: string) {
 }
 
 export async function createInvite(token: string, payload: InviteInput) {
-  return request<{ invite: InviteSummary; inviteUrl?: string; deliveryMode: "dev_link" }>(
+  return request<{ invite: InviteSummary; inviteUrl?: string; deliveryMode: "dev_link" | "email" | "test" }>(
     "/company/invites",
     {
       method: "POST",

@@ -483,6 +483,52 @@ await runCase("valid invite form payload with crew and role can submit", async (
   }
 });
 
+await runCase("admin can resend invite and trigger email path", async () => {
+  const app = await bootApp();
+  try {
+    sentInviteEmailEvents.length = 0;
+    const token = await app.login("admin@crewtime.local", "admin123");
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const inviteEmail = `invite-resend-${uniqueSuffix}@crewtime.local`;
+
+    const inviteResponse = await app.api("/api/company/invites", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: inviteEmail,
+        role: "foreman",
+      }),
+    });
+    const invitePayload = await inviteResponse.json();
+
+    assert.equal(inviteResponse.status, 201);
+    assert.equal(sentInviteEmailEvents.length, 1);
+
+    const resendResponse = await app.api(`/api/company/invites/${invitePayload.invite.id}/resend`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const resendPayload = await resendResponse.json();
+
+    assert.equal(resendResponse.status, 200);
+    assert.equal(resendPayload.invite.email, inviteEmail);
+    assert.equal(sentInviteEmailEvents.length, 2);
+    assert.equal(sentInviteEmailEvents[1].to, inviteEmail);
+
+    const storedInvite = await prisma.userInvite.findUniqueOrThrow({
+      where: { id: invitePayload.invite.id },
+      select: { sendCount: true, lastSentAt: true },
+    });
+    assert.equal(storedInvite.sendCount, 2);
+    assert.ok(storedInvite.lastSentAt instanceof Date);
+  } finally {
+    await app.shutdown();
+  }
+});
+
 await runCase("invite modal focus trap stays stable while typing", async () => {
   const modalSource = fs.readFileSync(path.join(process.cwd(), "src/components/InviteEmployeeModal.tsx"), "utf8");
   const focusTrapSource = fs.readFileSync(path.join(process.cwd(), "src/hooks/useFocusTrap.ts"), "utf8");
