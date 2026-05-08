@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Sentry, sentryEnabled } from "./sentry.js";
+import { Sentry, sentryEnabled, shutdownSentry } from "./sentry.js";
 import { shutdownPostHog } from "./posthog.js";
 import express from "express";
 import cors from "cors";
@@ -43,10 +43,12 @@ const entryUrl = process.argv[1] ? pathToFileURL(process.argv[1]).href : "";
 if (import.meta.url === entryUrl) {
   const server = startServer();
   process.on("SIGTERM", async () => {
+    await shutdownSentry();
     await shutdownPostHog();
     server.close();
   });
   process.on("SIGINT", async () => {
+    await shutdownSentry();
     await shutdownPostHog();
     server.close();
   });

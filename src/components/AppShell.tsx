@@ -91,6 +91,7 @@ interface AppShellProps {
   onResendInvite: (inviteId: string) => Promise<void>;
   onRevokeInvite: (inviteId: string) => Promise<void>;
   onUpdateMe: (payload: { fullName?: string; preferredView?: "office" | "truck" }) => Promise<void>;
+  onVerifyBackendSentry?: () => Promise<string | null>;
   onFetchQboPreview?: (weekStart: string) => Promise<import("../types/payroll").ExportPreview>;
   onDownloadQboCsv?: (weekStart: string) => Promise<Response>;
   onFetchExportHistory?: () => Promise<import("../types/payroll").PayrollExportRecord[]>;
@@ -103,6 +104,7 @@ export function AppShell({
   onLogout,
   onRefresh,
   onUpdateMe,
+  onVerifyBackendSentry,
   onUpdateDay,
   onApplyCrewDefaults,
   onStatusChange,
@@ -1474,6 +1476,7 @@ export function AppShell({
           <AccountSettingsPanel
             viewer={data.viewer}
             onUpdateMe={onUpdateMe}
+            onVerifyBackendSentry={onVerifyBackendSentry}
           />
         ) : null}
 

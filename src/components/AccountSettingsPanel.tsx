@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
+import { captureFrontendSentryVerification, frontendSentryVerificationEnabled } from "../lib/sentry";
 import { getAuthRedirectUrl, supabase } from "../lib/supabase";
 import type { Viewer } from "../domain/models";
 import { PasswordInput } from "./PasswordInput";
@@ -6,13 +7,14 @@ import { PasswordInput } from "./PasswordInput";
 interface AccountSettingsPanelProps {
   viewer: Viewer;
   onUpdateMe: (payload: { fullName?: string; preferredView?: "office" | "truck" }) => Promise<void>;
+  onVerifyBackendSentry?: () => Promise<string | null>;
 }
 
 function readMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
-export function AccountSettingsPanel({ viewer, onUpdateMe }: AccountSettingsPanelProps) {
+export function AccountSettingsPanel({ viewer, onUpdateMe, onVerifyBackendSentry }: AccountSettingsPanelProps) {
   // ── Profile ──────────────────────────────────────────────────────────────
   const [fullName, setFullName] = useState(viewer.fullName);
   const [nameSaving, setNameSaving] = useState(false);
@@ -179,6 +181,49 @@ export function AccountSettingsPanel({ viewer, onUpdateMe }: AccountSettingsPane
       setPrefError(readMessage(err, "Unable to save preference."));
     } finally {
       setPrefSaving(false);
+    }
+  }
+
+  const [verifyBusy, setVerifyBusy] = useState<"frontend" | "backend" | null>(null);
+  const [verifyError, setVerifyError] = useState("");
+  const [verifySuccess, setVerifySuccess] = useState("");
+
+  async function handleFrontendVerification() {
+    setVerifyBusy("frontend");
+    setVerifyError("");
+    setVerifySuccess("");
+
+    try {
+      const eventId = captureFrontendSentryVerification();
+      setVerifySuccess(
+        `Frontend test event queued${eventId ? ` (${eventId})` : ""}. Check Sentry, then turn verification back off.`,
+      );
+    } catch (error) {
+      setVerifyError(readMessage(error, "Unable to send frontend Sentry verification event."));
+    } finally {
+      setVerifyBusy(null);
+    }
+  }
+
+  async function handleBackendVerification() {
+    if (!onVerifyBackendSentry) {
+      setVerifyError("Backend verification is not available in this environment.");
+      return;
+    }
+
+    setVerifyBusy("backend");
+    setVerifyError("");
+    setVerifySuccess("");
+
+    try {
+      const eventId = await onVerifyBackendSentry();
+      setVerifySuccess(
+        `Backend test event accepted${eventId ? ` (${eventId})` : ""}. Check Sentry, then turn verification back off.`,
+      );
+    } catch (error) {
+      setVerifyError(readMessage(error, "Unable to send backend Sentry verification event."));
+    } finally {
+      setVerifyBusy(null);
     }
   }
 
@@ -396,6 +441,39 @@ export function AccountSettingsPanel({ viewer, onUpdateMe }: AccountSettingsPane
           {prefError ? <p className="error-banner" style={{ marginTop: "0.5rem" }}>{prefError}</p> : null}
         </div>
       </section>
+
+      {(frontendSentryVerificationEnabled || onVerifyBackendSentry) && viewer.role === "admin" ? (
+        <section className="settings-section">
+          <div className="settings-section__header">
+            <div>
+              <p className="eyebrow">Observability</p>
+              <h3>Sentry verification</h3>
+            </div>
+            <span className="settings-meta">
+              Temporary smoke-test controls. Use them to confirm alerts arrive, then disable verification flags.
+            </span>
+          </div>
+
+          <div className="settings-form">
+            <div className="adjustment-actions" style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              {frontendSentryVerificationEnabled ? (
+                <button className="button-strong" disabled={verifyBusy !== null} onClick={() => void handleFrontendVerification()} type="button">
+                  {verifyBusy === "frontend" ? "Sending frontend test..." : "Test frontend Sentry"}
+                </button>
+              ) : null}
+
+              {onVerifyBackendSentry ? (
+                <button className="button-strong" disabled={verifyBusy !== null} onClick={() => void handleBackendVerification()} type="button">
+                  {verifyBusy === "backend" ? "Sending backend test..." : "Test backend Sentry"}
+                </button>
+              ) : null}
+            </div>
+
+            {verifyError ? <p className="error-banner" style={{ marginTop: "0.75rem" }}>{verifyError}</p> : null}
+            {verifySuccess ? <p className="workflow-banner workflow-banner--soft" style={{ marginTop: "0.75rem" }}>{verifySuccess}</p> : null}
+          </div>
+        </section>
+      ) : null}
     </section>
   );
 }

@@ -33,6 +33,8 @@ function buildTracePropagationTargets() {
 }
 
 export const frontendSentryEnabled = Boolean(import.meta.env.VITE_SENTRY_DSN?.trim());
+export const frontendSentryVerificationEnabled =
+  frontendSentryEnabled && import.meta.env.VITE_SENTRY_VERIFY_ENABLED?.trim().toLowerCase() === "true";
 
 export function initializeSentry() {
   const dsn = import.meta.env.VITE_SENTRY_DSN?.trim();
@@ -71,4 +73,19 @@ export function initializeSentry() {
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
   });
+}
+
+export function captureFrontendSentryVerification() {
+  if (!frontendSentryEnabled) {
+    throw new Error("Set VITE_SENTRY_DSN before testing frontend Sentry delivery.");
+  }
+
+  return Sentry.captureException(
+    new Error("Temporary Sentry frontend verification event. Disable verification after confirming delivery."),
+    {
+      tags: {
+        verification: "frontend",
+      },
+    },
+  );
 }

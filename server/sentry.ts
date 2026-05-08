@@ -44,3 +44,11 @@ if (dsn) {
 export { Sentry };
 export const sentryEnabled = Boolean(dsn);
 export const sentryVerificationEnabled = parseBooleanFlag(process.env.SENTRY_VERIFY_ENABLED);
+
+export async function shutdownSentry(timeout = 2000) {
+  if (!sentryEnabled) {
+    return true;
+  }
+
+  return Sentry.flush(timeout);
+}

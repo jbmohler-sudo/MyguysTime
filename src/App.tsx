@@ -31,6 +31,7 @@ import {
   sendSmsReminders,
   signup,
   submitPrivateReport,
+  triggerBackendSentryVerification,
   updateCompanySettings,
   updateAdjustment,
   updateDayEntry,
@@ -436,6 +437,15 @@ function AppContent() {
     return result;
   }
 
+  async function handleVerifyBackendSentry() {
+    if (!token) {
+      throw new Error("Not authenticated");
+    }
+
+    const result = await triggerBackendSentryVerification(token);
+    return result.eventId;
+  }
+
   async function handleExport(kind: "payroll-summary" | "time-detail" | "weekly-summary") {
     if (!token || !data) {
       return;
@@ -616,6 +626,7 @@ function AppContent() {
         onDownloadQboCsv={handleDownloadQboCsv}
         onFetchExportHistory={handleFetchExportHistory}
         onSendReminders={handleSendReminders}
+        onVerifyBackendSentry={handleVerifyBackendSentry}
       />
     </OnboardingProvider>
     </ToastProvider>
