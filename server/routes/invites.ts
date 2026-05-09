@@ -345,12 +345,17 @@ router.delete("/company/invites/:inviteId", authenticate, asyncHandler(async (re
     return;
   }
 
-  const invite = await prisma.userInvite.findFirst({
-    where: { id: inviteId, companyId: req.auth!.companyId },
+  const invite = await prisma.userInvite.findUnique({
+    where: { id: inviteId },
   });
 
   if (!invite) {
-    res.status(404).json({ error: "Invite not found." });
+    res.status(404).json({ error: "Invite not found or already revoked." });
+    return;
+  }
+
+  if (invite.companyId !== req.auth!.companyId) {
+    res.status(403).json({ error: "This invite belongs to another company." });
     return;
   }
 
@@ -359,7 +364,16 @@ router.delete("/company/invites/:inviteId", authenticate, asyncHandler(async (re
     return;
   }
 
-  await prisma.userInvite.delete({ where: { id: inviteId } });
+  try {
+    await prisma.userInvite.delete({ where: { id: inviteId } });
+  } catch (error) {
+    if (typeof error === "object" && error && "code" in error && error.code === "P2025") {
+      res.status(404).json({ error: "Invite was already revoked." });
+      return;
+    }
+
+    throw error;
+  }
 
   res.json({ ok: true });
 }));
