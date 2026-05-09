@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import type { CrewSummary, InviteInput, InviteSummary } from "../domain/models";
+import type { CrewSummary, InviteDeliveryMode, InviteInput, InviteSummary } from "../domain/models";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { useAnalytics } from "../hooks/useAnalytics";
 
@@ -10,8 +10,12 @@ interface InviteEmployeeModalProps {
   isOpen: boolean;
   crews: CrewSummary[];
   onClose: () => void;
-  onInviteSent: (invite: InviteSummary, inviteUrl?: string) => void;
-  onCreateInvite: (payload: InviteInput) => Promise<{ invite: InviteSummary; inviteUrl?: string }>;
+  onInviteSent: (invite: InviteSummary, inviteUrl?: string, deliveryMode?: InviteDeliveryMode) => void;
+  onCreateInvite: (payload: InviteInput) => Promise<{
+    invite: InviteSummary;
+    inviteUrl?: string;
+    deliveryMode?: InviteDeliveryMode;
+  }>;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -71,7 +75,7 @@ export function InviteEmployeeModal({
         crew_name: crews.find((c) => c.id === selectedCrewId)?.name ?? "",
         hourly_rate: hourlyRate,
       });
-      onInviteSent(result.invite, result.inviteUrl);
+      onInviteSent(result.invite, result.inviteUrl, result.deliveryMode);
       handleClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send invite. Please try again.");

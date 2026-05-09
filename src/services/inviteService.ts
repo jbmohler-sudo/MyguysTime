@@ -1,5 +1,5 @@
 import { createInvite, listInvites, resendInvite, revokeInvite } from "../lib/api";
-import type { InviteInput, InviteSummary } from "../domain/models";
+import type { InviteDeliveryMode, InviteInput, InviteSummary } from "../domain/models";
 
 // Thin service layer wrapping the existing API functions.
 // Provides a named import point for components that prefer service abstraction.
@@ -16,7 +16,11 @@ function getToken(): string {
 }
 
 export const inviteService = {
-  async createInvite(payload: InviteInput): Promise<{ invite: InviteSummary; inviteUrl?: string }> {
+  async createInvite(payload: InviteInput): Promise<{
+    invite: InviteSummary;
+    inviteUrl?: string;
+    deliveryMode?: InviteDeliveryMode;
+  }> {
     return createInvite(getToken(), payload);
   },
 

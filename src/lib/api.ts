@@ -6,6 +6,7 @@ import type {
   EmployeeInput,
   ExpenseSubmissionInput,
   InviteInput,
+  InviteDeliveryMode,
   InviteSummary,
   ManagedEmployee,
   PrivateReportInput,
@@ -260,7 +261,7 @@ export async function listInvites(token: string) {
 }
 
 export async function createInvite(token: string, payload: InviteInput) {
-  return request<{ invite: InviteSummary; inviteUrl?: string; deliveryMode: "dev_link" | "email" | "test" }>(
+  return request<{ invite: InviteSummary; inviteUrl?: string; deliveryMode: InviteDeliveryMode }>(
     "/company/invites",
     {
       method: "POST",

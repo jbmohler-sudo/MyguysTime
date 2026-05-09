@@ -3,6 +3,7 @@ import type {
   BootstrapPayload,
   EmployeeInput,
   ExpenseSubmissionInput,
+  InviteDeliveryMode,
   InviteInput,
   InviteSummary,
   ManagedEmployee,
@@ -33,6 +34,11 @@ import { getWeekStartIso } from "../domain/week";
 const BRAND_ORANGE = "#FF8C00";
 const BRAND_DARK = "#1A1A1B";
 const BRAND_LIGHT = "#F8F9FA";
+
+type InviteSuccessState = {
+  url: string;
+  deliveryMode: InviteDeliveryMode;
+};
 const ACCENT_TEAL = "#00BCD4";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -144,7 +150,7 @@ export function AppShell({
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showPayrollModal, setShowPayrollModal] = useState(false);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
-  const [inviteSuccessUrl, setInviteSuccessUrl] = useState<string | null>(null);
+  const [inviteSuccess, setInviteSuccess] = useState<InviteSuccessState | null>(null);
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallReady, setIsInstallReady] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -862,7 +868,7 @@ export function AppShell({
                     + Invite a Worker
                   </button>
                 </div>
-                {inviteSuccessUrl ? (
+                {inviteSuccess ? (
                   <div
                     style={{
                       margin: "10px 12px",
@@ -878,13 +884,15 @@ export function AppShell({
                     }}
                   >
                     <span style={{ minWidth: 0 }}>
-                      Invite sent!{" "}
-                      <a href={inviteSuccessUrl ?? undefined} target="_blank" rel="noopener noreferrer" style={{ color: "#1565C0" }}>
-                        {inviteSuccessUrl}
-                      </a>
+                      {inviteSuccess.deliveryMode === "email" ? "Invite email sent." : "Invite sent! Dev link: "}
+                      {inviteSuccess.deliveryMode !== "email" ? (
+                        <a href={inviteSuccess.url} target="_blank" rel="noopener noreferrer" style={{ color: "#1565C0" }}>
+                          {inviteSuccess.url}
+                        </a>
+                      ) : null}
                     </span>
                     <button
-                      onClick={() => setInviteSuccessUrl(null)}
+                      onClick={() => setInviteSuccess(null)}
                       style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: "16px" }}
                       type="button"
                     >
@@ -937,9 +945,9 @@ export function AppShell({
           crews={data.crews}
           onClose={() => setShowInviteModal(false)}
           onCreateInvite={onCreateInvite}
-          onInviteSent={(_invite, url) => {
+          onInviteSent={(_invite, url, deliveryMode = "dev_link") => {
             setShowInviteModal(false);
-            if (url) setInviteSuccessUrl(url);
+            if (url) setInviteSuccess({ url, deliveryMode });
           }}
         />
         <OnboardingOverlay />
@@ -1517,7 +1525,7 @@ export function AppShell({
                 + Invite a Worker
               </button>
             </div>
-            {inviteSuccessUrl && (
+            {inviteSuccess && (
               <div
                 style={{
                   marginBottom: "12px",
@@ -1532,13 +1540,15 @@ export function AppShell({
                 }}
               >
                 <span>
-                  Invite sent! Dev link:{" "}
-                  <a href={inviteSuccessUrl ?? undefined} target="_blank" rel="noopener noreferrer" style={{ color: "#1565C0" }}>
-                    {inviteSuccessUrl}
-                  </a>
+                  {inviteSuccess.deliveryMode === "email" ? "Invite email sent." : "Invite sent! Dev link: "}
+                  {inviteSuccess.deliveryMode !== "email" ? (
+                    <a href={inviteSuccess.url} target="_blank" rel="noopener noreferrer" style={{ color: "#1565C0" }}>
+                      {inviteSuccess.url}
+                    </a>
+                  ) : null}
                 </span>
                 <button
-                  onClick={() => setInviteSuccessUrl(null)}
+                  onClick={() => setInviteSuccess(null)}
                   style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: "16px" }}
                 >
                   ×
@@ -1591,9 +1601,9 @@ export function AppShell({
         crews={data.crews}
         onClose={() => setShowInviteModal(false)}
         onCreateInvite={onCreateInvite}
-        onInviteSent={(_invite, url) => {
+        onInviteSent={(_invite, url, deliveryMode = "dev_link") => {
           setShowInviteModal(false);
-          if (url) setInviteSuccessUrl(url);
+          if (url) setInviteSuccess({ url, deliveryMode });
         }}
       />
 

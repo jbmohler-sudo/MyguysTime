@@ -177,6 +177,8 @@ export interface InviteSummary {
   status: "pending" | "accepted" | "expired";
 }
 
+export type InviteDeliveryMode = "dev_link" | "email" | "test";
+
 export interface InviteInput {
   employeeId?: string | null;
   email: string;

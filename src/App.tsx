@@ -391,7 +391,11 @@ function AppContent() {
   async function handleCreateInvite(payload: InviteInput) {
     if (!token) throw new Error("Not authenticated");
     const response = await createInvite(token, payload);
-    return { invite: response.invite, inviteUrl: response.inviteUrl };
+    return {
+      invite: response.invite,
+      inviteUrl: response.inviteUrl,
+      deliveryMode: response.deliveryMode,
+    };
   }
 
   async function handleResendInvite(inviteId: string) {
