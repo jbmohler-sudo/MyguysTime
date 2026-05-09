@@ -50,6 +50,7 @@ export function TeamManagementPanel({
   const [scrollTop, setScrollTop] = useState(0);
   const [employeePendingRemoval, setEmployeePendingRemoval] = useState<EmployeeRow | null>(null);
   const [removingEmployeeId, setRemovingEmployeeId] = useState<string | null>(null);
+  const [locallyRemovedEmployeeIds, setLocallyRemovedEmployeeIds] = useState<Set<string>>(() => new Set());
   const [removeMessage, setRemoveMessage] = useState<string>("");
   const [removeError, setRemoveError] = useState<string>("");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -58,7 +59,11 @@ export function TeamManagementPanel({
   const employees = useMemo<EmployeeRow[]>(() => {
     const seen = new Map<string, EmployeeRow>();
     for (const week of data.employeeWeeks) {
-      if (!archivedEmployeeIds.has(week.employeeId) && !seen.has(week.employeeId)) {
+      if (
+        !archivedEmployeeIds.has(week.employeeId) &&
+        !locallyRemovedEmployeeIds.has(week.employeeId) &&
+        !seen.has(week.employeeId)
+      ) {
         seen.set(week.employeeId, {
           id: week.employeeId,
           name: week.employeeName,
@@ -68,7 +73,7 @@ export function TeamManagementPanel({
       }
     }
     return Array.from(seen.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [archivedEmployeeIds, data.employeeWeeks]);
+  }, [archivedEmployeeIds, data.employeeWeeks, locallyRemovedEmployeeIds]);
 
   // Filter by search — memoized
   const filteredEmployees = useMemo<EmployeeRow[]>(() => {
@@ -104,6 +109,11 @@ export function TeamManagementPanel({
 
     try {
       await onRemoveEmployee(employeePendingRemoval.id);
+      setLocallyRemovedEmployeeIds((current) => {
+        const next = new Set(current);
+        next.add(employeePendingRemoval.id);
+        return next;
+      });
       setRemoveMessage(`${employeePendingRemoval.name} was removed from the active team.`);
       setEmployeePendingRemoval(null);
     } catch (error) {
@@ -389,6 +399,7 @@ export function TeamManagementPanel({
           }}
         >
           <div
+            onClick={(event) => event.stopPropagation()}
             style={{
               width: "100%",
               maxWidth: "420px",
@@ -414,7 +425,10 @@ export function TeamManagementPanel({
             </ul>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
               <button
-                onClick={() => setEmployeePendingRemoval(null)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setEmployeePendingRemoval(null);
+                }}
                 disabled={removingEmployeeId === employeePendingRemoval.id}
                 style={{
                   padding: "9px 14px",
@@ -430,7 +444,10 @@ export function TeamManagementPanel({
                 Cancel
               </button>
               <button
-                onClick={() => void handleConfirmRemove()}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  void handleConfirmRemove();
+                }}
                 disabled={removingEmployeeId === employeePendingRemoval.id}
                 style={{
                   padding: "9px 14px",

@@ -923,7 +923,9 @@ export function AppShell({
                   }}
                   onRemoveEmployee={async (employeeId) => {
                     await onRemoveEmployee(employeeId);
-                    await onRefresh(data.weekStart);
+                    await onRefresh(data.weekStart).catch((refreshError) => {
+                      console.error("Removed worker, but team refresh failed.", refreshError);
+                    });
                   }}
                 />
                 <InviteManagementPanel
@@ -1582,7 +1584,9 @@ export function AppShell({
               }}
               onRemoveEmployee={async (employeeId) => {
                 await onRemoveEmployee(employeeId);
-                await onRefresh(data.weekStart);
+                await onRefresh(data.weekStart).catch((refreshError) => {
+                  console.error("Removed worker, but team refresh failed.", refreshError);
+                });
               }}
             />
             <InviteManagementPanel

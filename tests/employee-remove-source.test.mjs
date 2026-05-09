@@ -73,6 +73,24 @@ assert.match(
   "Team panel must show the required confirmation title",
 );
 
+assert.match(
+  panelSource,
+  /locallyRemovedEmployeeIds[\s\S]*setLocallyRemovedEmployeeIds[\s\S]*next\.add\(employeePendingRemoval\.id\)/,
+  "Team panel must hide a successfully removed worker even before refreshed data arrives",
+);
+
+assert.match(
+  panelSource,
+  /onClick=\{\(event\) => \{[\s\S]*event\.stopPropagation\(\);[\s\S]*void handleConfirmRemove\(\);/,
+  "confirm remove button must stop propagation and call the remove handler",
+);
+
+assert.match(
+  panelSource,
+  /disabled=\{removingEmployeeId === employeePendingRemoval\.id\}[\s\S]*Removing\.\.\./,
+  "confirm remove button must show loading state and disable while removing",
+);
+
 for (const copy of [
   "will be removed from the active team list",
   "Historical timesheets and payroll records stay intact.",
@@ -83,8 +101,8 @@ for (const copy of [
 
 assert.match(
   appShellSource,
-  /onRemoveEmployee={async \(employeeId\) => {[\s\S]*await onRemoveEmployee\(employeeId\);[\s\S]*await onRefresh\(data\.weekStart\);/,
-  "Team remove action must refresh app data after removal",
+  /onRemoveEmployee={async \(employeeId\) => {[\s\S]*await onRemoveEmployee\(employeeId\);[\s\S]*await onRefresh\(data\.weekStart\)\.catch/,
+  "Team remove action must fire the API request, then refresh without masking a successful removal",
 );
 
 console.log("employee remove source tests passed");
