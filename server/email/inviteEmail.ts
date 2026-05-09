@@ -1,3 +1,5 @@
+import { assertNoTestEmailSideEffects } from "../envSafety.js";
+
 export type InviteEmailDeliveryMode = "email" | "dev_link" | "test";
 
 export interface InviteEmailPayload {
@@ -84,6 +86,8 @@ async function sendWithResend(payload: InviteEmailPayload): Promise<InviteEmailR
 }
 
 export async function sendInviteEmail(payload: InviteEmailPayload): Promise<InviteEmailResult> {
+  assertNoTestEmailSideEffects();
+
   if (process.env.INVITE_EMAIL_TRANSPORT === "test") {
     sentInviteEmailEvents.push(payload);
     return { deliveryMode: "test", providerMessageId: `test-${sentInviteEmailEvents.length}` };

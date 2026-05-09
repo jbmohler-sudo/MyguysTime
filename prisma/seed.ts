@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { pathToFileURL } from "node:url";
 import { calculateDayTotalMinutes, calculatePayrollEstimate } from "../server/payroll.js";
 import { getSupabaseAuthClient } from "../server/supabase.js";
+import { assertSafeFixtureMutationContext } from "../server/envSafety.js";
 import { addDays } from "../server/utils.js";
 
 const PAYROLL_DISCLAIMER_VERSION = "2026-04-20-v1";
@@ -122,6 +123,8 @@ async function ensureSupabaseAuthUser(input: {
 }
 
 export async function seedDatabase() {
+  assertSafeFixtureMutationContext("prisma/seed.ts");
+
   const prisma = new PrismaClient();
 
   try {

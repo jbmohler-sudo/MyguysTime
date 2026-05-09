@@ -10,7 +10,6 @@ import { sentInviteEmailEvents } from "../dist-server/server/email/inviteEmail.j
 const WEEK_START = "2026-04-13";
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-process.env.INVITE_EMAIL_TRANSPORT = "test";
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Set SUPABASE_URL and SUPABASE_ANON_KEY before running tests.");
