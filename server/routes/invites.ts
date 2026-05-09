@@ -45,10 +45,12 @@ router.post("/company/invites", authenticate, asyncHandler(async (req: Authentic
     return;
   }
 
-  const { employeeId, email, role } = req.body as {
+  const { employeeId, email, role, crewId, hourlyRate } = req.body as {
     employeeId?: string | null;
     email?: string;
     role?: string;
+    crewId?: string | null;
+    hourlyRate?: number;
   };
 
   const normalizedEmail = email?.trim().toLowerCase() ?? "";
@@ -147,16 +149,51 @@ router.post("/company/invites", authenticate, asyncHandler(async (req: Authentic
   }
 
   const rawToken = createInviteToken();
-  const expiresAt = new Date(Date.now() + INVITE_EXPIRY_HOURS * 60 * 60 * 1000);
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + INVITE_EXPIRY_HOURS * 60 * 60 * 1000);
+
+  let finalEmployeeId = cleanEmployeeId;
+  if (!finalEmployeeId) {
+    const emailLocalPart = normalizedEmail.split("@")[0] || "Worker";
+    const hourlyRateCents = hourlyRate && Number.isFinite(hourlyRate) && hourlyRate > 0 ? Math.round(hourlyRate * 100) : 2500;
+    const cleanCrewId = crewId?.trim() || null;
+
+    const companySettings = await prisma.companyPayrollSettings.findUnique({
+      where: { companyId: req.auth!.companyId }
+    });
+
+    const newEmployee = await prisma.employee.create({
+      data: {
+        companyId: req.auth!.companyId,
+        firstName: emailLocalPart,
+        lastName: "(Invited)",
+        displayName: emailLocalPart,
+        workerType: "EMPLOYEE",
+        employmentStatus: "ACTIVE",
+        hourlyRateCents,
+        overtimeRateCents: companySettings?.payType === "HOURLY" ? hourlyRateCents : null,
+        federalFilingStatus: "single",
+        defaultCrewId: cleanCrewId,
+        usesCompanyFederalDefault: true,
+        usesCompanyStateDefault: true,
+        federalWithholdingPercent: companySettings?.defaultFederalWithholdingValue ?? 0.10,
+        stateWithholdingPercent: companySettings?.defaultStateWithholdingValue ?? 0.03,
+        createdAt: now,
+      }
+    });
+    finalEmployeeId = newEmployee.id;
+  }
+
   const createdInvite = await prisma.userInvite.create({
     data: {
       companyId: req.auth!.companyId,
-      employeeId: cleanEmployeeId,
+      employeeId: finalEmployeeId,
       email: normalizedEmail,
       role: normalizedRole,
       tokenHash: hashInviteToken(rawToken),
       expiresAt,
       invitedByUserId: req.auth!.userId,
+      createdAt: now,
     },
     include: {
       employee: {

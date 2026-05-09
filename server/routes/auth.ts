@@ -7,6 +7,7 @@ import {
   findSupabaseAuthUserByEmail,
   resolveInviteAcceptanceAuthUser,
 } from "./inviteAuthResolution.js";
+import { isInviteCreatedPlaceholderEmployee } from "./invitePlaceholder.js";
 import {
   asyncHandler,
   buildBootstrap,
@@ -274,6 +275,25 @@ router.post("/auth/accept-invite", asyncHandler(async (req, res) => {
       return;
     }
 
+    const placeholderEmployee = invite.employeeId
+      ? await prisma.employee.findUnique({
+          where: { id: invite.employeeId },
+          select: {
+            id: true,
+            createdAt: true,
+            firstName: true,
+            lastName: true,
+            user: {
+              select: { id: true },
+            },
+          },
+        })
+      : null;
+    const shouldUpdatePlaceholderName = isInviteCreatedPlaceholderEmployee({
+      invite,
+      employee: placeholderEmployee,
+    });
+
     let user;
     if (existingUser?.id) {
       user = await prisma.user.update({
@@ -299,6 +319,20 @@ router.post("/auth/accept-invite", asyncHandler(async (req, res) => {
           status: "ACTIVE",
           employeeId: invite.employeeId,
           acceptedAt: now,
+        },
+      });
+    }
+
+    if (shouldUpdatePlaceholderName && placeholderEmployee && invite.employeeId) {
+      const nameParts = trimmedFullName.split(" ");
+      const firstName = nameParts[0] || placeholderEmployee.firstName;
+      const lastName = nameParts.slice(1).join(" ") || placeholderEmployee.lastName;
+      await prisma.employee.update({
+        where: { id: invite.employeeId },
+        data: {
+          firstName,
+          lastName,
+          displayName: trimmedFullName,
         },
       });
     }
