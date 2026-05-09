@@ -4,6 +4,10 @@ import { prisma } from "../db.js";
 import { getSupabaseAuthClient } from "../supabase.js";
 import { parseWeekStart } from "../utils.js";
 import {
+  findSupabaseAuthUserByEmail,
+  resolveInviteAcceptanceAuthUser,
+} from "./inviteAuthResolution.js";
+import {
   asyncHandler,
   buildBootstrap,
   hashInviteToken,
@@ -12,42 +16,6 @@ import {
 import { posthog } from "../posthog.js";
 
 const router = Router();
-
-async function findSupabaseAuthUserByEmail(
-  supabase: ReturnType<typeof getSupabaseAuthClient>,
-  email: string,
-) {
-  let page = 1;
-
-  while (page <= 10) {
-    const { data, error } = await supabase.auth.admin.listUsers({
-      page,
-      perPage: 200,
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    const users = (data?.users ?? []) as Array<{ id: string; email?: string | null }>;
-
-    const matchedUser = users.find(
-      (candidate) => candidate.email?.trim().toLowerCase() === email,
-    );
-
-    if (matchedUser) {
-      return matchedUser;
-    }
-
-    if (users.length < 200) {
-      break;
-    }
-
-    page += 1;
-  }
-
-  return null;
-}
 
 router.post("/auth/signup", asyncHandler(async (req, res) => {
   const { fullName, companyName, email, password } = req.body as {
@@ -279,6 +247,7 @@ router.post("/auth/accept-invite", asyncHandler(async (req, res) => {
       where: { email: inviteEmail },
       select: {
         id: true,
+        supabaseId: true,
         status: true,
         deactivatedAt: true,
         companyId: true,
@@ -292,32 +261,17 @@ router.post("/auth/accept-invite", asyncHandler(async (req, res) => {
 
     const supabase = getSupabaseAuthClient();
     let supabaseUserId: string;
-
-    if (existingUser?.id) {
-      const { data: updateData, error: updateError } = await supabase.auth.admin.updateUserById(
-        existingUser.id,
-        { password }
-      );
-
-      if (updateError || !updateData.user) {
-        res.status(400).json({ error: "Failed to reset password." });
-        return;
-      }
-
-      supabaseUserId = updateData.user.id;
-    } else {
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: inviteEmail,
+    try {
+      ({ supabaseUserId } = await resolveInviteAcceptanceAuthUser({
+        supabase,
+        existingUser,
+        inviteEmail,
         password,
-        email_confirm: true,
-      });
-
-      if (authError || !authData.user) {
-        res.status(400).json({ error: "Failed to create authentication account." });
-        return;
-      }
-
-      supabaseUserId = authData.user.id;
+      }));
+    } catch (authError) {
+      const message = authError instanceof Error ? authError.message : "Failed to create authentication account.";
+      res.status(400).json({ error: message });
+      return;
     }
 
     let user;
