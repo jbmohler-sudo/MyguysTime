@@ -2,10 +2,26 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
-import { startServer } from "../dist-server/server/index.js";
-import { prisma } from "../dist-server/server/db.js";
-import { seedDatabase } from "../dist-server/prisma/seed.js";
-import { sentInviteEmailEvents } from "../dist-server/server/email/inviteEmail.js";
+import { assertSafeFixtureMutationContext } from "../dist-server/server/envSafety.js";
+
+process.env.NODE_ENV = "test";
+process.env.MYGUYS_FIXTURE_ENV = "test";
+process.env.INVITE_EMAIL_TRANSPORT = "test";
+process.env.SENTRY_UPLOAD_SOURCEMAPS = "false";
+
+assertSafeFixtureMutationContext("tests/run-tests.mjs");
+
+const [
+  { startServer },
+  { prisma },
+  { seedDatabase },
+  { sentInviteEmailEvents },
+] = await Promise.all([
+  import("../dist-server/server/index.js"),
+  import("../dist-server/server/db.js"),
+  import("../dist-server/prisma/seed.js"),
+  import("../dist-server/server/email/inviteEmail.js"),
+]);
 
 const WEEK_START = "2026-04-13";
 const supabaseUrl = process.env.SUPABASE_URL;

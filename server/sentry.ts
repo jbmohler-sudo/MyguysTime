@@ -21,8 +21,12 @@ function parseBooleanFlag(value: string | undefined): boolean {
 
 const dsn = process.env.SENTRY_DSN?.trim();
 const tracesSampleRate = parseSampleRate(process.env.SENTRY_TRACES_SAMPLE_RATE);
+const isTestRuntime =
+  process.env.NODE_ENV === "test" ||
+  process.env.MYGUYS_FIXTURE_ENV?.trim().toLowerCase() === "test";
+const shouldInitializeSentry = Boolean(dsn) && !isTestRuntime;
 
-if (dsn) {
+if (shouldInitializeSentry) {
   Sentry.init({
     dsn,
     environment: process.env.SENTRY_ENVIRONMENT?.trim() || process.env.NODE_ENV || "development",
@@ -42,7 +46,7 @@ if (dsn) {
 }
 
 export { Sentry };
-export const sentryEnabled = Boolean(dsn);
+export const sentryEnabled = shouldInitializeSentry;
 export const sentryVerificationEnabled = parseBooleanFlag(process.env.SENTRY_VERIFY_ENABLED);
 
 export async function shutdownSentry(timeout = 2000) {
