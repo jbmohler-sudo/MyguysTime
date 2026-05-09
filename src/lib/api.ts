@@ -31,6 +31,34 @@ function getApiBase() {
 
 export const API_BASE = getApiBase();
 
+async function readResponsePayload(response: Response): Promise<unknown> {
+  const contentType = response.headers.get("Content-Type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    return response.json().catch(() => null);
+  }
+
+  const text = await response.text().catch(() => "");
+  return text.trim() || null;
+}
+
+function getErrorMessage(response: Response, payload: unknown) {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "error" in payload &&
+    typeof (payload as { error?: unknown }).error === "string"
+  ) {
+    return (payload as { error: string }).error;
+  }
+
+  if (typeof payload === "string" && payload.length > 0 && payload.length <= 500) {
+    return `Request failed (${response.status}): ${payload}`;
+  }
+
+  return `Request failed (${response.status}).`;
+}
+
 async function request<T>(path: string, options: RequestInit = {}, token?: string | null): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...options,
@@ -42,11 +70,12 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
   });
 
   if (!response.ok) {
-    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(payload?.error ?? "Request failed.");
+    const payload = await readResponsePayload(response);
+    throw new Error(getErrorMessage(response, payload));
   }
 
-  return response.json() as Promise<T>;
+  const payload = await readResponsePayload(response);
+  return payload as T;
 }
 
 export async function login(email: string, password: string) {
