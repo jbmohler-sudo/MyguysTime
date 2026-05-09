@@ -293,14 +293,16 @@ router.post("/company/invites/:inviteId/resend", authenticate, asyncHandler(asyn
   const rawToken = createInviteToken();
   const inviteUrl = buildInviteUrl(req, rawToken);
 
+  let deliveryMode: "email" | "dev_link" | "test" = "dev_link";
   try {
-    await sendInviteEmail({
+    const emailResult = await sendInviteEmail({
       to: invite.email ?? "",
       inviteUrl,
       companyName: invite.company.companyName,
       invitedByName: invite.invitedByUser.fullName,
       role: invite.role as "EMPLOYEE" | "FOREMAN",
     });
+    deliveryMode = emailResult.deliveryMode;
   } catch (error) {
     console.error("[invite:resend-failed]", error);
     res.status(502).json({
@@ -325,7 +327,11 @@ router.post("/company/invites/:inviteId/resend", authenticate, asyncHandler(asyn
     },
   });
 
-  res.json({ invite: serializeInviteSummary(updated) });
+  res.json({
+    invite: serializeInviteSummary(updated),
+    inviteUrl,
+    deliveryMode,
+  });
 }));
 
 router.delete("/company/invites/:inviteId", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { InviteSummary } from "../domain/models";
+import type { InviteDeliveryMode, InviteSummary } from "../domain/models";
 import { InviteStatusBadge } from "./InviteStatusBadge";
 import { useAnalytics } from "../hooks/useAnalytics";
 
@@ -11,7 +11,11 @@ type FilterStatus = "all" | InviteSummary["status"];
 
 interface InviteManagementPanelProps {
   onListInvites: () => Promise<InviteSummary[]>;
-  onResendInvite: (inviteId: string) => Promise<void>;
+  onResendInvite: (inviteId: string) => Promise<{
+    invite: InviteSummary;
+    inviteUrl?: string;
+    deliveryMode: InviteDeliveryMode;
+  }>;
   onRevokeInvite: (inviteId: string) => Promise<void>;
 }
 
@@ -29,7 +33,11 @@ export function InviteManagementPanel({
   const [filter, setFilter] = useState<FilterStatus>("all");
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [confirmRevoke, setConfirmRevoke] = useState<InviteSummary | null>(null);
-  const [notice, setNotice] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [notice, setNotice] = useState<{
+    type: "success" | "error";
+    message: string;
+    inviteUrl?: string;
+  } | null>(null);
   const analytics = useAnalytics();
 
   const load = useCallback(async () => {
@@ -58,10 +66,18 @@ export function InviteManagementPanel({
     setPendingAction(invite.id);
     setNotice(null);
     try {
-      await onResendInvite(invite.id);
+      const result = await onResendInvite(invite.id);
       analytics.trackEvent("invite_resent", { email: invite.email });
       await load();
-      setNotice({ type: "success", message: `Invite resent to ${invite.email}.` });
+      setNotice(
+        result.deliveryMode === "email"
+          ? { type: "success", message: `Invite email resent to ${invite.email}.` }
+          : {
+              type: "success",
+              message: `Invite link regenerated for ${invite.email}.`,
+              inviteUrl: result.inviteUrl,
+            },
+      );
     } catch (error) {
       setNotice({
         type: "error",
@@ -165,6 +181,14 @@ export function InviteManagementPanel({
           }}
         >
           {notice.message}
+          {notice.inviteUrl ? (
+            <>
+              {" "}
+              <a href={notice.inviteUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#1565C0" }}>
+                Open link
+              </a>
+            </>
+          ) : null}
         </div>
       )}
 

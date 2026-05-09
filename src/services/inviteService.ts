@@ -24,7 +24,11 @@ export const inviteService = {
     return createInvite(getToken(), payload);
   },
 
-  async resendInvite(inviteId: string): Promise<{ invite: InviteSummary }> {
+  async resendInvite(inviteId: string): Promise<{
+    invite: InviteSummary;
+    inviteUrl?: string;
+    deliveryMode: InviteDeliveryMode;
+  }> {
     return resendInvite(getToken(), inviteId);
   },
 

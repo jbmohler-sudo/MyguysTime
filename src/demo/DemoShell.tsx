@@ -9,7 +9,7 @@ import { AppShell } from "../components/AppShell";
 import { OnboardingProvider } from "../hooks/useOnboarding";
 import { ToastProvider } from "../hooks/useToast";
 import { ViewProvider } from "../context/ViewContext";
-import type { BootstrapPayload, ExpenseSubmissionInput, TimesheetStatus } from "../domain/models";
+import type { BootstrapPayload, ExpenseSubmissionInput, InviteSummary, TimesheetStatus } from "../domain/models";
 import { getDemoPayload, type DemoRole } from "./demoData";
 
 interface DemoShellProps {
@@ -148,6 +148,13 @@ export function DemoShell({ role }: DemoShellProps) {
 
   async function noop(): Promise<void> {}
 
+  async function noopResendInvite(): Promise<{
+    invite: InviteSummary;
+    deliveryMode: "dev_link";
+  }> {
+    throw new Error("Demo mode");
+  }
+
   async function noopList() {
     return [];
   }
@@ -185,7 +192,7 @@ export function DemoShell({ role }: DemoShellProps) {
             onUpdateEmployee={() => Promise.reject(new Error("Demo mode"))}
             onListInvites={noopList}
             onCreateInvite={() => Promise.reject(new Error("Demo mode"))}
-            onResendInvite={noop}
+            onResendInvite={noopResendInvite}
             onRevokeInvite={noop}
           />
         </OnboardingProvider>

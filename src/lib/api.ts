@@ -272,7 +272,7 @@ export async function createInvite(token: string, payload: InviteInput) {
 }
 
 export async function resendInvite(token: string, inviteId: string) {
-  return request<{ invite: InviteSummary }>(
+  return request<{ invite: InviteSummary; inviteUrl?: string; deliveryMode: InviteDeliveryMode }>(
     `/company/invites/${inviteId}/resend`,
     { method: "POST" },
     token,

@@ -400,7 +400,7 @@ function AppContent() {
 
   async function handleResendInvite(inviteId: string) {
     if (!token) throw new Error("Not authenticated");
-    await resendInvite(token, inviteId);
+    return resendInvite(token, inviteId);
   }
 
   async function handleRevokeInvite(inviteId: string) {

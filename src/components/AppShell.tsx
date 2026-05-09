@@ -93,8 +93,16 @@ interface AppShellProps {
   onCreateEmployee: (payload: EmployeeInput) => Promise<ManagedEmployee>;
   onUpdateEmployee: (employeeId: string, payload: EmployeeInput) => Promise<ManagedEmployee>;
   onListInvites: () => Promise<InviteSummary[]>;
-  onCreateInvite: (payload: InviteInput) => Promise<{ invite: InviteSummary; inviteUrl?: string }>;
-  onResendInvite: (inviteId: string) => Promise<void>;
+  onCreateInvite: (payload: InviteInput) => Promise<{
+    invite: InviteSummary;
+    inviteUrl?: string;
+    deliveryMode?: InviteDeliveryMode;
+  }>;
+  onResendInvite: (inviteId: string) => Promise<{
+    invite: InviteSummary;
+    inviteUrl?: string;
+    deliveryMode: InviteDeliveryMode;
+  }>;
   onRevokeInvite: (inviteId: string) => Promise<void>;
   onUpdateMe: (payload: { fullName?: string; preferredView?: "office" | "truck" }) => Promise<void>;
   onVerifyBackendSentry?: () => Promise<string | null>;
