@@ -320,4 +320,105 @@ router.patch("/employees/:employeeId", authenticate, asyncHandler(async (req: Au
   });
 }));
 
+router.post("/employees/:employeeId/remove", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  if (req.auth!.role !== "ADMIN") {
+    res.status(403).json({ error: "Only admin can manage employees." });
+    return;
+  }
+
+  const employeeId = getParam(req.params.employeeId);
+  if (!employeeId) {
+    res.status(400).json({ error: "Employee ID is required." });
+    return;
+  }
+
+  const employee = await prisma.employee.findFirst({
+    where: {
+      id: employeeId,
+      companyId: req.auth!.companyId,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          companyId: true,
+          email: true,
+          employeeId: true,
+          role: true,
+          status: true,
+          deactivatedAt: true,
+        },
+      },
+    },
+  });
+
+  if (!employee) {
+    res.status(404).json({ error: "Employee not found." });
+    return;
+  }
+
+  if (employee.user?.role === "ADMIN") {
+    res.status(409).json({ error: "Company owner/admin accounts cannot be removed from the team." });
+    return;
+  }
+
+  const now = new Date();
+  const inviteEmail = employee.user?.email?.trim().toLowerCase() ?? null;
+
+  const result = await prisma.$transaction(async (tx) => {
+    await tx.employee.update({
+      where: { id: employee.id },
+      data: {
+        employmentStatus: "ARCHIVED",
+        archivedAt: employee.archivedAt ?? now,
+        archiveReason: employee.archiveReason ?? "Removed from team",
+        archiveNotes:
+          employee.archiveNotes ??
+          "Removed from active team list. Historical timesheets and payroll records were kept.",
+      },
+    });
+
+    const linkedUserBelongsToEmployee =
+      employee.user?.companyId === req.auth!.companyId &&
+      employee.user.employeeId === employee.id;
+
+    const deactivatedUser = linkedUserBelongsToEmployee && employee.user
+      ? await tx.user.updateMany({
+          where: {
+            id: employee.user.id,
+            companyId: req.auth!.companyId,
+            employeeId: employee.id,
+          },
+          data: {
+            status: "INACTIVE",
+            deactivatedAt: employee.user.deactivatedAt ?? now,
+          },
+        })
+      : null;
+
+    const revokedInvites = await tx.userInvite.deleteMany({
+      where: {
+        companyId: req.auth!.companyId,
+        acceptedAt: null,
+        OR: [
+          { employeeId: employee.id },
+          ...(inviteEmail ? [{ email: { equals: inviteEmail, mode: "insensitive" as const } }] : []),
+        ],
+      },
+    });
+
+    return {
+      deactivatedUserId: deactivatedUser && deactivatedUser.count > 0 ? employee.user?.id ?? null : null,
+      revokedInviteCount: revokedInvites.count,
+    };
+  });
+
+  res.json({
+    ok: true,
+    employeeId: employee.id,
+    deactivatedUserId: result.deactivatedUserId,
+    revokedInviteCount: result.revokedInviteCount,
+  });
+}));
+
 export { router as employeesRouter };

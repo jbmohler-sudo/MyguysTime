@@ -190,6 +190,7 @@ export function DemoShell({ role }: DemoShellProps) {
             onListEmployees={noopList}
             onCreateEmployee={() => Promise.reject(new Error("Demo mode"))}
             onUpdateEmployee={() => Promise.reject(new Error("Demo mode"))}
+            onRemoveEmployee={() => Promise.reject(new Error("Demo mode"))}
             onListInvites={noopList}
             onCreateInvite={() => Promise.reject(new Error("Demo mode"))}
             onResendInvite={noopResendInvite}

@@ -26,6 +26,7 @@ import {
   fetchQboPreview,
   listEmployees,
   listInvites,
+  removeEmployee,
   resendInvite,
   revokeInvite,
   sendSmsReminders,
@@ -382,6 +383,11 @@ function AppContent() {
     return response.employee;
   }
 
+  async function handleRemoveEmployee(employeeId: string) {
+    if (!token) throw new Error("Not authenticated");
+    return removeEmployee(token, employeeId);
+  }
+
   async function handleListInvites() {
     if (!token) return [];
     const response = await listInvites(token);
@@ -622,6 +628,7 @@ function AppContent() {
         onListEmployees={handleListEmployees}
         onCreateEmployee={handleCreateEmployee}
         onUpdateEmployee={handleUpdateEmployee}
+        onRemoveEmployee={handleRemoveEmployee}
         onListInvites={handleListInvites}
         onCreateInvite={handleCreateInvite}
         onResendInvite={handleResendInvite}

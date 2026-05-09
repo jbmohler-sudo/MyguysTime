@@ -252,6 +252,19 @@ export async function updateEmployee(token: string, employeeId: string, payload:
   );
 }
 
+export async function removeEmployee(token: string, employeeId: string) {
+  return request<{
+    ok: boolean;
+    employeeId: string;
+    deactivatedUserId: string | null;
+    revokedInviteCount: number;
+  }>(
+    `/employees/${employeeId}/remove`,
+    { method: "POST" },
+    token,
+  );
+}
+
 export async function listInvites(token: string) {
   return request<{ invites: InviteSummary[] }>(
     "/company/invites",

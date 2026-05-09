@@ -92,6 +92,12 @@ interface AppShellProps {
   onListEmployees: () => Promise<ManagedEmployee[]>;
   onCreateEmployee: (payload: EmployeeInput) => Promise<ManagedEmployee>;
   onUpdateEmployee: (employeeId: string, payload: EmployeeInput) => Promise<ManagedEmployee>;
+  onRemoveEmployee: (employeeId: string) => Promise<{
+    ok: boolean;
+    employeeId: string;
+    deactivatedUserId: string | null;
+    revokedInviteCount: number;
+  }>;
   onListInvites: () => Promise<InviteSummary[]>;
   onCreateInvite: (payload: InviteInput) => Promise<{
     invite: InviteSummary;
@@ -129,6 +135,7 @@ export function AppShell({
   onExport,
   onUpdateCompanySettings,
   onCreateEmployee,
+  onRemoveEmployee,
   onListInvites,
   onCreateInvite,
   onResendInvite,
@@ -914,6 +921,10 @@ export function AppShell({
                   onEditEmployee={(employee) => {
                     console.log("Edit employee:", employee);
                   }}
+                  onRemoveEmployee={async (employeeId) => {
+                    await onRemoveEmployee(employeeId);
+                    await onRefresh(data.weekStart);
+                  }}
                 />
                 <InviteManagementPanel
                   onListInvites={onListInvites}
@@ -1568,6 +1579,10 @@ export function AppShell({
               onOpenAddEmployee={() => setShowAddEmployeeModal(true)}
               onEditEmployee={(employee) => {
                 console.log("Edit employee:", employee);
+              }}
+              onRemoveEmployee={async (employeeId) => {
+                await onRemoveEmployee(employeeId);
+                await onRefresh(data.weekStart);
               }}
             />
             <InviteManagementPanel
