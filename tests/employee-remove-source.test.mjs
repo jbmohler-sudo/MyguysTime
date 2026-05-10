@@ -6,6 +6,10 @@ const employeesRouteSource = fs.readFileSync(path.join(process.cwd(), "server/ro
 const apiSource = fs.readFileSync(path.join(process.cwd(), "src/lib/api.ts"), "utf8");
 const panelSource = fs.readFileSync(path.join(process.cwd(), "src/components/TeamManagementPanel.tsx"), "utf8");
 const appShellSource = fs.readFileSync(path.join(process.cwd(), "src/components/AppShell.tsx"), "utf8");
+const vercelEmployeesRouteSource = fs.readFileSync(
+  path.join(process.cwd(), "api/employees/[...path].ts"),
+  "utf8",
+);
 
 assert.match(
   employeesRouteSource,
@@ -103,6 +107,12 @@ assert.match(
   appShellSource,
   /onRemoveEmployee={async \(employeeId\) => {[\s\S]*await onRemoveEmployee\(employeeId\);[\s\S]*await onRefresh\(data\.weekStart\)\.catch/,
   "Team remove action must fire the API request, then refresh without masking a successful removal",
+);
+
+assert.match(
+  vercelEmployeesRouteSource,
+  /import \{ app \} from "\.\.\/\.\.\/server\/index\.js";[\s\S]*export default app;/,
+  "Vercel must mount employees routes so POST /:employeeId/remove reaches Express in production",
 );
 
 console.log("employee remove source tests passed");
