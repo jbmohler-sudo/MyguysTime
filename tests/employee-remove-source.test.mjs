@@ -10,6 +10,10 @@ const vercelEmployeesRouteSource = fs.readFileSync(
   path.join(process.cwd(), "api/employees/[...path].ts"),
   "utf8",
 );
+const vercelEmployeeRemoveRouteSource = fs.readFileSync(
+  path.join(process.cwd(), "api/employees/[employeeId]/remove.ts"),
+  "utf8",
+);
 
 assert.match(
   employeesRouteSource,
@@ -113,6 +117,12 @@ assert.match(
   vercelEmployeesRouteSource,
   /import \{ app \} from "\.\.\/\.\.\/server\/index\.js";[\s\S]*export default app;/,
   "Vercel must mount employees routes so POST /:employeeId/remove reaches Express in production",
+);
+
+assert.match(
+  vercelEmployeeRemoveRouteSource,
+  /import \{ app \} from "\.\.\/\.\.\/\.\.\/server\/index\.js";[\s\S]*export default app;/,
+  "Vercel must mount the specific employee remove route so POST /:employeeId/remove reaches Express in production",
 );
 
 console.log("employee remove source tests passed");

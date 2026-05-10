@@ -14,7 +14,7 @@ export function AcceptInviteScreen({
   onAcceptInvite,
   onShowLogin,
   error,
-}: AcceptInviteScreenProps) {
+}: AcceptInviteScreenProps) { 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
