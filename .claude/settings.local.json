@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__370981a3-1332-4c93-b838-ef33f45360ef__execute_sql",
+      "PowerShell(Get-ChildItem C:\\\\ -Depth 2 -Directory | Where-Object { $_.Name -match \"cms|strength|wellness|checkin|fitness\" } | Select-Object FullName)"
+    ]
+  }
+}
