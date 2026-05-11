@@ -20,18 +20,7 @@ export type TimeTrackingStyle = "FOREMAN" | "WORKER_SELF_ENTRY" | "MIXED";
 export type PayType = "HOURLY" | "HOURLY_OVERTIME";
 export type PayrollMethod = "SERVICE" | "MANUAL" | "MIXED";
 
-export const PAYROLL_PREP_DISCLAIMER = `Important: Payroll Estimates
-
-This app is designed to help you track hours and estimate pay and withholdings.
-It is not a payroll service and does not guarantee full tax compliance.
-
-While we strive to provide accurate calculations, tax rates and rules vary by state and may change.
-Please review all numbers and confirm with your accountant or official state resources before issuing payments.
-
-By continuing, you acknowledge that you are responsible for verifying payroll amounts.`;
 export const EXPORT_REMINDER = "Estimates only — verify before issuing checks.";
-export const UNSUPPORTED_STATE_MESSAGE =
-  "We do not yet support accurate state-specific withholding calculations for this state. You can still use the app for time tracking and payroll prep, but please confirm state-specific withholding with your accountant or official state resources.";
 export const SIGNUP_DEFAULT_STATE_CODE = "TX";
 export const INVITE_EXPIRY_HOURS = 72;
 
@@ -146,49 +135,17 @@ export async function getCompanySettingsOrThrow(companyId: string) {
   });
 }
 
-export async function getStateRuleOrThrow(stateCode: string) {
-  return prisma.statePayrollRule.findUniqueOrThrow({
-    where: { stateCode },
-  });
-}
-
 export async function getCompanyContextOrThrow(companyId: string) {
   const company = await getCompanySettingsOrThrow(companyId);
   const payrollSettings = company.payrollSettings;
   if (!payrollSettings) {
     throw new Error("Company payroll settings are missing.");
   }
-  const stateRule = await getStateRuleOrThrow(company.stateCode);
-  return { company, payrollSettings, stateRule };
-}
-
-export function supportLevelToClient(value: string) {
-  return value.toLowerCase() as "full" | "partial_manual" | "unsupported";
-}
-
-export function buildUnsupportedStateRuleData(stateCode: string) {
-  return {
-    stateCode,
-    stateName: stateCode,
-    supportLevel: "UNSUPPORTED",
-    hasStateIncomeTax: true,
-    hasExtraEmployeeWithholdings: false,
-    defaultStateWithholdingMode: "MANUAL_OVERRIDE",
-    defaultStateWithholdingValue: 0,
-    disclaimerText: UNSUPPORTED_STATE_MESSAGE,
-    notes: UNSUPPORTED_STATE_MESSAGE,
-    isActive: true,
-  };
+  return { company, payrollSettings };
 }
 
 export function buildPayrollSettingsDefaults(
-  stateCode: string,
-  stateRule: Awaited<ReturnType<typeof getStateRuleOrThrow>> | Awaited<ReturnType<typeof prisma.statePayrollRule.findUnique>> | null,
   overrides?: {
-    defaultFederalWithholdingMode?: "PERCENTAGE" | "MANUAL_OVERRIDE";
-    defaultFederalWithholdingValue?: number;
-    defaultStateWithholdingMode?: "PERCENTAGE" | "MANUAL_OVERRIDE";
-    defaultStateWithholdingValue?: number;
     timeTrackingStyle?: TimeTrackingStyle;
     weekStartDay?: number;
     defaultLunchMinutes?: 0 | 30 | 60;
@@ -197,81 +154,20 @@ export function buildPayrollSettingsDefaults(
     trackExpenses?: boolean;
   },
 ) {
-  const federalMode = overrides?.defaultFederalWithholdingMode ?? "PERCENTAGE";
-  const federalValue = overrides?.defaultFederalWithholdingValue ?? 0.1;
-  const stateMode = overrides?.defaultStateWithholdingMode ?? stateRule?.defaultStateWithholdingMode ?? "MANUAL_OVERRIDE";
-  const stateValue = overrides?.defaultStateWithholdingValue ?? stateRule?.defaultStateWithholdingValue ?? 0;
-
   return {
-    defaultFederalWithholdingMode: federalMode,
-    defaultFederalWithholdingValue: federalValue,
-    defaultStateWithholdingMode: stateMode,
-    defaultStateWithholdingValue: stateValue,
     timeTrackingStyle: overrides?.timeTrackingStyle ?? "FOREMAN",
     weekStartDay: overrides?.weekStartDay ?? 1,
     defaultLunchMinutes: overrides?.defaultLunchMinutes ?? 30,
     payType: overrides?.payType ?? "HOURLY_OVERTIME",
     payrollMethod: overrides?.payrollMethod ?? "MANUAL",
     trackExpenses: overrides?.trackExpenses ?? true,
-    payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
-    pfmlEnabled: stateCode === "MA" ? Boolean(stateRule?.defaultPfmlEnabled) : false,
-    pfmlEmployeeRate: stateCode === "MA" ? stateRule?.defaultPfmlEmployeeRate ?? 0 : 0,
-    extraWithholdingLabel:
-      stateCode === "MA"
-        ? "PFML"
-        : stateRule?.hasExtraEmployeeWithholdings
-          ? stateRule.extraWithholdingTypes ?? "Manual state withholding"
-          : "Manual state withholding",
-    extraWithholdingRate: stateCode === "MA" ? stateRule?.defaultPfmlEmployeeRate ?? 0 : null,
-    supportLevelSnapshot: stateRule?.supportLevel ?? "UNSUPPORTED",
-  };
-}
-
-export function serializeStateRule(rule: Awaited<ReturnType<typeof getStateRuleOrThrow>>) {
-  return {
-    stateCode: rule.stateCode,
-    stateName: rule.stateName,
-    supportLevel: supportLevelToClient(rule.supportLevel),
-    hasStateIncomeTax: rule.hasStateIncomeTax,
-    hasExtraEmployeeWithholdings: rule.hasExtraEmployeeWithholdings,
-    extraWithholdingTypes: rule.extraWithholdingTypes
-      ? rule.extraWithholdingTypes.split(",").map((item) => item.trim()).filter(Boolean)
-      : [],
-    defaultStateWithholdingMode: rule.defaultStateWithholdingMode.toLowerCase(),
-    defaultStateWithholdingValue: rule.defaultStateWithholdingValue,
-    notes: rule.notes ?? "",
-    disclaimerText:
-      rule.disclaimerText ??
-      (rule.supportLevel === "UNSUPPORTED" ? UNSUPPORTED_STATE_MESSAGE : ""),
-    lastReviewedAt: rule.lastReviewedAt?.toISOString() ?? null,
-    sourceLabel: rule.sourceLabel ?? "",
-    sourceUrl: rule.sourceUrl ?? "",
-    isActive: rule.isActive,
   };
 }
 
 export function serializeCompanySettings(
   company: Awaited<ReturnType<typeof getCompanySettingsOrThrow>>,
-  stateRule: Awaited<ReturnType<typeof getStateRuleOrThrow>>,
 ) {
   const settings = company.payrollSettings!;
-  const stateSupportLevel = supportLevelToClient(settings.supportLevelSnapshot);
-  const supportedLines = [
-    "Federal withholding estimate",
-    !stateRule.hasStateIncomeTax
-      ? "No state income tax withholding"
-      : stateSupportLevel === "full"
-        ? "State withholding estimate"
-        : stateSupportLevel === "partial_manual"
-          ? "Manual state withholding review"
-          : "State-specific withholding verification required",
-  ];
-
-  if (company.stateCode === "MA" && settings.pfmlEnabled) {
-    supportedLines.push("PFML employee withholding");
-  } else if (stateRule.hasExtraEmployeeWithholdings && settings.extraWithholdingLabel) {
-    supportedLines.push(settings.extraWithholdingLabel);
-  }
 
   return {
     id: company.id,
@@ -279,37 +175,13 @@ export function serializeCompanySettings(
     ownerName: company.ownerName ?? "",
     weekStartDay: settings.weekStartDay,
     companyState: company.stateCode,
-    stateName: stateRule.stateName,
-    supportLevel: stateSupportLevel,
-    defaultFederalWithholdingMode: settings.defaultFederalWithholdingMode.toLowerCase(),
-    defaultFederalWithholdingValue: settings.defaultFederalWithholdingValue,
-    defaultStateWithholdingMode: settings.defaultStateWithholdingMode.toLowerCase(),
-    defaultStateWithholdingValue: settings.defaultStateWithholdingValue,
-    pfmlEnabled: settings.pfmlEnabled,
-    pfmlEmployeeRate: settings.pfmlEmployeeRate,
-    extraWithholdingLabel: settings.extraWithholdingLabel ?? "",
-    extraWithholdingRate: settings.extraWithholdingRate ?? 0,
-    hasStateIncomeTax: stateRule.hasStateIncomeTax,
-    hasExtraEmployeeWithholdings: stateRule.hasExtraEmployeeWithholdings,
-    supportedLines,
     timeTrackingStyle: timeTrackingStyleToClient(settings.timeTrackingStyle as TimeTrackingStyle),
     defaultLunchMinutes: settings.defaultLunchMinutes,
     payType: payTypeToClient(settings.payType as PayType),
     payrollMethod: payrollMethodToClient(settings.payrollMethod as PayrollMethod),
     trackExpenses: settings.trackExpenses,
-    payrollPrepDisclaimer:
-      settings.payrollPrepDisclaimer || PAYROLL_PREP_DISCLAIMER,
-    stateDisclaimer:
-      stateRule.disclaimerText ||
-      (stateRule.supportLevel === "UNSUPPORTED" ? UNSUPPORTED_STATE_MESSAGE : ""),
     payrollReminder: EXPORT_REMINDER,
-    disclaimerAcceptedAt: company.payrollDisclaimerAcceptedAt?.toISOString() ?? null,
-    disclaimerAcceptedByUserId: company.payrollDisclaimerAcceptedByUserId ?? null,
-    disclaimerVersion: company.payrollDisclaimerVersion ?? null,
     setupComplete: Boolean(company.onboardingCompletedAt),
-    lastReviewedAt: stateRule.lastReviewedAt?.toISOString() ?? null,
-    sourceLabel: stateRule.sourceLabel ?? "",
-    sourceUrl: stateRule.sourceUrl ?? "",
   };
 }
 
@@ -322,19 +194,6 @@ export function normalizeManagedEmployeeWorkerType(value: string | undefined) {
 
   if (normalized === "contractor_1099" || normalized === "1099") {
     return "CONTRACTOR_1099" as const;
-  }
-
-  return null;
-}
-
-export function normalizeFederalFilingStatus(value: unknown) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim().toLowerCase();
-  if (normalized === "single" || normalized === "married_jointly" || normalized === "head_of_household") {
-    return normalized;
   }
 
   return null;
@@ -353,9 +212,6 @@ export function serializeManagedEmployee(
     displayName: employee.displayName,
     workerType: workerTypeToClient(asWorkerType(employee.workerType)),
     hourlyRate: currencyFromCents(employee.hourlyRateCents),
-    federalFilingStatus: normalizeFederalFilingStatus(employee.federalFilingStatus) ?? "single",
-    w4Step3Amount: employee.w4Step3Amount,
-    w4CollectedAt: employee.w4CollectedAt?.toISOString() ?? null,
     active: employee.employmentStatus === "ACTIVE",
     defaultCrewId: employee.defaultCrewId,
     defaultCrewName: employee.defaultCrew?.name ?? null,
@@ -531,7 +387,7 @@ export async function ensureWeekData(companyId: string, weekStart?: Date) {
   if (!weekStart) {
     weekStart = parseWeekStart(undefined);
   }
-  const { company, payrollSettings } = await getCompanyContextOrThrow(companyId);
+  const { payrollSettings } = await getCompanyContextOrThrow(companyId);
   const employees = await prisma.employee.findMany({
     where: { companyId, employmentStatus: "ACTIVE" },
     include: {
@@ -575,26 +431,6 @@ export async function ensureWeekData(companyId: string, weekStart?: Date) {
             regularMinutes: 0,
             overtimeMinutes: 0,
             grossPayCents: 0,
-            federalWithholdingMode:
-              employee.usesCompanyFederalDefault ? payrollSettings.defaultFederalWithholdingMode : "PERCENTAGE",
-            federalWithholdingValue:
-              employee.usesCompanyFederalDefault
-                ? payrollSettings.defaultFederalWithholdingValue
-                : employee.federalWithholdingPercent,
-            stateWithholdingMode:
-              employee.usesCompanyStateDefault ? payrollSettings.defaultStateWithholdingMode : "PERCENTAGE",
-            stateWithholdingValue:
-              employee.usesCompanyStateDefault
-                ? payrollSettings.defaultStateWithholdingValue
-                : employee.stateWithholdingPercent,
-            federalWithholdingCents: 0,
-            stateWithholdingCents: 0,
-            pfmlWithholdingCents: 0,
-            extraStateWithholdingLabel:
-              company.stateCode === "MA" && payrollSettings.pfmlEnabled
-                ? "PFML"
-                : payrollSettings.extraWithholdingLabel,
-            extraStateWithholdingCents: 0,
             netCheckEstimateCents: 0,
           },
         },
@@ -612,7 +448,7 @@ export async function ensureWeekData(companyId: string, weekStart?: Date) {
 }
 
 export async function recalculateTimesheet(timesheetId: string, companyId: string) {
-  const { company, payrollSettings, stateRule } = await getCompanyContextOrThrow(companyId);
+  const { payrollSettings } = await getCompanyContextOrThrow(companyId);
   const timesheet = await prisma.timesheetWeek.findUniqueOrThrow({
     where: { id: timesheetId },
     include: {
@@ -637,12 +473,8 @@ export async function recalculateTimesheet(timesheetId: string, companyId: strin
 
   const estimate = calculatePayrollEstimate({
     employee: timesheet.employee,
-    company,
-    companyPayrollSettings: payrollSettings,
-    stateRule,
     dayEntries: timesheet.dayEntries,
     adjustment: timesheet.adjustment,
-    existingEstimate: timesheet.payrollEstimate,
   });
 
   if (timesheet.payrollEstimate) {
@@ -721,9 +553,6 @@ export function serializeTimesheet(
     crewId: timesheet.crewId,
     crewName: timesheet.crew.name,
     hourlyRate: viewerRole === "EMPLOYEE" ? null : currencyFromCents(timesheet.employee.hourlyRateCents),
-    federalFilingStatus: normalizeFederalFilingStatus(timesheet.employee.federalFilingStatus) ?? "single",
-    w4Step3Amount: timesheet.employee.w4Step3Amount,
-    w4CollectedAt: timesheet.employee.w4CollectedAt?.toISOString() ?? null,
     status: statusToClient(asTimesheetStatus(timesheet.status)),
     entries: timesheet.dayEntries.map((entry) => ({
       id: entry.id,
@@ -761,12 +590,6 @@ export function serializeTimesheet(
       regularHours: (timesheet.payrollEstimate?.regularMinutes ?? 0) / 60,
       overtimeHours: (timesheet.payrollEstimate?.overtimeMinutes ?? 0) / 60,
       grossPay: currencyFromCents(timesheet.payrollEstimate?.grossPayCents ?? 0),
-      federalWithholding: currencyFromCents(timesheet.payrollEstimate?.federalWithholdingCents ?? 0),
-      w4NotOnFile: timesheet.employee.w4CollectedAt === null,
-      stateWithholding: currencyFromCents(timesheet.payrollEstimate?.stateWithholdingCents ?? 0),
-      pfmlWithholding: currencyFromCents(timesheet.payrollEstimate?.pfmlWithholdingCents ?? 0),
-      extraStateWithholdingLabel: timesheet.payrollEstimate?.extraStateWithholdingLabel ?? "",
-      extraStateWithholding: currencyFromCents(timesheet.payrollEstimate?.extraStateWithholdingCents ?? 0),
       reimbursements: currencyFromCents(
         (timesheet.adjustment?.gasReimbursementCents ?? 0) + (timesheet.adjustment?.pettyCashCents ?? 0),
       ),
@@ -842,12 +665,8 @@ export async function buildYtdSummaries(
 export async function buildBootstrap(userId: string, role: UserRole, companyId: string, weekStart: Date) {
   await ensureWeekData(companyId, weekStart);
   const user = await getCurrentUserOrThrow(userId);
-  const { company, stateRule } = await getCompanyContextOrThrow(companyId);
+  const { company } = await getCompanyContextOrThrow(companyId);
   const accessibleCrewIds = await getAccessibleCrewIds(userId, role, companyId);
-  const stateRules = await prisma.statePayrollRule.findMany({
-    where: { isActive: true },
-    orderBy: { stateCode: "asc" },
-  });
 
   const crewWhere =
     role === "ADMIN"
@@ -944,8 +763,7 @@ export async function buildBootstrap(userId: string, role: UserRole, companyId: 
       preferredView: (user as Record<string, unknown>)["preferredView"] as string ?? "office",
     },
     weekStart: formatIsoDate(weekStart),
-    companySettings: serializeCompanySettings(company, stateRule),
-    stateRules: stateRules.map((entry) => serializeStateRule(entry)),
+    companySettings: serializeCompanySettings(company),
     crews: crews.map((crew) => ({
       id: crew.id,
       name: crew.name,
@@ -1037,3 +855,4 @@ export async function markLockedWeeksExported(weekStart: Date, exportedByUserId:
 
 // Re-export for convenience in route files
 export { clampLunchMinutes, parseWeekStart, timeStringToMinutes };
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
