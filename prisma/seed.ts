@@ -17,9 +17,6 @@ Please review all numbers and confirm with your accountant or official state res
 
 By continuing, you acknowledge that you are responsible for verifying payroll amounts.`;
 
-const UNSUPPORTED_STATE_MESSAGE =
-  "We do not yet support accurate state-specific withholding calculations for this state. You can still use the app for time tracking and payroll prep, but please confirm state-specific withholding with your accountant or official state resources.";
-
 async function createOrUpdateUserAccount(
   prisma: PrismaClient,
   input: {
@@ -128,88 +125,6 @@ export async function seedDatabase() {
   const prisma = new PrismaClient();
 
   try {
-    // Check if state payroll rules already exist
-    const existingRules = await prisma.statePayrollRule.count();
-
-    if (existingRules === 0) {
-      await prisma.statePayrollRule.createMany({
-      data: [
-        // States with no state income tax (functional)
-        {
-          stateCode: "AK",
-          stateName: "Alaska",
-          supportLevel: "FULL",
-          hasStateIncomeTax: false,
-          hasExtraEmployeeWithholdings: false,
-          defaultStateWithholdingMode: "PERCENTAGE",
-          defaultStateWithholdingValue: 0,
-          notes: "No state income tax withholding.",
-          lastReviewedAt: new Date("2026-04-22T09:00:00"),
-          sourceLabel: "Internal payroll-prep baseline",
-          sourceUrl: "https://www.irs.gov/",
-        },
-        {
-          stateCode: "FL",
-          stateName: "Florida",
-          supportLevel: "FULL",
-          hasStateIncomeTax: false,
-          hasExtraEmployeeWithholdings: false,
-          defaultStateWithholdingMode: "PERCENTAGE",
-          defaultStateWithholdingValue: 0,
-          notes: "No state income tax withholding.",
-          lastReviewedAt: new Date("2026-04-22T09:00:00"),
-          sourceLabel: "Internal payroll-prep baseline",
-          sourceUrl: "https://www.irs.gov/",
-        },
-        {
-          stateCode: "NV",
-          stateName: "Nevada",
-          supportLevel: "FULL",
-          hasStateIncomeTax: false,
-          hasExtraEmployeeWithholdings: false,
-          defaultStateWithholdingMode: "PERCENTAGE",
-          defaultStateWithholdingValue: 0,
-          notes: "No state income tax withholding.",
-          lastReviewedAt: new Date("2026-04-22T09:00:00"),
-          sourceLabel: "Internal payroll-prep baseline",
-          sourceUrl: "https://www.irs.gov/",
-        },
-        {
-          stateCode: "TX",
-          stateName: "Texas",
-          supportLevel: "FULL",
-          hasStateIncomeTax: false,
-          hasExtraEmployeeWithholdings: false,
-          defaultStateWithholdingMode: "PERCENTAGE",
-          defaultStateWithholdingValue: 0,
-          notes: "No state income tax withholding.",
-          lastReviewedAt: new Date("2026-04-22T09:00:00"),
-          sourceLabel: "Internal payroll-prep baseline",
-          sourceUrl: "https://www.irs.gov/",
-        },
-        // Massachusetts - with state withholding support
-        {
-          stateCode: "MA",
-          stateName: "Massachusetts",
-          supportLevel: "FULL",
-          hasStateIncomeTax: true,
-          hasExtraEmployeeWithholdings: true,
-          extraWithholdingTypes: "PFML",
-          defaultStateWithholdingMode: "PERCENTAGE",
-          defaultStateWithholdingValue: 0.05,
-          defaultPfmlEnabled: true,
-          defaultPfmlEmployeeRate: 0.0045,
-          notes: "Massachusetts payroll-prep support includes state withholding estimate plus PFML shown as a separate line.",
-          disclaimerText:
-            "Massachusetts payroll-prep support includes separate PFML handling. Review all withholding amounts before issuing checks.",
-          lastReviewedAt: new Date("2026-04-22T09:00:00"),
-          sourceLabel: "Massachusetts payroll-prep review",
-          sourceUrl: "https://www.mass.gov/info-details/paid-family-and-medical-leave-employer-contribution-rates-and-calculator",
-        },
-      ],
-      });
-    }
-
     // Find or create the test company
     let company = await prisma.company.findFirst({
       where: { companyName: "Crew Time Masonry & Roofing" },
@@ -234,17 +149,9 @@ export async function seedDatabase() {
       },
     });
 
-    const companyRule = await prisma.statePayrollRule.findUniqueOrThrow({
-      where: { stateCode: "MA" },
-    });
-
     await prisma.companyPayrollSettings.upsert({
       where: { companyId: company.id },
       update: {
-        defaultFederalWithholdingMode: "PERCENTAGE",
-        defaultFederalWithholdingValue: 0.1,
-        defaultStateWithholdingMode: companyRule.defaultStateWithholdingMode,
-        defaultStateWithholdingValue: companyRule.defaultStateWithholdingValue,
         timeTrackingStyle: "FOREMAN",
         weekStartDay: 1,
         defaultLunchMinutes: 30,
@@ -252,18 +159,9 @@ export async function seedDatabase() {
         payrollMethod: "MANUAL",
         trackExpenses: true,
         payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
-        pfmlEnabled: companyRule.defaultPfmlEnabled,
-        pfmlEmployeeRate: companyRule.defaultPfmlEmployeeRate,
-        extraWithholdingLabel: companyRule.extraWithholdingTypes === "PFML" ? "PFML" : "Manual state withholding",
-        extraWithholdingRate: companyRule.extraWithholdingTypes === "PFML" ? companyRule.defaultPfmlEmployeeRate : null,
-        supportLevelSnapshot: companyRule.supportLevel,
       },
       create: {
         companyId: company.id,
-        defaultFederalWithholdingMode: "PERCENTAGE",
-        defaultFederalWithholdingValue: 0.1,
-        defaultStateWithholdingMode: companyRule.defaultStateWithholdingMode,
-        defaultStateWithholdingValue: companyRule.defaultStateWithholdingValue,
         timeTrackingStyle: "FOREMAN",
         weekStartDay: 1,
         defaultLunchMinutes: 30,
@@ -271,11 +169,6 @@ export async function seedDatabase() {
         payrollMethod: "MANUAL",
         trackExpenses: true,
         payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
-        pfmlEnabled: companyRule.defaultPfmlEnabled,
-        pfmlEmployeeRate: companyRule.defaultPfmlEmployeeRate,
-        extraWithholdingLabel: companyRule.extraWithholdingTypes === "PFML" ? "PFML" : "Manual state withholding",
-        extraWithholdingRate: companyRule.extraWithholdingTypes === "PFML" ? companyRule.defaultPfmlEmployeeRate : null,
-        supportLevelSnapshot: companyRule.supportLevel,
       },
     });
 
@@ -314,10 +207,6 @@ export async function seedDatabase() {
           displayName: "Luis Ortega",
           hourlyRateCents: 3400,
           defaultCrewId: masonryCrew.id,
-          usesCompanyFederalDefault: false,
-          usesCompanyStateDefault: false,
-          federalWithholdingPercent: 0.11,
-          stateWithholdingPercent: 0.04,
         },
       });
     }
@@ -336,10 +225,6 @@ export async function seedDatabase() {
           displayName: "Marco Diaz",
           hourlyRateCents: 2900,
           defaultCrewId: masonryCrew.id,
-          usesCompanyFederalDefault: false,
-          usesCompanyStateDefault: false,
-          federalWithholdingPercent: 0.11,
-          stateWithholdingPercent: 0.04,
         },
       });
     }
@@ -358,10 +243,6 @@ export async function seedDatabase() {
           displayName: "Troy Bennett",
           hourlyRateCents: 2300,
           defaultCrewId: masonryCrew.id,
-          usesCompanyFederalDefault: true,
-          usesCompanyStateDefault: true,
-          federalWithholdingPercent: 0.1,
-          stateWithholdingPercent: companyRule.defaultStateWithholdingValue,
         },
       });
     }
@@ -429,7 +310,12 @@ export async function seedDatabase() {
     });
     if (!evanAssignment) {
       await prisma.crewAssignment.create({
-        data: { crewId: roofingCrew.id, employeeId: evan.id, startsOn: new Date("2025-11-01T00:00:00"), endsOn: new Date("2026-04-10T00:00:00") },
+        data: {
+          crewId: roofingCrew.id,
+          employeeId: evan.id,
+          startsOn: new Date("2025-11-01T00:00:00"),
+          endsOn: new Date("2026-04-10T00:00:00"),
+        },
       });
     }
 
@@ -445,9 +331,7 @@ export async function seedDatabase() {
           firstName: "Dana",
           lastName: "Office",
           displayName: "Dana Office",
-          hourlyRateCents: 0, // Office admin, no hourly rate
-          usesCompanyFederalDefault: true,
-          usesCompanyStateDefault: true,
+          hourlyRateCents: 0,
         },
       });
     }
@@ -597,10 +481,6 @@ export async function seedDatabase() {
       ],
     };
 
-    const payrollSettings = await prisma.companyPayrollSettings.findUniqueOrThrow({
-      where: { companyId: company.id },
-    });
-
     for (const employee of [luis, marco, troy]) {
       const createdTimesheet = await prisma.timesheetWeek.create({
         data: {
@@ -725,17 +605,9 @@ export async function seedDatabase() {
         },
       });
 
-      const apexRule = await prisma.statePayrollRule.findUniqueOrThrow({
-        where: { stateCode: apexCompany.stateCode },
-      });
-
       await prisma.companyPayrollSettings.create({
         data: {
           companyId: apexCompany.id,
-          defaultFederalWithholdingMode: "PERCENTAGE",
-          defaultFederalWithholdingValue: 0.1,
-          defaultStateWithholdingMode: apexRule.defaultStateWithholdingMode,
-          defaultStateWithholdingValue: apexRule.defaultStateWithholdingValue,
           timeTrackingStyle: "FOREMAN",
           weekStartDay: 1,
           defaultLunchMinutes: 30,
@@ -743,11 +615,6 @@ export async function seedDatabase() {
           payrollMethod: "MANUAL",
           trackExpenses: true,
           payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
-          pfmlEnabled: apexRule.defaultPfmlEnabled,
-          pfmlEmployeeRate: apexRule.defaultPfmlEmployeeRate,
-          extraWithholdingLabel: apexRule.extraWithholdingTypes === "PFML" ? "PFML" : "Manual state withholding",
-          extraWithholdingRate: apexRule.extraWithholdingTypes === "PFML" ? apexRule.defaultPfmlEmployeeRate : null,
-          supportLevelSnapshot: apexRule.supportLevel,
         },
       });
 
@@ -769,10 +636,6 @@ export async function seedDatabase() {
           displayName: "Jake Martinez",
           hourlyRateCents: 4500,
           defaultCrewId: apexRoofingCrew.id,
-          usesCompanyFederalDefault: false,
-          usesCompanyStateDefault: false,
-          federalWithholdingPercent: 0.12,
-          stateWithholdingPercent: 0,
         },
       });
 
@@ -784,8 +647,6 @@ export async function seedDatabase() {
           displayName: "Sarah Chen",
           hourlyRateCents: 3800,
           defaultCrewId: apexCommercialCrew.id,
-          usesCompanyFederalDefault: true,
-          usesCompanyStateDefault: true,
         },
       });
 
@@ -797,8 +658,6 @@ export async function seedDatabase() {
           displayName: "Mike Johnson",
           hourlyRateCents: 3200,
           defaultCrewId: apexRoofingCrew.id,
-          usesCompanyFederalDefault: true,
-          usesCompanyStateDefault: true,
         },
       });
 
@@ -824,8 +683,6 @@ export async function seedDatabase() {
           lastName: "Martinez (Admin)",
           displayName: "Jake Martinez (Admin)",
           hourlyRateCents: 0,
-          usesCompanyFederalDefault: true,
-          usesCompanyStateDefault: true,
         },
       });
 

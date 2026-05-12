@@ -172,12 +172,7 @@ router.post("/company/invites", authenticate, asyncHandler(async (req: Authentic
         employmentStatus: "ACTIVE",
         hourlyRateCents,
         overtimeRateCents: companySettings?.payType === "HOURLY" ? hourlyRateCents : null,
-        federalFilingStatus: "single",
         defaultCrewId: cleanCrewId,
-        usesCompanyFederalDefault: true,
-        usesCompanyStateDefault: true,
-        federalWithholdingPercent: companySettings?.defaultFederalWithholdingValue ?? 0.10,
-        stateWithholdingPercent: companySettings?.defaultStateWithholdingValue ?? 0.03,
         createdAt: now,
       }
     });
