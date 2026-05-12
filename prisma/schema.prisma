@@ -309,11 +309,11 @@ model PayrollEstimate {
   overtimeMinutes         Int
   grossPayCents           Int
   federalWithholdingMode  String          @default("PERCENTAGE")
-  federalWithholdingValue Float
+  federalWithholdingValue Float           @default(0)
   stateWithholdingMode    String          @default("PERCENTAGE")
-  stateWithholdingValue   Float
-  federalWithholdingCents Int
-  stateWithholdingCents   Int
+  stateWithholdingValue   Float           @default(0)
+  federalWithholdingCents Int             @default(0)
+  stateWithholdingCents   Int             @default(0)
   pfmlWithholdingCents    Int             @default(0)
   extraStateWithholdingLabel String?
   extraStateWithholdingCents Int          @default(0)

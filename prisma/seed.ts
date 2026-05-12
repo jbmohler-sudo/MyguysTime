@@ -649,12 +649,8 @@ export async function seedDatabase() {
 
       const estimate = calculatePayrollEstimate({
         employee,
-        company,
-        companyPayrollSettings: payrollSettings,
-        stateRule: companyRule,
         dayEntries: createdTimesheet.dayEntries,
         adjustment: createdTimesheet.adjustment,
-        existingEstimate: null,
       });
 
       await prisma.payrollEstimate.create({
