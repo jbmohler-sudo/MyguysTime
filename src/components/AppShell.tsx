@@ -1500,7 +1500,6 @@ export function AppShell({
         {activePage === "company-settings" && canViewCompanySettings && data.companySettings ? (
           <CompanySettingsPanel
             companySettings={data.companySettings!}
-            stateRules={data.stateRules}
             onSave={onUpdateCompanySettings}
           />
         ) : null}
@@ -1603,7 +1602,6 @@ export function AppShell({
       <AddEmployeeModal
         isOpen={showAddEmployeeModal}
         crews={data.crews}
-        payrollMethod={data.companySettings?.payrollMethod ?? "manual"}
         onClose={() => setShowAddEmployeeModal(false)}
         onSave={async (employee) => {
           await onCreateEmployee(employee);

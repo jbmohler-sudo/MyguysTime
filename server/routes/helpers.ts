@@ -180,6 +180,7 @@ export function serializeCompanySettings(
     payType: payTypeToClient(settings.payType as PayType),
     payrollMethod: payrollMethodToClient(settings.payrollMethod as PayrollMethod),
     trackExpenses: settings.trackExpenses,
+    payrollPrepDisclaimer: settings.payrollPrepDisclaimer ?? EXPORT_REMINDER,
     payrollReminder: EXPORT_REMINDER,
     setupComplete: Boolean(company.onboardingCompletedAt),
   };
@@ -853,5 +854,4 @@ export async function markLockedWeeksExported(weekStart: Date, exportedByUserId:
   });
 }
 
-// Re-export for convenience in route files
-export { clampLunchMinutes, parseWeekStart, timeStringToMinutes };
+// Re-export for convenience in r

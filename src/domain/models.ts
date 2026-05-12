@@ -3,7 +3,6 @@ export type WorkerType = "employee" | "contractor_1099";
 export type TimeTrackingStyle = "foreman" | "worker_self_entry" | "mixed";
 export type PayType = "hourly" | "hourly_overtime";
 export type PayrollMethod = "service" | "manual" | "mixed";
-export type FederalFilingStatus = "single" | "married_jointly" | "head_of_household";
 
 export type TimesheetStatus =
   | "draft"
@@ -78,12 +77,6 @@ export interface PayrollEstimateSummary {
   regularHours: number;
   overtimeHours: number;
   grossPay: number;
-  federalWithholding: number;
-  w4NotOnFile: boolean;
-  stateWithholding: number;
-  pfmlWithholding: number;
-  extraStateWithholdingLabel: string;
-  extraStateWithholding: number;
   reimbursements: number;
   deductions: number;
   netCheckEstimate: number;
@@ -106,9 +99,6 @@ export interface EmployeeWeek {
   crewId: string;
   crewName: string;
   hourlyRate: number | null;
-  federalFilingStatus: FederalFilingStatus;
-  w4Step3Amount: number;
-  w4CollectedAt: string | null;
   status: TimesheetStatus;
   entries: DayEntry[];
   weeklyTotalHours: number;
@@ -153,9 +143,6 @@ export interface ManagedEmployee {
   displayName: string;
   workerType: WorkerType;
   hourlyRate: number;
-  federalFilingStatus: FederalFilingStatus;
-  w4Step3Amount: number;
-  w4CollectedAt: string | null;
   active: boolean;
   defaultCrewId: string | null;
   defaultCrewName: string | null;
@@ -193,9 +180,6 @@ export interface EmployeeInput {
   displayName: string;
   workerType: "employee" | "contractor_1099";
   hourlyRate: number;
-  federalFilingStatus?: FederalFilingStatus;
-  w4Step3Amount?: number;
-  w4CollectedAt?: string | null;
   defaultCrewId?: string | null;
   active: boolean;
 }
@@ -212,58 +196,20 @@ export interface CompanySettingsSummary {
   ownerName: string;
   weekStartDay: number;
   companyState: string;
-  stateName: string;
-  supportLevel: "full" | "partial_manual" | "unsupported";
-  defaultFederalWithholdingMode: string;
-  defaultFederalWithholdingValue: number;
-  defaultStateWithholdingMode: string;
-  defaultStateWithholdingValue: number;
-  pfmlEnabled: boolean;
-  pfmlEmployeeRate: number;
-  extraWithholdingLabel: string;
-  extraWithholdingRate: number;
-  hasStateIncomeTax: boolean;
-  hasExtraEmployeeWithholdings: boolean;
-  supportedLines: string[];
   timeTrackingStyle: TimeTrackingStyle;
   defaultLunchMinutes: number;
   payType: PayType;
   payrollMethod: PayrollMethod;
   trackExpenses: boolean;
   payrollPrepDisclaimer: string;
-  stateDisclaimer: string;
   payrollReminder: string;
-  disclaimerAcceptedAt: string | null;
-  disclaimerAcceptedByUserId: string | null;
-  disclaimerVersion: string | null;
   setupComplete: boolean;
-  lastReviewedAt: string | null;
-  sourceLabel: string;
-  sourceUrl: string;
-}
-
-export interface StateRuleSummary {
-  stateCode: string;
-  stateName: string;
-  supportLevel: "full" | "partial_manual" | "unsupported";
-  hasStateIncomeTax: boolean;
-  hasExtraEmployeeWithholdings: boolean;
-  extraWithholdingTypes: string[];
-  defaultStateWithholdingMode: string;
-  defaultStateWithholdingValue: number;
-  notes: string;
-  disclaimerText: string;
-  lastReviewedAt: string | null;
-  sourceLabel: string;
-  sourceUrl: string;
-  isActive: boolean;
 }
 
 export interface BootstrapPayload {
   viewer: Viewer;
   weekStart: string;
   companySettings: CompanySettingsSummary | null;
-  stateRules: StateRuleSummary[];
   crews: CrewSummary[];
   employeeWeeks: EmployeeWeek[];
   privateReports: PrivateReport[];

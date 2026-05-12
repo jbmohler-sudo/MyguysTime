@@ -12,20 +12,6 @@ interface CompanySettingsPanelProps {
   }) => Promise<void>;
 }
 
-function formatAcceptedAt(value: string | null) {
-  if (!value) {
-    return "Pending";
-  }
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
-
 function payrollMethodLabel(value: PayrollMethod) {
   if (value === "service") {
     return "Payroll service";
@@ -93,10 +79,6 @@ export function CompanySettingsPanel({
           <span>Business state</span>
           <strong>{draft.companyState}</strong>
         </div>
-        <div>
-          <span>Disclaimer accepted</span>
-          <strong>{formatAcceptedAt(companySettings.disclaimerAcceptedAt)}</strong>
-        </div>
       </div>
 
       <section className="settings-section">
@@ -105,7 +87,6 @@ export function CompanySettingsPanel({
             <p className="eyebrow">Company Identity</p>
             <h3>Business profile</h3>
           </div>
-          <span className="settings-meta">Disclaimer version: {companySettings.disclaimerVersion ?? "Not recorded"}</span>
         </div>
         <div className="settings-grid settings-grid--tight">
           <label>
