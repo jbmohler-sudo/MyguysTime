@@ -30,9 +30,6 @@ router.get("/exports/payroll-summary.csv", authenticate, asyncHandler(async (req
       "Regular Hours",
       "Overtime Hours",
       "Gross Pay",
-      "Federal Withholding",
-      "State Withholding",
-      "PFML",
       "Reimbursements",
       "Deductions",
       "Net Check Estimate",
@@ -45,9 +42,6 @@ router.get("/exports/payroll-summary.csv", authenticate, asyncHandler(async (req
         week.payrollEstimate.regularHours.toFixed(2),
         week.payrollEstimate.overtimeHours.toFixed(2),
         week.payrollEstimate.grossPay.toFixed(2),
-        week.payrollEstimate.federalWithholding.toFixed(2),
-        week.payrollEstimate.stateWithholding.toFixed(2),
-        week.payrollEstimate.pfmlWithholding.toFixed(2),
         week.payrollEstimate.reimbursements.toFixed(2),
         week.payrollEstimate.deductions.toFixed(2),
         week.payrollEstimate.netCheckEstimate.toFixed(2),
@@ -281,13 +275,6 @@ router.get("/exports/weekly-summary", authenticate, asyncHandler(async (req: Aut
           <div><span>Regular hours</span><strong>${week.payrollEstimate.regularHours.toFixed(2)}</strong></div>
           <div><span>Overtime hours</span><strong>${week.payrollEstimate.overtimeHours.toFixed(2)}</strong></div>
           <div><span>Gross pay</span><strong>$${week.payrollEstimate.grossPay.toFixed(2)}</strong></div>
-          <div><span>Federal withholding</span><strong>$${week.payrollEstimate.federalWithholding.toFixed(2)}</strong></div>
-          <div><span>State withholding</span><strong>$${week.payrollEstimate.stateWithholding.toFixed(2)}</strong></div>
-          ${
-            week.payrollEstimate.pfmlWithholding > 0
-              ? `<div><span>PFML</span><strong>$${week.payrollEstimate.pfmlWithholding.toFixed(2)}</strong></div>`
-              : ""
-          }
           <div><span>Reimbursements</span><strong>$${week.payrollEstimate.reimbursements.toFixed(2)}</strong></div>
           <div><span>Deductions</span><strong>$${week.payrollEstimate.deductions.toFixed(2)}</strong></div>
           <div class="summary-grid__main"><span>Net check estimate</span><strong>$${week.payrollEstimate.netCheckEstimate.toFixed(2)}</strong></div>
@@ -331,14 +318,10 @@ router.get("/exports/weekly-summary", authenticate, asyncHandler(async (req: Aut
         <h1>Weekly Summary - ${payload.weekStart}</h1>
         <p class="subhead">Printable office handoff with the same payroll-prep totals shown in the dashboard.</p>
         <p class="subhead"><strong>${escapeHtml(payrollReminder)}</strong></p>
-        ${
-          payload.companySettings && payload.companySettings.supportLevel !== "full"
-            ? `<p class="subhead">${escapeHtml(payload.companySettings.stateDisclaimer)}</p>`
-            : ""
-        }
         ${cards}
       </body>
     </html>`);
 }));
 
 export { router as exportsRouter };
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        

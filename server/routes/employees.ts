@@ -6,7 +6,6 @@ import {
   getCompanyContextOrThrow,
   getCompanyCrewOrThrow,
   isFiniteNonNegativeNumber,
-  normalizeFederalFilingStatus,
   normalizeManagedEmployeeWorkerType,
   getParam,
   refreshEmployeeCurrentWeek,
@@ -54,9 +53,6 @@ router.post("/employees", authenticate, asyncHandler(async (req: AuthenticatedRe
     displayName,
     workerType,
     hourlyRate,
-    federalFilingStatus,
-    w4Step3Amount,
-    w4CollectedAt,
     defaultCrewId,
     active,
   } = req.body as {
@@ -65,9 +61,6 @@ router.post("/employees", authenticate, asyncHandler(async (req: AuthenticatedRe
     displayName?: string;
     workerType?: string;
     hourlyRate?: number;
-    federalFilingStatus?: string;
-    w4Step3Amount?: number;
-    w4CollectedAt?: string | null;
     defaultCrewId?: string | null;
     active?: boolean;
   };
@@ -92,28 +85,6 @@ router.post("/employees", authenticate, asyncHandler(async (req: AuthenticatedRe
     return;
   }
 
-  const nextFederalFilingStatus = normalizeFederalFilingStatus(federalFilingStatus ?? "single");
-  if (!nextFederalFilingStatus) {
-    res.status(400).json({ error: "Federal filing status must be single, married jointly, or head of household." });
-    return;
-  }
-
-  if (w4Step3Amount !== undefined && !isFiniteNonNegativeNumber(w4Step3Amount)) {
-    res.status(400).json({ error: "W-4 Step 3 amount must be a non-negative number." });
-    return;
-  }
-
-  const parsedW4CollectedAt =
-    w4CollectedAt === undefined
-      ? null
-      : w4CollectedAt === null
-        ? null
-        : new Date(w4CollectedAt);
-  if (parsedW4CollectedAt && Number.isNaN(parsedW4CollectedAt.getTime())) {
-    res.status(400).json({ error: "W-4 collected date is invalid." });
-    return;
-  }
-
   if (typeof active !== "boolean") {
     res.status(400).json({ error: "Active must be yes or no." });
     return;
@@ -131,7 +102,6 @@ router.post("/employees", authenticate, asyncHandler(async (req: AuthenticatedRe
     }
   }
 
-  const isContractor = normalizedWorkerType === "CONTRACTOR_1099";
   const hourlyRateCents = Math.round(hourlyRate * 100);
   const createdEmployee = await prisma.employee.create({
     data: {
@@ -143,14 +113,7 @@ router.post("/employees", authenticate, asyncHandler(async (req: AuthenticatedRe
       employmentStatus: active ? "ACTIVE" : "ARCHIVED",
       hourlyRateCents,
       overtimeRateCents: payrollSettings.payType === "HOURLY" ? hourlyRateCents : null,
-      federalFilingStatus: nextFederalFilingStatus,
-      w4Step3Amount: w4Step3Amount ?? 0,
-      w4CollectedAt: parsedW4CollectedAt,
       defaultCrewId: cleanDefaultCrewId,
-      usesCompanyFederalDefault: !isContractor,
-      usesCompanyStateDefault: !isContractor,
-      federalWithholdingPercent: isContractor ? 0 : payrollSettings.defaultFederalWithholdingValue,
-      stateWithholdingPercent: isContractor ? 0 : payrollSettings.defaultStateWithholdingValue,
       archivedAt: active ? null : new Date(),
     },
     include: {
@@ -197,9 +160,6 @@ router.patch("/employees/:employeeId", authenticate, asyncHandler(async (req: Au
     displayName,
     workerType,
     hourlyRate,
-    federalFilingStatus,
-    w4Step3Amount,
-    w4CollectedAt,
     defaultCrewId,
     active,
   } = req.body as {
@@ -208,9 +168,6 @@ router.patch("/employees/:employeeId", authenticate, asyncHandler(async (req: Au
     displayName?: string;
     workerType?: string;
     hourlyRate?: number;
-    federalFilingStatus?: string;
-    w4Step3Amount?: number;
-    w4CollectedAt?: string | null;
     defaultCrewId?: string | null;
     active?: boolean;
   };
@@ -235,28 +192,6 @@ router.patch("/employees/:employeeId", authenticate, asyncHandler(async (req: Au
     return;
   }
 
-  const nextFederalFilingStatus = normalizeFederalFilingStatus(federalFilingStatus ?? currentEmployee.federalFilingStatus);
-  if (!nextFederalFilingStatus) {
-    res.status(400).json({ error: "Federal filing status must be single, married jointly, or head of household." });
-    return;
-  }
-
-  if (w4Step3Amount !== undefined && !isFiniteNonNegativeNumber(w4Step3Amount)) {
-    res.status(400).json({ error: "W-4 Step 3 amount must be a non-negative number." });
-    return;
-  }
-
-  const parsedW4CollectedAt =
-    w4CollectedAt === undefined
-      ? currentEmployee.w4CollectedAt
-      : w4CollectedAt === null
-        ? null
-        : new Date(w4CollectedAt);
-  if (parsedW4CollectedAt && Number.isNaN(parsedW4CollectedAt.getTime())) {
-    res.status(400).json({ error: "W-4 collected date is invalid." });
-    return;
-  }
-
   if (typeof active !== "boolean") {
     res.status(400).json({ error: "Active must be yes or no." });
     return;
@@ -274,7 +209,6 @@ router.patch("/employees/:employeeId", authenticate, asyncHandler(async (req: Au
     }
   }
 
-  const isContractor = normalizedWorkerType === "CONTRACTOR_1099";
   const hourlyRateCents = Math.round(hourlyRate * 100);
   const nextEmploymentStatus = active ? "ACTIVE" : "ARCHIVED";
   const reactivated = currentEmployee.employmentStatus !== "ACTIVE" && active;
@@ -290,14 +224,7 @@ router.patch("/employees/:employeeId", authenticate, asyncHandler(async (req: Au
       employmentStatus: nextEmploymentStatus,
       hourlyRateCents,
       overtimeRateCents: payrollSettings.payType === "HOURLY" ? hourlyRateCents : null,
-      federalFilingStatus: nextFederalFilingStatus,
-      w4Step3Amount: w4Step3Amount ?? currentEmployee.w4Step3Amount,
-      w4CollectedAt: parsedW4CollectedAt,
       defaultCrewId: cleanDefaultCrewId,
-      usesCompanyFederalDefault: !isContractor,
-      usesCompanyStateDefault: !isContractor,
-      federalWithholdingPercent: isContractor ? 0 : payrollSettings.defaultFederalWithholdingValue,
-      stateWithholdingPercent: isContractor ? 0 : payrollSettings.defaultStateWithholdingValue,
       archivedAt: active ? null : archivedNow ? new Date() : currentEmployee.archivedAt,
       rehiredAt: reactivated ? new Date() : currentEmployee.rehiredAt,
     },
@@ -422,3 +349,4 @@ router.post("/employees/:employeeId/remove", authenticate, asyncHandler(async (r
 }));
 
 export { router as employeesRouter };
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
