@@ -36,24 +36,24 @@ model User {
 }
 
 model Company {
-  id                           String                 @id @default(cuid())
-  companyName                  String
-  ownerName                    String?
-  stateCode                    String
-  onboardingCompletedAt        DateTime?
-  onboardingCompletedByUserId  String?
-  payrollDisclaimerAcceptedAt  DateTime?
+  id                                String                 @id @default(cuid())
+  companyName                       String
+  ownerName                         String?
+  stateCode                         String
+  onboardingCompletedAt             DateTime?
+  onboardingCompletedByUserId       String?
+  payrollDisclaimerAcceptedAt       DateTime?
   payrollDisclaimerAcceptedByUserId String?
-  payrollDisclaimerVersion     String?
-  createdAt                    DateTime               @default(now())
-  updatedAt                    DateTime               @updatedAt
-  payrollSettings              CompanyPayrollSettings?
-  users                        User[]
-  crews                        Crew[]
-  employees                    Employee[]
-  userInvites                  UserInvite[]
-  payrollExports               PayrollExport[]
-  expenseSubmissions           ExpenseSubmission[]
+  payrollDisclaimerVersion          String?
+  createdAt                         DateTime               @default(now())
+  updatedAt                         DateTime               @updatedAt
+  payrollSettings                   CompanyPayrollSettings?
+  users                             User[]
+  crews                             Crew[]
+  employees                         Employee[]
+  userInvites                       UserInvite[]
+  payrollExports                    PayrollExport[]
+  expenseSubmissions                ExpenseSubmission[]
 }
 
 model Crew {
@@ -84,13 +84,6 @@ model Employee {
   employmentStatus  String             @default("ACTIVE")
   hourlyRateCents   Int
   overtimeRateCents Int?
-  federalFilingStatus String           @default("single")
-  w4Step3Amount     Float              @default(0)
-  w4CollectedAt     DateTime?
-  usesCompanyFederalDefault Boolean    @default(true)
-  usesCompanyStateDefault   Boolean    @default(true)
-  federalWithholdingPercent Float      @default(0.10)
-  stateWithholdingPercent   Float      @default(0.03)
   defaultCrewId     String?
   archiveReason     String?
   archiveNotes      String?
@@ -138,60 +131,29 @@ model UserInvite {
 }
 
 model CompanyPayrollSettings {
-  id                             String   @id @default(cuid())
-  companyId                      String   @unique
-  defaultFederalWithholdingMode  String   @default("PERCENTAGE")
-  defaultFederalWithholdingValue Float    @default(0.10)
-  defaultStateWithholdingMode    String   @default("PERCENTAGE")
-  defaultStateWithholdingValue   Float    @default(0.03)
-  timeTrackingStyle             String   @default("FOREMAN")
-  weekStartDay                  Int      @default(1)
-  defaultLunchMinutes           Int      @default(30)
-  payType                       String   @default("HOURLY_OVERTIME")
-  payrollMethod                 String   @default("MANUAL")
-  trackExpenses                 Boolean  @default(true)
-  payrollPrepDisclaimer          String?
-  pfmlEnabled                    Boolean  @default(false)
-  pfmlEmployeeRate               Float    @default(0)
-  extraWithholdingLabel          String?
-  extraWithholdingRate           Float?
-  supportLevelSnapshot           String   @default("PARTIAL_MANUAL")
-  company                        Company  @relation(fields: [companyId], references: [id])
-  createdAt                      DateTime @default(now())
-  updatedAt                      DateTime @updatedAt
-}
-
-model StatePayrollRule {
-  id                           String   @id @default(cuid())
-  stateCode                    String   @unique
-  stateName                    String
-  supportLevel                 String
-  hasStateIncomeTax            Boolean  @default(true)
-  hasExtraEmployeeWithholdings Boolean  @default(false)
-  extraWithholdingTypes        String?
-  defaultStateWithholdingMode  String   @default("PERCENTAGE")
-  defaultStateWithholdingValue Float    @default(0)
-  defaultPfmlEnabled           Boolean  @default(false)
-  defaultPfmlEmployeeRate      Float    @default(0)
-  notes                        String?
-  disclaimerText               String?
-  lastReviewedAt               DateTime?
-  sourceLabel                  String?
-  sourceUrl                    String?
-  isActive                     Boolean  @default(true)
-  createdAt                    DateTime @default(now())
-  updatedAt                    DateTime @updatedAt
+  id                    String   @id @default(cuid())
+  companyId             String   @unique
+  timeTrackingStyle     String   @default("FOREMAN")
+  weekStartDay          Int      @default(1)
+  defaultLunchMinutes   Int      @default(30)
+  payType               String   @default("HOURLY_OVERTIME")
+  payrollMethod         String   @default("MANUAL")
+  trackExpenses         Boolean  @default(true)
+  payrollPrepDisclaimer String?
+  company               Company  @relation(fields: [companyId], references: [id])
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
 model CrewAssignment {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   crewId     String
   employeeId String
   startsOn   DateTime
   endsOn     DateTime?
-  crew       Crew     @relation(fields: [crewId], references: [id])
-  employee   Employee @relation(fields: [employeeId], references: [id])
-  createdAt  DateTime @default(now())
+  crew       Crew      @relation(fields: [crewId], references: [id])
+  employee   Employee  @relation(fields: [employeeId], references: [id])
+  createdAt  DateTime  @default(now())
 
   @@index([crewId, startsOn])
   @@index([employeeId, startsOn])
@@ -212,25 +174,25 @@ model CrewDayDefault {
 }
 
 model TimesheetWeek {
-  id                    String          @id @default(cuid())
+  id                    String               @id @default(cuid())
   employeeId            String
   crewId                String
   weekStartDate         DateTime
-  status                String          @default("DRAFT")
+  status                String               @default("DRAFT")
   submittedByEmployeeAt DateTime?
   reviewedByForemanAt   DateTime?
   lockedAt              DateTime?
   exportedAt            DateTime?
   exportedByUserId      String?
-  employee              Employee        @relation(fields: [employeeId], references: [id])
-  crew                  Crew            @relation(fields: [crewId], references: [id])
+  employee              Employee             @relation(fields: [employeeId], references: [id])
+  crew                  Crew                 @relation(fields: [crewId], references: [id])
   dayEntries            TimeEntryDay[]
   adjustment            WeeklyAdjustment?
   expenseSubmissions    ExpenseSubmission[]
   payrollEstimate       PayrollEstimate?
   statusAuditEvents     TimesheetStatusAudit[]
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
 
   @@unique([employeeId, weekStartDate])
   @@index([crewId, weekStartDate])
@@ -280,21 +242,21 @@ model WeeklyAdjustment {
 }
 
 model ExpenseSubmission {
-  id               String        @id @default(cuid())
-  companyId        String
-  employeeId       String
-  timesheetWeekId  String
-  category         String
-  amountCents      Int
-  note             String?
-  hasReceipt       Boolean       @default(false)
+  id                String        @id @default(cuid())
+  companyId         String
+  employeeId        String
+  timesheetWeekId   String
+  category          String
+  amountCents       Int
+  note              String?
+  hasReceipt        Boolean       @default(false)
   submittedByUserId String
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  company          Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  employee         Employee      @relation(fields: [employeeId], references: [id], onDelete: Restrict)
-  timesheetWeek    TimesheetWeek @relation(fields: [timesheetWeekId], references: [id], onDelete: Cascade)
-  submittedByUser  User          @relation(fields: [submittedByUserId], references: [id], onDelete: Restrict)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  company           Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  employee          Employee      @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  timesheetWeek     TimesheetWeek @relation(fields: [timesheetWeekId], references: [id], onDelete: Cascade)
+  submittedByUser   User          @relation(fields: [submittedByUserId], references: [id], onDelete: Restrict)
 
   @@index([companyId, timesheetWeekId])
   @@index([employeeId, createdAt])
@@ -302,31 +264,21 @@ model ExpenseSubmission {
 }
 
 model PayrollEstimate {
-  id                      String          @id @default(cuid())
-  employeeId              String
-  timesheetWeekId         String          @unique
-  regularMinutes          Int
-  overtimeMinutes         Int
-  grossPayCents           Int
-  federalWithholdingMode  String          @default("PERCENTAGE")
-  federalWithholdingValue Float           @default(0)
-  stateWithholdingMode    String          @default("PERCENTAGE")
-  stateWithholdingValue   Float           @default(0)
-  federalWithholdingCents Int             @default(0)
-  stateWithholdingCents   Int             @default(0)
-  pfmlWithholdingCents    Int             @default(0)
-  extraStateWithholdingLabel String?
-  extraStateWithholdingCents Int          @default(0)
-  manualNetOverrideCents  Int?
-  netCheckEstimateCents   Int
-  employee                Employee        @relation(fields: [employeeId], references: [id])
-  timesheetWeek           TimesheetWeek   @relation(fields: [timesheetWeekId], references: [id])
-  createdAt               DateTime        @default(now())
-  updatedAt               DateTime        @updatedAt
+  id                    String        @id @default(cuid())
+  employeeId            String
+  timesheetWeekId       String        @unique
+  regularMinutes        Int
+  overtimeMinutes       Int
+  grossPayCents         Int
+  netCheckEstimateCents Int
+  employee              Employee      @relation(fields: [employeeId], references: [id])
+  timesheetWeek         TimesheetWeek @relation(fields: [timesheetWeekId], references: [id])
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
 }
 
 model PrivateReport {
-  id                 String         @id @default(cuid())
+  id                 String        @id @default(cuid())
   employeeId         String
   crewId             String
   reportDate         DateTime
@@ -334,13 +286,13 @@ model PrivateReport {
   category           String
   severity           String
   factualDescription String
-  followUpStatus     String         @default("OPEN")
+  followUpStatus     String        @default("OPEN")
   createdByUserId    String
-  employee           Employee       @relation(fields: [employeeId], references: [id])
-  crew               Crew           @relation(fields: [crewId], references: [id])
-  createdByUser      User           @relation("PrivateReportAuthor", fields: [createdByUserId], references: [id])
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
+  employee           Employee      @relation(fields: [employeeId], references: [id])
+  crew               Crew          @relation(fields: [crewId], references: [id])
+  createdByUser      User          @relation("PrivateReportAuthor", fields: [createdByUserId], references: [id])
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
   @@index([employeeId, reportDate])
   @@index([crewId, reportDate])
