@@ -25,7 +25,7 @@ import { OfficeDashboard } from "./OfficeDashboard";
 import { PrivateReportsPanel } from "./PrivateReportsPanel";
 import { TeamManagementPanel } from "./TeamManagementPanel";
 import { WeeklyCrewBoard } from "./WeeklyCrewBoard";
-import { W4MissingAlertBanner } from "./W4MissingAlertBanner";
+
 import { useOnboardingContext } from "../hooks/useOnboarding";
 import { Home, Users, Settings, Archive, LogOut } from "lucide-react";
 import { getWeekStartIso } from "../domain/week";
@@ -80,13 +80,6 @@ interface AppShellProps {
     companyName?: string;
     companyState?: string;
     weekStartDay?: number;
-    defaultFederalWithholdingMode?: string;
-    defaultFederalWithholdingValue?: number;
-    defaultStateWithholdingMode?: string;
-    defaultStateWithholdingValue?: number;
-    payrollPrepDisclaimer?: string;
-    pfmlEnabled?: boolean;
-    pfmlEmployeeRate?: number;
     payrollMethod?: "service" | "manual" | "mixed";
   }) => Promise<void>;
   onListEmployees: () => Promise<ManagedEmployee[]>;
@@ -858,7 +851,7 @@ export function AppShell({
             {activePage === "company-settings" && canViewCompanySettings && data.companySettings ? (
               <CompanySettingsPanel
                 companySettings={data.companySettings!}
-                stateRules={data.stateRules}
+
                 onSave={onUpdateCompanySettings}
               />
             ) : null}
@@ -953,7 +946,7 @@ export function AppShell({
         <AddEmployeeModal
           isOpen={showAddEmployeeModal}
           crews={data.crews}
-          payrollMethod={data.companySettings?.payrollMethod ?? "manual"}
+
           onClose={() => setShowAddEmployeeModal(false)}
           onSave={async (employee) => {
             await onCreateEmployee(employee);
@@ -1453,10 +1446,6 @@ export function AppShell({
           <>
             {uiMode === "office" ? (
               <>
-                <W4MissingAlertBanner
-                  companySettings={data.companySettings}
-                  employeeWeeks={data.employeeWeeks}
-                />
                 <MissingTimeAlertBanner
                   employeeWeeks={data.employeeWeeks}
                   onQuickFix={handleQuickFixMissingTime}

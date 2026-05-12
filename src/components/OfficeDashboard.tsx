@@ -207,17 +207,6 @@ export function OfficeDashboard({
         </div>
       )}
 
-      {!isServicePayroll && companySettings && companySettings.supportLevel !== "full" ? (
-        <div className="workflow-banner">
-          <strong>
-            {companySettings.supportLevel === "unsupported"
-              ? "Unsupported state payroll support"
-              : "Manual state review required"}
-          </strong>
-          <span>{companySettings.stateDisclaimer}</span>
-        </div>
-      ) : null}
-
       {!isServicePayroll ? <YtdReportingPanel employeeWeeks={employeeWeeks} /> : null}
 
       <div className="office-week-list">
@@ -279,23 +268,6 @@ export function OfficeDashboard({
                   <span>Gross pay</span>
                   <strong>{formatCurrency(week.payrollEstimate.grossPay)}</strong>
                 </div>
-                {!isServicePayroll ? (
-                  <div>
-                    <span>Federal est.</span>
-                    <strong>
-                      {formatCurrency(week.payrollEstimate.federalWithholding)}
-                    </strong>
-                    {week.payrollEstimate.w4NotOnFile ? (
-                      <span className="table-row-subcopy">W-4 not on file</span>
-                    ) : null}
-                  </div>
-                ) : null}
-                {!isServicePayroll ? (
-                  <div>
-                    <span>State est.</span>
-                    <strong>{formatCurrency(week.payrollEstimate.stateWithholding)}</strong>
-                  </div>
-                ) : null}
                 <div>
                   <span>Adjustments</span>
                   <strong>
@@ -304,12 +276,6 @@ export function OfficeDashboard({
                     )}
                   </strong>
                 </div>
-                {!isServicePayroll && week.payrollEstimate.pfmlWithholding > 0 ? (
-                  <div>
-                    <span>PFML</span>
-                    <strong>{formatCurrency(week.payrollEstimate.pfmlWithholding)}</strong>
-                  </div>
-                ) : null}
                 {!isServicePayroll ? (
                   <div className="office-week-card__summary-main">
                     <span>Final check estimate</span>
