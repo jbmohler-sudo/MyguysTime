@@ -730,7 +730,7 @@ export async function buildBootstrap(userId: string, role: UserRole, companyId: 
   const archivedEmployees =
     role === "ADMIN"
       ? await prisma.employee.findMany({
-          where: { companyId, employmentStatus: "ARCHIVED" },
+          where: { companyId, employmentStatus: { in: ["ARCHIVED", "PENDING_ARCHIVE"] } },
           include: { defaultCrew: true },
           orderBy: { displayName: "asc" },
         })
@@ -852,6 +852,92 @@ export async function markLockedWeeksExported(weekStart: Date, exportedByUserId:
       exportedByUserId,
     },
   });
+}
+
+/**
+ * Finalizes the archive of an employee who is currently in PENDING_ARCHIVE status.
+ * Sets employmentStatus to ARCHIVED, deactivates any linked user account, and revokes pending invites.
+ * Safe to call when the employee is already ARCHIVED or ACTIVE — it will no-op in those cases.
+ */
+export async function finalizeEmployeeArchive(
+  employeeId: string,
+  companyId: string,
+): Promise<{ deactivatedUserId: string | null; revokedInviteCount: number }> {
+  const employee = await prisma.employee.findFirst({
+    where: { id: employeeId, companyId, employmentStatus: "PENDING_ARCHIVE" },
+    include: {
+      user: {
+        select: {
+          id: true,
+          companyId: true,
+          email: true,
+          employeeId: true,
+          role: true,
+          deactivatedAt: true,
+        },
+      },
+    },
+  });
+
+  if (!employee) {
+    return { deactivatedUserId: null, revokedInviteCount: 0 };
+  }
+
+  const now = new Date();
+  const inviteEmail = employee.user?.email?.trim().toLowerCase() ?? null;
+
+  const result = await prisma.$transaction(async (tx) => {
+    await tx.employee.update({
+      where: { id: employee.id },
+      data: {
+        employmentStatus: "ARCHIVED",
+        archivedAt: employee.archivedAt ?? now,
+        archiveReason: employee.archiveReason ?? "Removed from team",
+        archiveNotes:
+          employee.archiveNotes ??
+          "Removed from active team list. Historical timesheets and payroll records were kept.",
+      },
+    });
+
+    const linkedUserBelongsToEmployee =
+      employee.user?.companyId === companyId && employee.user.employeeId === employee.id;
+
+    const deactivatedUser =
+      linkedUserBelongsToEmployee && employee.user
+        ? await tx.user.updateMany({
+            where: {
+              id: employee.user.id,
+              companyId,
+              employeeId: employee.id,
+            },
+            data: {
+              status: "INACTIVE",
+              deactivatedAt: employee.user.deactivatedAt ?? now,
+            },
+          })
+        : null;
+
+    const revokedInvites = await tx.userInvite.deleteMany({
+      where: {
+        companyId,
+        acceptedAt: null,
+        OR: [
+          { employeeId: employee.id },
+          ...(inviteEmail
+            ? [{ email: { equals: inviteEmail, mode: "insensitive" as const } }]
+            : []),
+        ],
+      },
+    });
+
+    return {
+      deactivatedUserId:
+        deactivatedUser && deactivatedUser.count > 0 ? (employee.user?.id ?? null) : null,
+      revokedInviteCount: revokedInvites.count,
+    };
+  });
+
+  return result;
 }
 
 // Re-export for convenience in r

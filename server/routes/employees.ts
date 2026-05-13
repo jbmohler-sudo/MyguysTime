@@ -3,6 +3,7 @@ import { authenticate, type AuthenticatedRequest } from "../auth.js";
 import { prisma } from "../db.js";
 import {
   asyncHandler,
+  finalizeEmployeeArchive,
   getCompanyContextOrThrow,
   getCompanyCrewOrThrow,
   isFiniteNonNegativeNumber,
@@ -289,14 +290,44 @@ router.post("/employees/:employeeId/remove", authenticate, asyncHandler(async (r
     return;
   }
 
+  const { deferred } = req.body as { deferred?: boolean };
   const now = new Date();
+
+  if (deferred) {
+    // Deferred removal: mark as PENDING_ARCHIVE now so the employee disappears from the Team
+    // panel immediately but still shows on the current week's dashboard. The full archive
+    // (user deactivation, invite revocation) fires automatically when the timesheet is locked.
+    await prisma.employee.update({
+      where: { id: employee.id },
+      data: {
+        employmentStatus: "PENDING_ARCHIVE",
+        archivedAt: employee.archivedAt ?? now,
+        archiveReason: employee.archiveReason ?? "Removed from team",
+        archiveNotes:
+          employee.archiveNotes ??
+          "Removed from active team list. Historical timesheets and payroll records were kept.",
+      },
+    });
+
+    res.json({
+      ok: true,
+      employeeId: employee.id,
+      deferred: true,
+      deactivatedUserId: null,
+      revokedInviteCount: 0,
+    });
+    return;
+  }
+
+  // Immediate removal: set PENDING_ARCHIVE so finalizeEmployeeArchive can pick it up,
+  // then finalize in the same request.
   const inviteEmail = employee.user?.email?.trim().toLowerCase() ?? null;
 
   const result = await prisma.$transaction(async (tx) => {
     await tx.employee.update({
       where: { id: employee.id },
       data: {
-        employmentStatus: "ARCHIVED",
+        employmentStatus: "PENDING_ARCHIVE",
         archivedAt: employee.archivedAt ?? now,
         archiveReason: employee.archiveReason ?? "Removed from team",
         archiveNotes:
@@ -334,6 +365,12 @@ router.post("/employees/:employeeId/remove", authenticate, asyncHandler(async (r
       },
     });
 
+    // Transition to fully ARCHIVED within the same transaction
+    await tx.employee.update({
+      where: { id: employee.id },
+      data: { employmentStatus: "ARCHIVED" },
+    });
+
     return {
       deactivatedUserId: deactivatedUser && deactivatedUser.count > 0 ? employee.user?.id ?? null : null,
       revokedInviteCount: revokedInvites.count,
@@ -343,6 +380,7 @@ router.post("/employees/:employeeId/remove", authenticate, asyncHandler(async (r
   res.json({
     ok: true,
     employeeId: employee.id,
+    deferred: false,
     deactivatedUserId: result.deactivatedUserId,
     revokedInviteCount: result.revokedInviteCount,
   });

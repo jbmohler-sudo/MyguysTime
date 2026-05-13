@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "mcp__370981a3-1332-4c93-b838-ef33f45360ef__execute_sql",
-      "PowerShell(Get-ChildItem C:\\\\ -Depth 2 -Directory | Where-Object { $_.Name -match \"cms|strength|wellness|checkin|fitness\" } | Select-Object FullName)"
+      "PowerShell(Get-ChildItem C:\\\\ -Depth 2 -Directory | Where-Object { $_.Name -match \"cms|strength|wellness|checkin|fitness\" } | Select-Object FullName)",
+      "mcp__c62f39b4-3ec2-4287-aed0-acbd61e57943__list_deployments",
+      "mcp__c62f39b4-3ec2-4287-aed0-acbd61e57943__get_runtime_logs",
+      "mcp__c62f39b4-3ec2-4287-aed0-acbd61e57943__get_deployment_build_logs",
+      "Bash(npx prisma *)"
     ]
   }
 }

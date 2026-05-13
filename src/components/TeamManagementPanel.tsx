@@ -13,7 +13,7 @@ interface TeamManagementPanelProps {
   data: BootstrapPayload;
   onOpenAddEmployee: () => void;
   onEditEmployee: (employeeId: string) => void;
-  onRemoveEmployee: (employeeId: string) => Promise<void>;
+  onRemoveEmployee: (employeeId: string, deferred?: boolean) => Promise<void>;
   invites?: InviteSummary[];
 }
 
@@ -49,6 +49,7 @@ export function TeamManagementPanel({
   const [searchTerm, setSearchTerm] = useState("");
   const [scrollTop, setScrollTop] = useState(0);
   const [employeePendingRemoval, setEmployeePendingRemoval] = useState<EmployeeRow | null>(null);
+  const [removalMode, setRemovalMode] = useState<"now" | "deferred">("now");
   const [removingEmployeeId, setRemovingEmployeeId] = useState<string | null>(null);
   const [locallyRemovedEmployeeIds, setLocallyRemovedEmployeeIds] = useState<Set<string>>(() => new Set());
   const [removeMessage, setRemoveMessage] = useState<string>("");
@@ -108,14 +109,19 @@ export function TeamManagementPanel({
     setRemovingEmployeeId(employeePendingRemoval.id);
 
     try {
-      await onRemoveEmployee(employeePendingRemoval.id);
+      await onRemoveEmployee(employeePendingRemoval.id, removalMode === "deferred");
       setLocallyRemovedEmployeeIds((current) => {
         const next = new Set(current);
         next.add(employeePendingRemoval.id);
         return next;
       });
-      setRemoveMessage(`${employeePendingRemoval.name} was removed from the active team.`);
+      setRemoveMessage(
+        removalMode === "deferred"
+          ? `${employeePendingRemoval.name} will be fully removed after their current week is verified.`
+          : `${employeePendingRemoval.name} was removed from the active team.`,
+      );
       setEmployeePendingRemoval(null);
+      setRemovalMode("now");
     } catch (error) {
       setRemoveError(error instanceof Error ? error.message : "Unable to remove this worker.");
     } finally {
@@ -337,6 +343,7 @@ export function TeamManagementPanel({
                     event.stopPropagation();
                     setRemoveError("");
                     setRemoveMessage("");
+                    setRemovalMode("now");
                     setEmployeePendingRemoval(emp);
                   }}
                   disabled={removingEmployeeId === emp.id}
@@ -402,32 +409,96 @@ export function TeamManagementPanel({
             onClick={(event) => event.stopPropagation()}
             style={{
               width: "100%",
-              maxWidth: "420px",
+              maxWidth: "440px",
               backgroundColor: "white",
               borderRadius: "8px",
               boxShadow: "0 20px 60px rgba(0,0,0,0.24)",
-              padding: "20px",
+              padding: "24px",
             }}
           >
             <h3
               id="remove-worker-title"
-              style={{ margin: "0 0 8px", color: BRAND_DARK, fontSize: "18px" }}
+              style={{ margin: "0 0 6px", color: BRAND_DARK, fontSize: "18px" }}
             >
-              Remove from active team?
+              Remove {employeePendingRemoval.name}?
             </h3>
-            <p style={{ margin: "0 0 12px", color: "#555", fontSize: "14px", lineHeight: 1.5 }}>
-              {employeePendingRemoval.name} will be removed from the active team list.
+            <p style={{ margin: "0 0 18px", color: "#555", fontSize: "13px", lineHeight: 1.5 }}>
+              Existing time cards stay on the dashboard for past weeks. Choose when to remove them:
             </p>
-            <ul style={{ margin: "0 0 18px", paddingLeft: "18px", color: "#555", fontSize: "13px", lineHeight: 1.5 }}>
-              <li>Historical timesheets and office records stay intact.</li>
-              <li>Login access may be disabled if they have a linked User account.</li>
-              <li>Pending invites for this worker will be revoked.</li>
-            </ul>
+
+            {/* Mode selector */}
+            {(["now", "deferred"] as const).map((mode) => {
+              const selected = removalMode === mode;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setRemovalMode(mode)}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "12px",
+                    width: "100%",
+                    padding: "12px 14px",
+                    marginBottom: "8px",
+                    borderRadius: "8px",
+                    border: `2px solid ${selected ? BRAND_ORANGE : BRAND_LIGHT}`,
+                    backgroundColor: selected ? "rgba(255,140,0,0.06)" : "white",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    transition: "border-color 0.15s ease, background-color 0.15s ease",
+                  }}
+                >
+                  {/* Radio dot */}
+                  <div
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      borderRadius: "50%",
+                      border: `2px solid ${selected ? BRAND_ORANGE : "#CCC"}`,
+                      backgroundColor: selected ? BRAND_ORANGE : "white",
+                      flexShrink: 0,
+                      marginTop: "1px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {selected && (
+                      <div
+                        style={{
+                          width: "6px",
+                          height: "6px",
+                          borderRadius: "50%",
+                          backgroundColor: "white",
+                        }}
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: "13px", color: BRAND_DARK }}>
+                      {mode === "now" ? "Remove from payroll tracking now" : "Remove after this week is verified"}
+                    </p>
+                    <p style={{ margin: "3px 0 0", fontSize: "12px", color: "#777", lineHeight: 1.45 }}>
+                      {mode === "now"
+                        ? "Removed immediately. Login access disabled, pending invites revoked. Past time cards stay visible."
+                        : "Stays on this week's board until the office locks it, then fully archived. Good for a worker's last week."}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+
+            <p style={{ margin: "14px 0 18px", fontSize: "12px", color: "#999", lineHeight: 1.45 }}>
+              Historical timesheets and payroll records are never deleted.
+            </p>
+
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
               <button
                 onClick={(event) => {
                   event.stopPropagation();
                   setEmployeePendingRemoval(null);
+                  setRemovalMode("now");
                 }}
                 disabled={removingEmployeeId === employeePendingRemoval.id}
                 style={{
@@ -460,7 +531,11 @@ export function TeamManagementPanel({
                 }}
                 type="button"
               >
-                {removingEmployeeId === employeePendingRemoval.id ? "Removing..." : "Remove"}
+                {removingEmployeeId === employeePendingRemoval.id
+                  ? "Removing..."
+                  : removalMode === "deferred"
+                    ? "Schedule Removal"
+                    : "Remove Now"}
               </button>
             </div>
           </div>

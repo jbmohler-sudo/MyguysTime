@@ -12,6 +12,7 @@ import {
   canEmployeeEditStatus,
   canManageCrew,
   createEmptyYtdSummary,
+  finalizeEmployeeArchive,
   getAccessibleCrewIds,
   getAuthorizedTimesheet,
   getParam,
@@ -484,6 +485,9 @@ router.patch("/timesheets/:timesheetId/status", authenticate, asyncHandler(async
       },
     });
     await writeStatusAudit(timesheet.id, asTimesheetStatus(timesheet.status), "OFFICE_LOCKED", auth.userId);
+    // If this employee was in PENDING_ARCHIVE (deferred removal), finalize the archive now
+    // that their week is verified. No-ops if the employee is already ACTIVE or ARCHIVED.
+    await finalizeEmployeeArchive(timesheet.employeeId, auth.companyId);
   } else if (nextStatus === "DRAFT") {
     if (auth.role !== "ADMIN") {
       res.status(403).json({ error: "Only admin can reopen a week." });

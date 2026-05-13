@@ -100,7 +100,9 @@ assert.match(
 );
 
 for (const copy of [
-  "will be removed from the active team list",
+  "will be removed from the active team list now",
+  "Existing time cards stay on the dashboard when you view those weeks.",
+  "This worker will not be added to new weekly boards after removal.",
   "Historical timesheets and office records stay intact.",
   "Login access may be disabled if they have a linked User account.",
 ]) {
