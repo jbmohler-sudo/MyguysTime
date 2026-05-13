@@ -3,7 +3,6 @@ import type { CompanySettingsSummary, EmployeeWeek, TimesheetStatus } from "../d
 import { formatCurrency } from "../domain/format";
 import { needsEmployeeConfirmation, prettyStatus, statusTone } from "../domain/permissions";
 import { StatCard } from "./StatCard";
-import { YtdReportingPanel } from "./YtdReportingPanel";
 
 interface OfficeDashboardProps {
   companySettings: CompanySettingsSummary | null;
@@ -138,15 +137,12 @@ function AdjustmentEditor({
 }
 
 export function OfficeDashboard({
-  companySettings,
   employeeWeeks,
   onExport,
   onUpdateAdjustment,
   onReopenWeek,
 }: OfficeDashboardProps) {
-  const isServicePayroll = companySettings?.payrollMethod === "service";
   const totalGross = employeeWeeks.reduce((sum, item) => sum + item.payrollEstimate.grossPay, 0);
-  const totalNet = employeeWeeks.reduce((sum, item) => sum + item.payrollEstimate.netCheckEstimate, 0);
   const reimbursements = employeeWeeks.reduce((sum, item) => sum + item.payrollEstimate.reimbursements, 0);
   const lockedWeeks = employeeWeeks.filter((week) => week.status === "office_locked").length;
   const missingConfirmations = employeeWeeks.filter((week) => needsEmployeeConfirmation(week)).length;
@@ -157,57 +153,27 @@ export function OfficeDashboard({
       <div className="panel__header">
         <div>
           <p className="eyebrow">Office Dashboard</p>
-          <h2>{isServicePayroll ? "Weekly time card board and export" : "Weekly payroll-prep review and export"}</h2>
+          <h2>Weekly time card board and export</h2>
           <p className="panel-subcopy">
-            {isServicePayroll
-              ? "Keep the office view focused on confirmations, weekly totals, adjustments, and one clean export for your payroll service."
-              : "Missing confirmations, approval state, grouped adjustments, and final check estimate are visible in one office workflow."}
+            Keep the office view focused on confirmations, weekly totals, adjustments, and one clean handoff.
           </p>
-          {!isServicePayroll ? (
-            <p className="panel-subcopy panel-subcopy--strong">
-              {companySettings?.payrollReminder ?? "Estimates only - verify before issuing checks."}
-            </p>
-          ) : null}
         </div>
         <div className="toolbar toolbar--exports">
-          {isServicePayroll ? (
-            <button className="button-strong" onClick={() => void onExport("time-detail")} type="button">
-              Export time detail CSV{exportLabelSuffix}
-            </button>
-          ) : (
-            <>
-              <button className="button-strong" onClick={() => void onExport("payroll-summary")} type="button">
-                Export payroll summary CSV{exportLabelSuffix}
-              </button>
-              <button className="button-strong" onClick={() => void onExport("time-detail")} type="button">
-                Export time detail CSV{exportLabelSuffix}
-              </button>
-              <button className="button-strong" onClick={() => void onExport("weekly-summary")} type="button">
-                Open printable weekly summary{exportLabelSuffix}
-              </button>
-            </>
-          )}
+          <button className="button-strong" onClick={() => void onExport("time-detail")} type="button">
+            Export time detail CSV{exportLabelSuffix}
+          </button>
+          <button className="button-strong" onClick={() => void onExport("weekly-summary")} type="button">
+            Open printable weekly summary{exportLabelSuffix}
+          </button>
         </div>
       </div>
 
-      {!isServicePayroll ? (
-        <div className="stats-row stats-row--office">
-          <StatCard label="Total gross" value={formatCurrency(totalGross)} />
-          <StatCard label="Net estimate" value={formatCurrency(totalNet)} helper="Primary office scan number" />
-          <StatCard label="Reimbursements" value={formatCurrency(reimbursements)} />
-          <StatCard label="Weeks missing confirmation" value={String(missingConfirmations)} />
-          <StatCard label="Office locked weeks" value={String(lockedWeeks)} />
-        </div>
-      ) : (
-        <div className="stats-row stats-row--office">
-          <StatCard label="Total hours value" value={formatCurrency(totalGross)} />
-          <StatCard label="Reimbursements" value={formatCurrency(reimbursements)} />
-          <StatCard label="Weeks missing confirmation" value={String(missingConfirmations)} />
-          <StatCard label="Office locked weeks" value={String(lockedWeeks)} />
-        </div>
-      )}
-
-      {!isServicePayroll ? <YtdReportingPanel employeeWeeks={employeeWeeks} /> : null}
+      <div className="stats-row stats-row--office">
+        <StatCard label="Total labor value" value={formatCurrency(totalGross)} />
+        <StatCard label="Reimbursements" value={formatCurrency(reimbursements)} />
+        <StatCard label="Weeks missing confirmation" value={String(missingConfirmations)} />
+        <StatCard label="Office locked weeks" value={String(lockedWeeks)} />
+      </div>
 
       <div className="office-week-list">
         {employeeWeeks.map((week) => {
@@ -247,11 +213,6 @@ export function OfficeDashboard({
                     ? `${week.missingConfirmationDays} day(s) missing confirmation`
                     : "All daily confirmations complete"}
                 </span>
-                {!isServicePayroll ? (
-                  <span className="alert-chip alert-chip--net alert-chip--net-strong">
-                    Net check estimate: {formatCurrency(week.payrollEstimate.netCheckEstimate)}
-                  </span>
-                ) : null}
                 {week.status === "needs_revision" ? (
                   <span className="alert-chip alert-chip--revision">Needs revision</span>
                 ) : null}
@@ -276,12 +237,6 @@ export function OfficeDashboard({
                     )}
                   </strong>
                 </div>
-                {!isServicePayroll ? (
-                  <div className="office-week-card__summary-main">
-                    <span>Final check estimate</span>
-                    <strong>{formatCurrency(week.payrollEstimate.netCheckEstimate)}</strong>
-                  </div>
-                ) : null}
               </div>
 
               <AdjustmentEditor week={week} onUpdateAdjustment={onUpdateAdjustment} />

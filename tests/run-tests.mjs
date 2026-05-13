@@ -1169,7 +1169,7 @@ await runCase("company setup creates a default crew and current-week timesheets"
   }
 });
 
-await runCase("Massachusetts payroll estimate keeps PFML separate", async () => {
+await runCase("time card estimates do not expose withholding fields", async () => {
   const app = await bootApp();
   try {
     const token = await app.login("admin@crewtime.local", "admin123");
@@ -1180,14 +1180,15 @@ await runCase("Massachusetts payroll estimate keeps PFML separate", async () => 
     const troyWeek = mePayload.employeeWeeks.find((week) => week.employeeName === "Troy Bennett");
 
     assert.equal(mePayload.companySettings.companyState, "MA");
-    assert.ok(troyWeek.payrollEstimate.pfmlWithholding > 0);
-    assert.equal(troyWeek.payrollEstimate.extraStateWithholdingLabel, "PFML");
+    assert.ok(troyWeek.payrollEstimate.grossPay > 0);
+    assert.equal("pfmlWithholding" in troyWeek.payrollEstimate, false);
+    assert.equal("extraStateWithholdingLabel" in troyWeek.payrollEstimate, false);
   } finally {
     await app.shutdown();
   }
 });
 
-await runCase("unsupported state switches payroll review to manual reminder", async () => {
+await runCase("company state update keeps the time card settings contract", async () => {
   const app = await bootApp();
   try {
     const token = await app.login("admin@crewtime.local", "admin123");
@@ -1209,14 +1210,16 @@ await runCase("unsupported state switches payroll review to manual reminder", as
     });
     const mePayload = await meResponse.json();
 
-    assert.equal(mePayload.companySettings.supportLevel, "unsupported");
-    assert.match(mePayload.companySettings.stateDisclaimer, /do not yet support accurate state-specific withholding/i);
+    assert.equal(mePayload.companySettings.companyState, "CA");
+    assert.equal(mePayload.companySettings.payrollMethod, "service");
+    assert.equal("supportLevel" in mePayload.companySettings, false);
+    assert.equal("stateDisclaimer" in mePayload.companySettings, false);
   } finally {
     await app.shutdown();
   }
 });
 
-await runCase("changing company state resets state defaults to the selected state's support profile", async () => {
+await runCase("changing company state does not return state tax defaults", async () => {
   const app = await bootApp();
   try {
     const token = await app.login("admin@crewtime.local", "admin123");
@@ -1234,9 +1237,10 @@ await runCase("changing company state resets state defaults to the selected stat
 
     assert.equal(updateResponse.status, 200);
     assert.equal(payload.companySettings.companyState, "CA");
-    assert.equal(payload.companySettings.supportLevel, "unsupported");
-    assert.equal(payload.companySettings.defaultStateWithholdingMode, "manual_override");
-    assert.equal(payload.companySettings.defaultStateWithholdingValue, 0);
+    assert.equal(payload.companySettings.payrollMethod, "service");
+    assert.equal("supportLevel" in payload.companySettings, false);
+    assert.equal("defaultStateWithholdingMode" in payload.companySettings, false);
+    assert.equal("defaultStateWithholdingValue" in payload.companySettings, false);
   } finally {
     await app.shutdown();
   }

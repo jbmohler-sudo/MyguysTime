@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { CompanySettingsSummary, PayrollMethod } from "../domain/models";
+import type { CompanySettingsSummary } from "../domain/models";
 import { WEEKDAY_OPTIONS } from "../domain/week";
 
 interface CompanySettingsPanelProps {
@@ -8,18 +8,7 @@ interface CompanySettingsPanelProps {
     companyName?: string;
     companyState?: string;
     weekStartDay?: number;
-    payrollMethod?: PayrollMethod;
   }) => Promise<void>;
-}
-
-function payrollMethodLabel(value: PayrollMethod) {
-  if (value === "service") {
-    return "Payroll service";
-  }
-  if (value === "mixed") {
-    return "Mixed";
-  }
-  return "Manual";
 }
 
 export function CompanySettingsPanel({
@@ -31,7 +20,6 @@ export function CompanySettingsPanel({
       companyName: companySettings.companyName,
       companyState: companySettings.companyState,
       weekStartDay: companySettings.weekStartDay,
-      payrollMethod: companySettings.payrollMethod,
     }),
     [companySettings],
   );
@@ -51,7 +39,6 @@ export function CompanySettingsPanel({
         companyName: draft.companyName,
         companyState: draft.companyState,
         weekStartDay: draft.weekStartDay,
-        payrollMethod: draft.payrollMethod,
       });
     } finally {
       setSaving(false);
@@ -65,7 +52,7 @@ export function CompanySettingsPanel({
           <p className="eyebrow">Company Settings</p>
           <h2>Company profile</h2>
           <p className="panel-subcopy">
-            Manage your company profile, week start, and payroll workflow settings.
+            Manage your company profile and weekly time card defaults.
           </p>
         </div>
       </div>
@@ -124,47 +111,6 @@ export function CompanySettingsPanel({
               Changing this mid-season will shift your weekly boards.
             </span>
           </label>
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <div className="settings-section__header">
-          <div>
-            <p className="eyebrow">Payroll Defaults</p>
-            <h3>Payroll workflow</h3>
-          </div>
-          <span className="settings-meta">Controls the office export and payroll prep flow.</span>
-        </div>
-        <div className="settings-grid">
-          <label>
-            Payroll workflow
-            <select
-              value={draft.payrollMethod}
-              onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  payrollMethod: event.target.value as PayrollMethod,
-                }))
-              }
-            >
-              <option value="service">Payroll service</option>
-              <option value="manual">Manual</option>
-              <option value="mixed">Mixed</option>
-            </select>
-            <span className="field-helper">
-              Current mode: {payrollMethodLabel(draft.payrollMethod)}
-            </span>
-          </label>
-        </div>
-      </section>
-
-      <section className="disclaimer-card">
-        <h3>Current disclaimer</h3>
-        <p className="disclaimer-card__intro">{companySettings.payrollReminder}</p>
-        <div className="disclaimer-copy">
-          {companySettings.payrollPrepDisclaimer.split("\n").map((line, index) =>
-            line ? <p key={`${line}-${index}`}>{line}</p> : <div className="disclaimer-spacer" key={`space-${index}`} />,
-          )}
         </div>
       </section>
 

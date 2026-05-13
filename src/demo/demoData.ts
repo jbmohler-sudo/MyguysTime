@@ -88,10 +88,10 @@ const COMPANY_SETTINGS = {
   timeTrackingStyle: "foreman" as const,
   defaultLunchMinutes: 30,
   payType: "hourly" as const,
-  payrollMethod: "manual" as const,
+  payrollMethod: "service" as const,
   trackExpenses: true,
-  payrollPrepDisclaimer: "Estimates only — verify before issuing checks.",
-  payrollReminder: "Estimates only — verify before issuing checks.",
+  payrollPrepDisclaimer: "Review hours and adjustments before exporting or sending totals.",
+  payrollReminder: "Review hours and adjustments before exporting or sending totals.",
   setupComplete: true,
 };
 

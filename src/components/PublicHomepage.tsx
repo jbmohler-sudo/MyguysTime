@@ -26,7 +26,7 @@ const workflowSteps: WorkflowStep[] = [
     number: 2,
     title: 'Review the week in the office',
     description: 'See your entire crew in one place. Perfect for small crew timecard management.',
-    details: 'It works as a small crew timecard app with clear weekly status and day-by-day review. Catch discrepancies before they become payroll issues.',
+    details: 'It works as a small crew timecard app with clear weekly status and day-by-day review. Catch discrepancies before they slow the office down.',
     icon: <Eye className="w-8 h-8" />,
   },
   {
@@ -38,17 +38,17 @@ const workflowSteps: WorkflowStep[] = [
   },
   {
     number: 4,
-    title: 'Export checks',
-    description: 'Export timesheets to CSV for your accountant. No payroll system required.',
-    details: 'No payroll system required, just verified labor hour logs and a practical weekly handoff. Your accountant gets exactly what they need.',
+    title: 'Export time cards',
+    description: 'Export timesheets to CSV for the office handoff.',
+    details: 'Just verified labor hour logs and a practical weekly handoff. The office gets exactly what it needs.',
     icon: <FileText className="w-8 h-8" />,
   },
 ];
 
 const features = [
   'Contractor hour tracking app built for small crews',
-  'Simple construction payroll prep workflow',
-  'Export timesheets to CSV for accountant handoff',
+  'Simple construction time card workflow',
+  'Export timesheets to CSV for office handoff',
   'Manage multiple crews on different jobs seamlessly',
 ];
 
@@ -66,7 +66,7 @@ function ProductPreview() {
           </div>
         </div>
         <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">
-          Payroll-prep ready
+          Time-card ready
         </span>
       </div>
 
@@ -77,8 +77,8 @@ function ProductPreview() {
           <p className="text-2xl font-bold text-slate-900">3</p>
         </div>
         <div className="text-center border-l border-r border-slate-200">
-          <p className="text-xs text-slate-600 mb-1">Net estimate</p>
-          <p className="text-2xl font-bold text-slate-900">$4,982</p>
+          <p className="text-xs text-slate-600 mb-1">Hours logged</p>
+          <p className="text-2xl font-bold text-slate-900">148</p>
         </div>
         <div className="text-center">
           <p className="text-xs text-slate-600 mb-1">Missing confirmations</p>
@@ -123,16 +123,16 @@ function ProductPreview() {
             <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">
               Adjusted
             </span>
-            <p className="font-semibold text-slate-900">Net check: $1,248</p>
+            <p className="font-semibold text-slate-900">37.5h logged</p>
           </div>
         </div>
 
         {/* Secondary Card */}
         <div className="border border-slate-200 rounded-lg p-4 bg-slate-50 hover:bg-slate-100 transition-all duration-300">
           <p className="font-semibold text-slate-900 mb-3">Office review</p>
-          <p className="text-sm text-slate-600 mb-3">Checks, exports, and accountant handoff</p>
+          <p className="text-sm text-slate-600 mb-3">Time cards, exports, and office handoff</p>
           <ul className="space-y-2">
-            {['Payroll summary CSV', 'Time detail CSV', 'Reimbursements and deductions', 'Private office-only reports'].map((item) => (
+            {['Weekly summary CSV', 'Time detail CSV', 'Reimbursements and deductions', 'Private office-only reports'].map((item) => (
               <li key={item} className="flex items-center gap-2 text-sm text-slate-600">
                 <Check className="w-4 h-4 text-orange-500" />
                 {item}
@@ -295,14 +295,14 @@ export function PublicHomepage() {
           {/* Left: Copy */}
           <div className="space-y-6">
             <div>
-              <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Simple Construction Payroll Prep</span>
+              <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Simple Construction Time Cards</span>
               <h1 className="text-5xl md:text-6xl font-bold text-slate-900 leading-tight mt-3">
-                Track Crew Hours &amp; Prep Payroll in Seconds—Built for Contractors
+                Track Crew Hours &amp; Review Time Cards in Seconds—Built for Contractors
               </h1>
             </div>
 
             <p className="text-lg text-slate-600 leading-relaxed">
-              My Guys Time is a simple <strong>contractor hour tracking app</strong> built for small crews. Track your guys' hours, review the week, and export clean totals for your accountant. Perfect for roofing, masonry, landscaping, and other trades.
+              My Guys Time is a simple <strong>contractor hour tracking app</strong> built for small crews. Track your guys' hours, review the week, and export clean totals for the office. Perfect for roofing, masonry, landscaping, and other trades.
             </p>
             <p className="text-lg font-semibold text-orange-600 leading-relaxed">
               Stop using crinkled notebooks or scraps of wood from the jobsite to track hours.
@@ -367,7 +367,7 @@ export function PublicHomepage() {
             </div>
 
             <p className="text-sm text-slate-600 pt-4">
-              Contractor hour tracking app for roofing, masonry, landscaping, and other small crews that need simple construction payroll prep without full payroll software.
+              Contractor hour tracking app for roofing, masonry, landscaping, and other small crews that need simple job site time cards without office bloat.
             </p>
           </div>
 
@@ -388,10 +388,10 @@ export function PublicHomepage() {
         <div className="max-w-3xl mx-auto px-6 text-center space-y-6">
           <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Why crews use it</span>
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
-            The bridge between the job site and your accountant—no bloat, just payroll prep
+            The bridge between the job site and the office, without the bloat
           </h2>
           <p className="text-lg text-slate-600 leading-relaxed">
-            This is the missing middle. Not full payroll. Not a heavy office system. Just a clean way to check hours, review the week, and hand off payroll-ready totals.
+            This is the missing middle. Not a heavy office system. Just a clean way to check hours, review the week, and hand off time-card totals.
           </p>
         </div>
       </section>
@@ -405,7 +405,7 @@ export function PublicHomepage() {
               <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">How it works</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
-              Simple weekly workflow for crews and office—from field to accountant
+              Simple weekly workflow for crews and office
             </h2>
           </div>
 
@@ -555,12 +555,12 @@ export function PublicHomepage() {
         {/* Trust Section */}
         <section className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-12 md:p-16 text-center text-white">
           <div className="max-w-3xl mx-auto">
-            <span className="text-xs font-semibold tracking-widest text-orange-400 uppercase">Payroll Prep Reminder</span>
+            <span className="text-xs font-semibold tracking-widest text-orange-400 uppercase">Time Card Reminder</span>
             <h2 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-              Built for payroll preparation, not payroll processing
+              Built for job site time cards
             </h2>
             <p className="text-lg text-slate-300 leading-relaxed">
-              My Guys Time helps you track hours, review totals, and estimate paychecks and withholdings. Always verify numbers before issuing checks or finalizing payroll. This app is designed to prepare data for your accountant, not to process payroll directly.
+              My Guys Time helps you track hours, review totals, and hand off clean weekly records. Always verify hours and adjustments before sending totals along.
             </p>
           </div>
         </section>
@@ -578,7 +578,7 @@ export function PublicHomepage() {
                 <h4 className="font-bold text-slate-900">My Guys Time</h4>
               </div>
               <p className="text-sm text-slate-600">
-                Simple contractor hour tracking and payroll prep for small and multiple crews.
+                Simple contractor hour tracking for small and multiple crews.
               </p>
             </div>
 

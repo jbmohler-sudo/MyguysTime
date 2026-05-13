@@ -68,7 +68,7 @@ export function YtdReportingPanel({ employeeWeeks }: YtdReportingPanelProps) {
           <p className="eyebrow">YTD Reporting</p>
           <h2>{calendarYear} year-to-date pay and payment reporting</h2>
           <p className="panel-subcopy">
-            Reporting only for office review. This does not generate tax forms or filing records.
+            Reporting only for office review. This is a time-card summary.
           </p>
         </div>
       </div>
@@ -76,14 +76,14 @@ export function YtdReportingPanel({ employeeWeeks }: YtdReportingPanelProps) {
       <div className="stats-row stats-row--office">
         <StatCard label="Employee YTD gross" value={formatCurrency(employeeTotals.grossPayments)} />
         <StatCard label="1099 YTD payments" value={formatCurrency(contractorTotals.grossPayments)} />
-        <StatCard label="Combined YTD est. net" value={formatCurrency(combinedNetEstimate)} />
+        <StatCard label="Combined YTD total" value={formatCurrency(combinedNetEstimate)} />
       </div>
 
       <div className="ytd-summary-grid">
         <PayrollYtdSummaryGrid
           summary={employeeTotals}
           heading="Employees"
-          subcopy="Payroll-prep reporting only"
+          subcopy="Office reporting only"
         />
         <PayrollYtdSummaryGrid
           summary={contractorTotals}

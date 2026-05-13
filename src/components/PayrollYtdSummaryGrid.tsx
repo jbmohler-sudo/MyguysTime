@@ -44,7 +44,7 @@ export function PayrollYtdSummaryGrid({
           <strong>{formatCurrency(summary.deductions)}</strong>
         </div>
         <div className="payroll-ytd-grid__main">
-          <span>YTD estimated net</span>
+          <span>YTD total</span>
           <strong>{formatCurrency(summary.netEstimate)}</strong>
         </div>
       </div>

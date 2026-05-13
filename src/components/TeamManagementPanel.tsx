@@ -419,7 +419,7 @@ export function TeamManagementPanel({
               {employeePendingRemoval.name} will be removed from the active team list.
             </p>
             <ul style={{ margin: "0 0 18px", paddingLeft: "18px", color: "#555", fontSize: "13px", lineHeight: 1.5 }}>
-              <li>Historical timesheets and payroll records stay intact.</li>
+              <li>Historical timesheets and office records stay intact.</li>
               <li>Login access may be disabled if they have a linked User account.</li>
               <li>Pending invites for this worker will be revoked.</li>
             </ul>

@@ -481,8 +481,8 @@ export function EmployeeCard({
                 <strong>{employeeWeek.overtimeHours.toFixed(2)}h</strong>
               </div>
               <div className="employee-card__net">
-                <span>Net check estimate</span>
-                <strong>{formatCurrency(employeeWeek.payrollEstimate.netCheckEstimate)}</strong>
+                <span>Labor value</span>
+                <strong>{formatCurrency(employeeWeek.payrollEstimate.grossPay)}</strong>
               </div>
             </div>
             <div className="employee-card__workflow">
@@ -512,7 +512,7 @@ export function EmployeeCard({
                     onClick={() => void onStatusChange(employeeWeek.id, "office_locked")}
                     type="button"
                   >
-                    Lock for payroll
+                    Lock week
                   </button>
                 ) : null}
               </div>
@@ -523,7 +523,7 @@ export function EmployeeCard({
             className="employee-card__ytd"
             summary={employeeWeek.ytdSummary}
             heading={`${employeeWeek.ytdSummary.calendarYear} YTD reporting`}
-            subcopy={`${workerTypeLabel(employeeWeek.workerType)} totals only. This is reporting, not tax filing.`}
+            subcopy={`${workerTypeLabel(employeeWeek.workerType)} totals only for office review.`}
           />
           <ExpenseCapturePanel
             employeeWeek={employeeWeek}
@@ -558,7 +558,7 @@ export function EmployeeCard({
                 onClick={() => void onStatusChange(employeeWeek.id, "office_locked")}
                 type="button"
               >
-                Lock for payroll
+                Lock week
               </button>
             ) : null}
           </div>

@@ -102,7 +102,7 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
     ]);
     const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const today = new Date().toISOString().split("T")[0];
-    const fileName = `payroll-export-${today}.csv`;
+    const fileName = `time-card-export-${today}.csv`;
     return { csvContent, fileName };
   };
 
@@ -112,8 +112,8 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
       const { csvContent, fileName } = generateCSV();
       await new Promise((resolve) => setTimeout(resolve, 500));
       onExport(csvContent, fileName);
-      analytics.trackFeatureUsage("payroll", "exported", { employeeCount: exportData.length });
-      showToast("Payroll CSV Exported", "success", `${exportData.length} employee ${exportData.length === 1 ? "record" : "records"} downloaded.`);
+      analytics.trackFeatureUsage("time_cards", "exported", { employeeCount: exportData.length });
+      showToast("Time Card CSV Exported", "success", `${exportData.length} employee ${exportData.length === 1 ? "record" : "records"} downloaded.`);
       onClose();
     } finally {
       setIsExporting(false);
@@ -150,7 +150,7 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      analytics.trackFeatureUsage("payroll", "qbo_exported", { weekStart });
+      analytics.trackFeatureUsage("time_cards", "qbo_exported", { weekStart });
       showToast("QBO CSV Exported", "success", `Week of ${weekStart} downloaded successfully.`);
       onClose();
     } catch {
@@ -195,7 +195,7 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
         ref={containerRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="payroll-export-title"
+        aria-labelledby="time-card-export-title"
         style={{
           backgroundColor: "white",
           borderRadius: "8px",
@@ -217,10 +217,10 @@ export const PayrollExportModal: React.FC<PayrollExportModalProps> = ({
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
             <h2
-              id="payroll-export-title"
+              id="time-card-export-title"
               style={{ margin: 0, fontSize: "20px", fontWeight: 600, color: BRAND_DARK }}
             >
-              Export Payroll
+              Export Time Cards
             </h2>
             <button
               onClick={onClose}

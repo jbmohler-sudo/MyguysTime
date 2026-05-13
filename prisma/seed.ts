@@ -7,15 +7,14 @@ import { assertSafeFixtureMutationContext } from "../server/envSafety.js";
 import { addDays } from "../server/utils.js";
 
 const PAYROLL_DISCLAIMER_VERSION = "2026-04-20-v1";
-export const PAYROLL_PREP_DISCLAIMER = `Important: Payroll Estimates
+export const PAYROLL_PREP_DISCLAIMER = `Important: Time Card Review
 
-This app is designed to help you track hours and estimate pay and withholdings.
-It is not a payroll service and does not guarantee full tax compliance.
+This app is designed to help you track hours, adjustments, and job notes.
+It is not a payroll service.
 
-While we strive to provide accurate calculations, tax rates and rules vary by state and may change.
-Please review all numbers and confirm with your accountant or official state resources before issuing payments.
+Please review hours and totals before sending them to the office or saving them for records.
 
-By continuing, you acknowledge that you are responsible for verifying payroll amounts.`;
+By continuing, you acknowledge that you are responsible for verifying time card totals.`;
 
 async function createOrUpdateUserAccount(
   prisma: PrismaClient,
@@ -156,7 +155,7 @@ export async function seedDatabase() {
         weekStartDay: 1,
         defaultLunchMinutes: 30,
         payType: "HOURLY_OVERTIME",
-        payrollMethod: "MANUAL",
+        payrollMethod: "SERVICE",
         trackExpenses: true,
         payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
       },
@@ -166,7 +165,7 @@ export async function seedDatabase() {
         weekStartDay: 1,
         defaultLunchMinutes: 30,
         payType: "HOURLY_OVERTIME",
-        payrollMethod: "MANUAL",
+        payrollMethod: "SERVICE",
         trackExpenses: true,
         payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
       },
@@ -612,7 +611,7 @@ export async function seedDatabase() {
           weekStartDay: 1,
           defaultLunchMinutes: 30,
           payType: "HOURLY_OVERTIME",
-          payrollMethod: "MANUAL",
+          payrollMethod: "SERVICE",
           trackExpenses: true,
           payrollPrepDisclaimer: PAYROLL_PREP_DISCLAIMER,
         },

@@ -7,7 +7,7 @@ interface CompanySetupScreenProps {
   onComplete: (payload: CompanyOnboardingInput) => Promise<void>;
 }
 
-const STEP_TITLES = ["Company setup", "Crew setup", "Time tracking style", "Payroll preferences"] as const;
+const STEP_TITLES = ["Company setup", "Crew setup", "Time tracking style", "Time card defaults"] as const;
 const TIME_TRACKING_OPTIONS = [
   {
     value: "foreman" as const,
@@ -46,24 +46,6 @@ const PAY_TYPE_OPTIONS = [
   },
 ] as const;
 
-const PAYROLL_METHOD_OPTIONS = [
-  {
-    value: "service" as const,
-    title: "Payroll service",
-    detail: "You just need clean hours and exports for your payroll provider or accountant.",
-  },
-  {
-    value: "manual" as const,
-    title: "Manual in-house payroll",
-    detail: "Keep withholding estimates and payroll-prep review visible inside the app.",
-  },
-  {
-    value: "mixed" as const,
-    title: "Mixed",
-    detail: "Use a payroll service sometimes, but still review payroll-prep details in-app when needed.",
-  },
-] as const;
-
 export function CompanySetupScreen({ companySettings, onComplete }: CompanySetupScreenProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [companyName, setCompanyName] = useState(companySettings.companyName);
@@ -79,7 +61,6 @@ export function CompanySetupScreen({ companySettings, onComplete }: CompanySetup
     companySettings.defaultLunchMinutes as 0 | 30 | 60,
   );
   const [payType, setPayType] = useState<CompanyOnboardingInput["payType"]>(companySettings.payType);
-  const [payrollMethod, setPayrollMethod] = useState<CompanyOnboardingInput["payrollMethod"]>(companySettings.payrollMethod);
   const [trackExpenses, setTrackExpenses] = useState(companySettings.trackExpenses);
   const [saving, setSaving] = useState(false);
 
@@ -137,7 +118,7 @@ export function CompanySetupScreen({ companySettings, onComplete }: CompanySetup
         timeTrackingStyle,
         lunchDeductionMinutes,
         payType,
-        payrollMethod,
+        payrollMethod: "service",
         trackExpenses,
       });
     } finally {
@@ -151,7 +132,7 @@ export function CompanySetupScreen({ companySettings, onComplete }: CompanySetup
         <p className="eyebrow">New company setup</p>
         <h1>Get your weekly board ready fast</h1>
         <p className="hero-copy">
-          Four quick steps, then you land on the current week with a crew, timesheets, and payroll-prep numbers ready to review.
+          Four quick steps, then you land on the current week with a crew and time cards ready to review.
         </p>
 
         <div className="setup-progress">
@@ -307,7 +288,7 @@ export function CompanySetupScreen({ companySettings, onComplete }: CompanySetup
             <div className="settings-section__header">
               <div>
                 <p className="eyebrow">Step 4</p>
-                <h3>Payroll preferences</h3>
+                <h3>Time card defaults</h3>
               </div>
               <span className="settings-meta">These are just starting defaults for the weekly board.</span>
             </div>
@@ -347,35 +328,10 @@ export function CompanySetupScreen({ companySettings, onComplete }: CompanySetup
               ))}
             </div>
 
-            <div className="settings-section__header" style={{ marginTop: "1rem" }}>
-              <div>
-                <h3>How do you handle payroll?</h3>
-              </div>
-              <span className="settings-meta">This controls how much payroll-prep detail the office dashboard shows.</span>
-            </div>
-
-            <div className="onboarding-choice-grid onboarding-choice-grid--compact">
-              {PAYROLL_METHOD_OPTIONS.map((option) => (
-                <button
-                  className={
-                    option.value === payrollMethod
-                      ? "onboarding-choice onboarding-choice--active"
-                      : "onboarding-choice"
-                  }
-                  key={option.value}
-                  onClick={() => setPayrollMethod(option.value)}
-                  type="button"
-                >
-                  <strong>{option.title}</strong>
-                  <span>{option.detail}</span>
-                </button>
-              ))}
-            </div>
-
             <div className="onboarding-toggle-row">
               <div>
                 <strong>Track expenses</strong>
-                <span>Keep gas, petty cash, and job costs available in payroll prep.</span>
+                <span>Keep gas, petty cash, and job costs available with the weekly time card.</span>
               </div>
               <select
                 value={trackExpenses ? "yes" : "no"}
@@ -387,8 +343,8 @@ export function CompanySetupScreen({ companySettings, onComplete }: CompanySetup
             </div>
 
             <div className="workflow-banner workflow-banner--soft">
-              <strong>Reporting only</strong>
-              <span>Payroll estimates help you review the week. Verify amounts before issuing checks or filing anything.</span>
+              <strong>Time card review</strong>
+              <span>Review hours, adjustments, and job notes before exporting the week.</span>
             </div>
           </section>
         ) : null}

@@ -325,14 +325,6 @@ function AppContent() {
     companyName?: string;
     companyState?: string;
     weekStartDay?: number;
-    defaultFederalWithholdingMode?: string;
-    defaultFederalWithholdingValue?: number;
-    defaultStateWithholdingMode?: string;
-    defaultStateWithholdingValue?: number;
-    payrollPrepDisclaimer?: string;
-    pfmlEnabled?: boolean;
-    pfmlEmployeeRate?: number;
-    payrollMethod?: "service" | "manual" | "mixed";
   }) {
     if (!token) {
       return;
@@ -358,7 +350,6 @@ function AppContent() {
     capturePostHogEvent("company_setup_completed", {
       employee_count: payload.employees.length,
       week_start_day: payload.weekStartDay,
-      payroll_method: payload.payrollMethod,
       time_tracking_style: payload.timeTrackingStyle,
       track_expenses: payload.trackExpenses,
     });
@@ -485,7 +476,7 @@ function AppContent() {
     anchor.href = url;
     anchor.download =
       kind === "payroll-summary"
-        ? `payroll-summary-${data.weekStart}.csv`
+        ? `time-card-summary-${data.weekStart}.csv`
         : `time-detail-${data.weekStart}.csv`;
     anchor.click();
     URL.revokeObjectURL(url);

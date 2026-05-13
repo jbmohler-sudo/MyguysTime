@@ -25,7 +25,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: "welcome",
     title: "Welcome to MyGuysTime",
-    description: "Track crew hours, manage payroll, and export to accounting in one place.",
+    description: "Track crew hours, review the week, and export clean time card totals in one place.",
     position: "bottom",
     action: "click",
   },
@@ -47,8 +47,8 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: "export-payroll",
-    title: "Export Payroll",
-    description: "Generate a CSV with hours, overtime, and gross pay. Send directly to your accountant.",
+    title: "Export Time Cards",
+    description: "Generate a CSV with hours, overtime, and job details for the office handoff.",
     target: ".app-nav__export-btn",
     position: "bottom",
     action: "click",

@@ -101,7 +101,7 @@ assert.match(
 
 for (const copy of [
   "will be removed from the active team list",
-  "Historical timesheets and payroll records stay intact.",
+  "Historical timesheets and office records stay intact.",
   "Login access may be disabled if they have a linked User account.",
 ]) {
   assert.match(panelSource, new RegExp(copy.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));

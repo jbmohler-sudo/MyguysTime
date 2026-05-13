@@ -80,7 +80,6 @@ interface AppShellProps {
     companyName?: string;
     companyState?: string;
     weekStartDay?: number;
-    payrollMethod?: "service" | "manual" | "mixed";
   }) => Promise<void>;
   onListEmployees: () => Promise<ManagedEmployee[]>;
   onCreateEmployee: (payload: EmployeeInput) => Promise<ManagedEmployee>;
@@ -443,9 +442,9 @@ export function AppShell({
     dashboard:
       uiMode === "truck"
         ? "Current-week crew timecards for the truck."
-        : "Weekly time review and payroll-prep for contractor crews.",
+        : "Weekly time card review for contractor crews.",
     team: "Active employee records and default crew setup.",
-    "company-settings": "Company profile and payroll-prep defaults.",
+    "company-settings": "Company profile and time card defaults.",
     "account-settings": "Account email and password managed through Supabase Auth.",
     archive: "Archived employee records and history.",
   };
@@ -454,10 +453,10 @@ export function AppShell({
     dashboard:
       uiMode === "truck"
         ? "Mobile-first time entry for foremen and employees, focused on today and the active work week."
-        : "Keep the weekly board, payroll-prep review, exports, and next-step workflow in one focused dashboard.",
+        : "Keep the weekly board, time card review, exports, and next-step workflow in one focused dashboard.",
     team: "Manage employee records, keep worker details current, and send login invites only when someone needs app access.",
-    "company-settings": "Update company identity, state support, payroll-prep defaults, and the standing disclaimer without cluttering the weekly dashboard.",
-    "account-settings": "Change your login email or password without touching company payroll settings or crew-management data.",
+    "company-settings": "Update company identity, week start, and time card defaults without cluttering the weekly dashboard.",
+    "account-settings": "Change your login email or password without touching company or crew-management data.",
     archive: "Archived employees stay on file for office reference instead of being deleted.",
   };
 
@@ -659,7 +658,7 @@ export function AppShell({
                         }}
                         type="button"
                       >
-                        Export payroll
+                        Export time cards
                       </button>
                       {isInstallReady && !isInstalled ? (
                         <button
@@ -698,7 +697,7 @@ export function AppShell({
                           }}
                           type="button"
                         >
-                          Export payroll
+                          Export time cards
                         </button>
                       ) : null}
                       {isInstallReady && !isInstalled ? (
@@ -1221,7 +1220,7 @@ export function AppShell({
                 }}
                 type="button"
               >
-                📥 Export Payroll
+                Export Time Cards
               </button>
             ) : null}
 
@@ -1436,7 +1435,7 @@ export function AppShell({
           <span style={{ color: "#666", fontSize: "0.82rem" }}>
             {uiMode === "truck"
               ? "Dashboard stays centered on the current week, Today, and fast field entry. Company settings and archive stay out of the way."
-              : "Dashboard handles weekly review, payroll-prep, exports, and office-only reporting. Team, settings, and archive live in dedicated pages."}
+              : "Dashboard handles weekly review, time card exports, and office-only reporting. Team, settings, and archive live in dedicated pages."}
           </span>
         </section>
       )}

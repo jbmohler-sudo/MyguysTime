@@ -236,7 +236,7 @@ router.get("/exports/weekly-summary", authenticate, asyncHandler(async (req: Aut
   const weekStart = parseWeekStart(typeof req.query.weekStart === "string" ? req.query.weekStart : undefined);
   const payload = await buildBootstrap(req.auth!.userId, req.auth!.role, req.auth!.companyId, weekStart);
   await markLockedWeeksExported(weekStart, req.auth!.userId);
-  const payrollReminder = payload.companySettings?.payrollReminder ?? EXPORT_REMINDER;
+  const exportReminder = payload.companySettings?.payrollReminder ?? EXPORT_REMINDER;
   const cards = payload.employeeWeeks
     .map(
       (week) => `
@@ -247,8 +247,8 @@ router.get("/exports/weekly-summary", authenticate, asyncHandler(async (req: Aut
             <p>${escapeHtml(week.crewName)} - ${escapeHtml(week.status.replace(/_/g, " "))}</p>
           </div>
           <div class="check-estimate">
-            <span>Final check estimate</span>
-            <strong>$${week.payrollEstimate.netCheckEstimate.toFixed(2)}</strong>
+            <span>Total labor value</span>
+            <strong>$${week.payrollEstimate.grossPay.toFixed(2)}</strong>
           </div>
         </header>
         <table>
@@ -277,7 +277,7 @@ router.get("/exports/weekly-summary", authenticate, asyncHandler(async (req: Aut
           <div><span>Gross pay</span><strong>$${week.payrollEstimate.grossPay.toFixed(2)}</strong></div>
           <div><span>Reimbursements</span><strong>$${week.payrollEstimate.reimbursements.toFixed(2)}</strong></div>
           <div><span>Deductions</span><strong>$${week.payrollEstimate.deductions.toFixed(2)}</strong></div>
-          <div class="summary-grid__main"><span>Net check estimate</span><strong>$${week.payrollEstimate.netCheckEstimate.toFixed(2)}</strong></div>
+          <div class="summary-grid__main"><span>Total labor value</span><strong>$${week.payrollEstimate.grossPay.toFixed(2)}</strong></div>
         </div>
       </section>`,
     )
@@ -316,8 +316,8 @@ router.get("/exports/weekly-summary", authenticate, asyncHandler(async (req: Aut
       </head>
       <body>
         <h1>Weekly Summary - ${payload.weekStart}</h1>
-        <p class="subhead">Printable office handoff with the same payroll-prep totals shown in the dashboard.</p>
-        <p class="subhead"><strong>${escapeHtml(payrollReminder)}</strong></p>
+        <p class="subhead">Printable office handoff with the same time card totals shown in the dashboard.</p>
+        <p class="subhead"><strong>${escapeHtml(exportReminder)}</strong></p>
         ${cards}
       </body>
     </html>`);

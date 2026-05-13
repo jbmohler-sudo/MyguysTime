@@ -20,7 +20,7 @@ export type TimeTrackingStyle = "FOREMAN" | "WORKER_SELF_ENTRY" | "MIXED";
 export type PayType = "HOURLY" | "HOURLY_OVERTIME";
 export type PayrollMethod = "SERVICE" | "MANUAL" | "MIXED";
 
-export const EXPORT_REMINDER = "Estimates only — verify before issuing checks.";
+export const EXPORT_REMINDER = "Review hours and adjustments before exporting or sending totals.";
 export const SIGNUP_DEFAULT_STATE_CODE = "TX";
 export const INVITE_EXPIRY_HOURS = 72;
 
@@ -139,7 +139,7 @@ export async function getCompanyContextOrThrow(companyId: string) {
   const company = await getCompanySettingsOrThrow(companyId);
   const payrollSettings = company.payrollSettings;
   if (!payrollSettings) {
-    throw new Error("Company payroll settings are missing.");
+    throw new Error("Company time card settings are missing.");
   }
   return { company, payrollSettings };
 }
@@ -178,7 +178,7 @@ export function serializeCompanySettings(
     timeTrackingStyle: timeTrackingStyleToClient(settings.timeTrackingStyle as TimeTrackingStyle),
     defaultLunchMinutes: settings.defaultLunchMinutes,
     payType: payTypeToClient(settings.payType as PayType),
-    payrollMethod: payrollMethodToClient(settings.payrollMethod as PayrollMethod),
+    payrollMethod: "service" as const,
     trackExpenses: settings.trackExpenses,
     payrollPrepDisclaimer: settings.payrollPrepDisclaimer ?? EXPORT_REMINDER,
     payrollReminder: EXPORT_REMINDER,
