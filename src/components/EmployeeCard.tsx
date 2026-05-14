@@ -372,7 +372,7 @@ export function EmployeeCard({
   }, [activeTruckDayIndex, employeeWeek.entries]);
 
   return (
-    <article className={`employee-card ${uiMode === "truck" ? "employee-card--truck" : ""}`}>
+    <article className={`employee-card ${uiMode === "truck" ? "employee-card--truck" : ""}`} data-status={employeeWeek.status}>
       <div className="employee-card__header">
         <div>
           <h3>{employeeWeek.employeeName}</h3>

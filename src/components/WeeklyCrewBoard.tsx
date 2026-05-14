@@ -93,7 +93,7 @@ export function WeeklyCrewBoard({
     weekContext === "current" ? "Current week" : weekContext === "past" ? "Past week" : "Future week";
 
   return (
-    <section className={`panel ${uiMode === "truck" ? "panel--truck" : ""}`}>
+    <section className={`panel weekly-crew-board ${uiMode === "truck" ? "panel--truck" : ""}`}>
       <div className="panel__header">
         <div>
           <p className="eyebrow">Weekly Crew Board</p>
@@ -200,7 +200,4 @@ export function WeeklyCrewBoard({
             onReopenWeek={onReopenWeek}
           />
         ))}
-      </div>
-    </section>
-  );
-}
+      </di

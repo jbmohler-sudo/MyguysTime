@@ -398,8 +398,17 @@ export function AppShell({
   const handleQuickFix = () => {
     setActivePage("dashboard");
     setTimeout(() => {
-      const crewBoard = document.querySelector(".weekly-crew-board");
-      crewBoard?.scrollIntoView({ behavior: "smooth" });
+      const firstDraft = document.querySelector<HTMLElement>('[data-status="draft"]');
+      if (firstDraft) {
+        firstDraft.scrollIntoView({ behavior: "smooth", block: "center" });
+        firstDraft.style.transition = "outline 0s";
+        firstDraft.style.outline = "3px solid #FF8C00";
+        setTimeout(() => {
+          firstDraft.style.outline = "";
+        }, 1800);
+      } else {
+        document.querySelector(".weekly-crew-board")?.scrollIntoView({ behavior: "smooth" });
+      }
     }, 0);
   };
 
