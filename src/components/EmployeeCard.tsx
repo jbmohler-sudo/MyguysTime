@@ -186,6 +186,7 @@ function DayEditor({
   const [end, setEnd] = useState(entry.end);
   const [lunchMinutes, setLunchMinutes] = useState(entry.lunchMinutes);
   const [jobTag, setJobTag] = useState(entry.jobTag ?? "");
+  const [employeeConfirmed, setEmployeeConfirmed] = useState(entry.employeeConfirmed);
   const [activeField, setActiveField] = useState<"start" | "end" | null>(null);
   const isToday = entry.date === todayIso;
 
@@ -293,10 +294,13 @@ function DayEditor({
       {jobTagField}
       <label className="checkbox-row">
         <input
-          checked={entry.employeeConfirmed}
+          checked={employeeConfirmed}
           disabled={!editable}
           type="checkbox"
-          onChange={(event) => void save({ employeeConfirmed: event.target.checked })}
+          onChange={(event) => {
+            setEmployeeConfirmed(event.target.checked);
+            void save({ employeeConfirmed: event.target.checked });
+          }}
         />
         Daily confirmed
       </label>
@@ -317,12 +321,25 @@ export function EmployeeCard({
   const showRates = uiMode === "office" && employeeWeek.hourlyRate !== null;
   const [reopenNote, setReopenNote] = useState("");
   const [revisionNote, setRevisionNote] = useState("");
+  const [approveError, setApproveError] = useState<string | null>(null);
   const [activeTruckDayIndex, setActiveTruckDayIndex] = useState(() => {
     const todayIndex = employeeWeek.entries.findIndex((entry) => entry.date === todayIso);
     return todayIndex >= 0 ? todayIndex : 0;
   });
   const effectiveViewer = viewer;
   const editable = canEditTimesheet(effectiveViewer.role, effectiveViewer.employeeId, employeeWeek);
+
+  function approveWeekValidationError(): string | null {
+    for (const entry of employeeWeek.entries) {
+      if ((entry.start && !entry.end) || (!entry.start && entry.end)) {
+        return `${entry.dayLabel} has a start or end time but not both.`;
+      }
+      if (entry.start && entry.end && !entry.employeeConfirmed) {
+        return `${entry.dayLabel} has hours but is not daily-confirmed.`;
+      }
+    }
+    return null;
+  }
   const canFlagRevision =
     uiMode === "office" &&
     (effectiveViewer.role === "admin" || effectiveViewer.role === "foreman") &&
@@ -498,13 +515,26 @@ export function EmployeeCard({
                   </button>
                 ) : null}
                 {canApproveWeek(effectiveViewer.role, employeeWeek) ? (
-                  <button
-                    className="button-strong"
-                    onClick={() => void onStatusChange(employeeWeek.id, "foreman_approved")}
-                    type="button"
-                  >
-                    Approve week
-                  </button>
+                  <>
+                    <button
+                      className="button-strong"
+                      onClick={() => {
+                        const error = approveWeekValidationError();
+                        if (error) {
+                          setApproveError(error);
+                          return;
+                        }
+                        setApproveError(null);
+                        void onStatusChange(employeeWeek.id, "foreman_approved");
+                      }}
+                      type="button"
+                    >
+                      Approve week
+                    </button>
+                    {approveError ? (
+                      <span className="alert-chip alert-chip--warning">{approveError}</span>
+                    ) : null}
+                  </>
                 ) : null}
                 {canOfficeLock(effectiveViewer.role, employeeWeek) ? (
                   <button
