@@ -200,4 +200,7 @@ export function WeeklyCrewBoard({
             onReopenWeek={onReopenWeek}
           />
         ))}
-      </di
+      </div>
+    </section>
+  );
+}
