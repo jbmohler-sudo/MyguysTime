@@ -22,6 +22,8 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   const requestUrl = new URL(event.request.url);
+  if (requestUrl.protocol !== "http:" && requestUrl.protocol !== "https:") return;
+
   if (requestUrl.pathname.startsWith("/api/")) return;
 
   event.respondWith((async () => {
@@ -31,7 +33,7 @@ self.addEventListener("fetch", (event) => {
       const response = await fetch(event.request);
       if (response.ok) {
         const clone = response.clone();
-        void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)).catch(() => undefined);
       }
       return response;
     } catch (error) {
