@@ -11,6 +11,7 @@ import { companyRouter } from "./routes/company.js";
 import { employeesRouter } from "./routes/employees.js";
 import { invitesRouter } from "./routes/invites.js";
 import { timesheetsRouter } from "./routes/timesheets.js";
+import { reportsRouter } from "./routes/reports.js";
 
 export const app = express();
 const port = Number(process.env.PORT || 3001);
@@ -24,6 +25,7 @@ app.use("/api", companyRouter);
 app.use("/api", employeesRouter);
 app.use("/api", invitesRouter);
 app.use("/api", timesheetsRouter);
+app.use("/api", reportsRouter);
 
 if (sentryEnabled) {
   Sentry.setupExpressErrorHandler(app);
