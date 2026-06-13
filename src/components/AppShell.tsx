@@ -136,6 +136,7 @@ export function AppShell({
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState<InviteSuccessState | null>(null);
+  const [copiedInviteLink, setCopiedInviteLink] = useState(false);
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallReady, setIsInstallReady] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -829,21 +830,51 @@ export function AppShell({
                       gap: "0.75rem",
                     }}
                   >
-                    <span style={{ minWidth: 0 }}>
-                      {inviteSuccess.deliveryMode === "email" ? "Invite email sent." : "Invite sent! Dev link: "}
-                      {inviteSuccess.deliveryMode !== "email" ? (
-                        <a href={inviteSuccess.url} target="_blank" rel="noopener noreferrer" style={{ color: "#1565C0" }}>
-                          {inviteSuccess.url}
-                        </a>
-                      ) : null}
+                    <span style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "4px" }}>
+                      <strong>
+                        {inviteSuccess.deliveryMode === "email"
+                          ? "Invite email sent. You can also share the link directly:"
+                          : "Invite created. Share this link with them:"}
+                      </strong>
+                      <a
+                        href={inviteSuccess.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#1565C0", wordBreak: "break-all", fontSize: "12px" }}
+                      >
+                        {inviteSuccess.url}
+                      </a>
                     </span>
-                    <button
-                      onClick={() => setInviteSuccess(null)}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: "16px" }}
-                      type="button"
-                    >
-                      x
-                    </button>
+                    <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+                      <button
+                        onClick={() => {
+                          void navigator.clipboard?.writeText(inviteSuccess.url);
+                          setCopiedInviteLink(true);
+                          window.setTimeout(() => setCopiedInviteLink(false), 1800);
+                        }}
+                        style={{
+                          background: "#2E7D32",
+                          border: "none",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          color: "white",
+                          fontSize: "12px",
+                          fontWeight: 700,
+                          padding: "6px 10px",
+                          whiteSpace: "nowrap",
+                        }}
+                        type="button"
+                      >
+                        {copiedInviteLink ? "Copied!" : "Copy link"}
+                      </button>
+                      <button
+                        onClick={() => setInviteSuccess(null)}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: "16px" }}
+                        type="button"
+                      >
+                        x
+                      </button>
+                    </div>
                   </div>
                 ) : null}
                 <TeamManagementPanel

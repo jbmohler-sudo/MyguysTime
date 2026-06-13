@@ -411,6 +411,26 @@ router.patch("/timesheets/:timesheetId/status", authenticate, asyncHandler(async
       },
     });
     await writeStatusAudit(timesheet.id, asTimesheetStatus(timesheet.status), "EMPLOYEE_CONFIRMED", auth.userId);
+
+    // Solo crew (exactly one active member): skip the foreman-approval step and
+    // advance straight to FOREMAN_APPROVED. The office still locks on payday.
+    const activeCrewMemberCount = await prisma.employee.count({
+      where: {
+        companyId: auth.companyId,
+        defaultCrewId: timesheet.crewId,
+        employmentStatus: "ACTIVE",
+      },
+    });
+    if (activeCrewMemberCount === 1) {
+      await prisma.timesheetWeek.update({
+        where: { id: timesheet.id },
+        data: {
+          status: "FOREMAN_APPROVED",
+          reviewedByForemanAt: now,
+        },
+      });
+      await writeStatusAudit(timesheet.id, "EMPLOYEE_CONFIRMED", "FOREMAN_APPROVED", auth.userId);
+    }
   } else if (nextStatus === "NEEDS_REVISION") {
     if (!["FOREMAN", "ADMIN"].includes(auth.role)) {
       res.status(403).json({ error: "Only foremen or admin can flag a week for revision." });
