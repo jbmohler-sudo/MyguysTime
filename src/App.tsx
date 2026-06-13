@@ -20,21 +20,16 @@ import {
   createEmployee,
   createExpenseSubmission,
   createInvite,
-  downloadExport,
   fetchBootstrap,
-  fetchExportHistory,
-  fetchQboPreview,
   listEmployees,
   listInvites,
   removeEmployee,
   resendInvite,
   revokeInvite,
-  sendSmsReminders,
   signup,
   submitPrivateReport,
   triggerBackendSentryVerification,
   updateCompanySettings,
-  updateAdjustment,
   updateDayEntry,
   updateEmployee,
   updateMe,
@@ -286,23 +281,6 @@ function AppContent() {
     replaceTimesheet(response.timesheet);
   }
 
-  async function handleUpdateAdjustment(
-    timesheetId: string,
-    payload: {
-      gasReimbursement?: number;
-      pettyCashReimbursement?: number;
-      deductionAdvance?: number;
-      notes?: string;
-    },
-  ) {
-    if (!token) {
-      return;
-    }
-
-    const response = await updateAdjustment(token, timesheetId, payload);
-    replaceTimesheet(response.timesheet);
-  }
-
   async function handleSubmitPrivateReport(payload: PrivateReportInput) {
     if (!token) {
       return;
@@ -405,39 +383,6 @@ function AppContent() {
     await revokeInvite(token, inviteId);
   }
 
-  async function handleFetchQboPreview(ws: string) {
-    if (!token) throw new Error("Not authenticated");
-    return fetchQboPreview(token, ws);
-  }
-
-  async function handleDownloadQboCsv(ws: string) {
-    if (!token) throw new Error("Not authenticated");
-    const response = await downloadExport(token, `/exports/qbo.csv?weekStart=${encodeURIComponent(ws)}`);
-    capturePostHogEvent("export_downloaded", {
-      export_kind: "qbo_csv",
-      week_start: ws,
-    });
-    return response;
-  }
-
-  async function handleFetchExportHistory() {
-    if (!token) throw new Error("Not authenticated");
-    const result = await fetchExportHistory(token);
-    return result.exports;
-  }
-
-  async function handleSendReminders(employeeIds: string[]) {
-    if (!token) throw new Error("Not authenticated");
-    const result = await sendSmsReminders(token, employeeIds);
-    capturePostHogEvent("reminder_sent", {
-      channel: "sms",
-      recipient_count: result.count,
-      requested_count: employeeIds.length,
-      sent: result.sent,
-    });
-    return result;
-  }
-
   async function handleVerifyBackendSentry() {
     if (!token) {
       throw new Error("Not authenticated");
@@ -447,40 +392,7 @@ function AppContent() {
     return result.eventId;
   }
 
-  async function handleExport(kind: "payroll-summary" | "time-detail" | "weekly-summary") {
-    if (!token || !data) {
-      return;
-    }
 
-    const path =
-      kind === "payroll-summary"
-        ? `/exports/payroll-summary.csv?weekStart=${data.weekStart}`
-        : kind === "time-detail"
-          ? `/exports/time-detail.csv?weekStart=${data.weekStart}`
-          : `/exports/weekly-summary?weekStart=${data.weekStart}`;
-
-    const response = await downloadExport(token, path);
-    capturePostHogEvent("export_downloaded", {
-      export_kind: kind,
-      week_start: data.weekStart,
-    });
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-
-    if (kind === "weekly-summary") {
-      window.open(url, "_blank", "noopener,noreferrer");
-      return;
-    }
-
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download =
-      kind === "payroll-summary"
-        ? `time-card-summary-${data.weekStart}.csv`
-        : `time-detail-${data.weekStart}.csv`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  }
 
 
 
@@ -611,10 +523,8 @@ function AppContent() {
         onApplyCrewDefaults={handleApplyCrewDefaults}
         onStatusChange={handleStatusChange}
         onReopenWeek={handleReopenWeek}
-        onUpdateAdjustment={handleUpdateAdjustment}
         onSubmitPrivateReport={handleSubmitPrivateReport}
         onCreateExpenseSubmission={handleCreateExpenseSubmission}
-        onExport={handleExport}
         onUpdateCompanySettings={handleUpdateCompanySettings}
         onListEmployees={handleListEmployees}
         onCreateEmployee={handleCreateEmployee}
@@ -624,10 +534,6 @@ function AppContent() {
         onCreateInvite={handleCreateInvite}
         onResendInvite={handleResendInvite}
         onRevokeInvite={handleRevokeInvite}
-        onFetchQboPreview={handleFetchQboPreview}
-        onDownloadQboCsv={handleDownloadQboCsv}
-        onFetchExportHistory={handleFetchExportHistory}
-        onSendReminders={handleSendReminders}
         onVerifyBackendSentry={handleVerifyBackendSentry}
       />
     </OnboardingProvider>

@@ -98,25 +98,6 @@ export function DemoShell({ role }: DemoShellProps) {
     }));
   }
 
-  async function handleUpdateAdjustment(
-    timesheetId: string,
-    payload: {
-      gasReimbursement?: number;
-      pettyCashReimbursement?: number;
-      deductionAdvance?: number;
-      notes?: string;
-    },
-  ): Promise<void> {
-    setData((curr) => ({
-      ...curr,
-      employeeWeeks: curr.employeeWeeks.map((week) => {
-        if (week.id !== timesheetId) return week;
-        const adjustment = { ...week.adjustment, ...payload };
-        return { ...week, adjustment };
-      }),
-    }));
-  }
-
   async function handleCreateExpenseSubmission(
     timesheetId: string,
     payload: ExpenseSubmissionInput,
@@ -182,10 +163,8 @@ export function DemoShell({ role }: DemoShellProps) {
             onApplyCrewDefaults={handleApplyCrewDefaults}
             onStatusChange={handleStatusChange}
             onReopenWeek={handleReopenWeek}
-            onUpdateAdjustment={handleUpdateAdjustment}
             onSubmitPrivateReport={noop}
             onCreateExpenseSubmission={handleCreateExpenseSubmission}
-            onExport={noop}
             onUpdateCompanySettings={noop}
             onListEmployees={noopList}
             onCreateEmployee={() => Promise.reject(new Error("Demo mode"))}

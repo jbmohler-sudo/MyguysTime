@@ -18,7 +18,6 @@ import { InviteEmployeeModal } from "./InviteEmployeeModal";
 import { InviteManagementPanel } from "./InviteManagementPanel";
 import { MissingTimeAlertBanner } from "./MissingTimeAlertBanner";
 import { OnboardingOverlay } from "./OnboardingOverlay";
-import { PayrollExportModal } from "./PayrollExportModal";
 import { CompanySettingsPanel } from "./CompanySettingsPanel";
 import { Logo } from "./Logo";
 import { OfficeDashboard } from "./OfficeDashboard";
@@ -64,18 +63,8 @@ interface AppShellProps {
   }) => Promise<void>;
   onStatusChange: (timesheetId: string, status: TimesheetStatus, note?: string) => Promise<void>;
   onReopenWeek: (timesheetId: string, reopenTo: TimesheetStatus, note: string) => Promise<void>;
-  onUpdateAdjustment: (
-    timesheetId: string,
-    payload: {
-      gasReimbursement?: number;
-      pettyCashReimbursement?: number;
-      deductionAdvance?: number;
-      notes?: string;
-    },
-  ) => Promise<void>;
   onSubmitPrivateReport: (payload: PrivateReportInput) => Promise<void>;
   onCreateExpenseSubmission: (timesheetId: string, payload: ExpenseSubmissionInput) => Promise<void>;
-  onExport: (kind: "payroll-summary" | "time-detail" | "weekly-summary") => Promise<void>;
   onUpdateCompanySettings: (payload: {
     companyName?: string;
     companyState?: string;
@@ -104,10 +93,6 @@ interface AppShellProps {
   onRevokeInvite: (inviteId: string) => Promise<void>;
   onUpdateMe: (payload: { fullName?: string; preferredView?: "office" | "truck" }) => Promise<void>;
   onVerifyBackendSentry?: () => Promise<string | null>;
-  onFetchQboPreview?: (weekStart: string) => Promise<import("../types/payroll").ExportPreview>;
-  onDownloadQboCsv?: (weekStart: string) => Promise<Response>;
-  onFetchExportHistory?: () => Promise<import("../types/payroll").PayrollExportRecord[]>;
-  onSendReminders?: (employeeIds: string[]) => Promise<{ count: number; sent: boolean }>;
 }
 
 export function AppShell({
@@ -121,10 +106,8 @@ export function AppShell({
   onApplyCrewDefaults,
   onStatusChange,
   onReopenWeek,
-  onUpdateAdjustment,
   onSubmitPrivateReport,
   onCreateExpenseSubmission,
-  onExport,
   onUpdateCompanySettings,
   onCreateEmployee,
   onRemoveEmployee,
@@ -132,10 +115,6 @@ export function AppShell({
   onCreateInvite,
   onResendInvite,
   onRevokeInvite,
-  onFetchQboPreview,
-  onDownloadQboCsv,
-  onFetchExportHistory,
-  onSendReminders,
 }: AppShellProps) {
   const onboarding = useOnboardingContext();
 
@@ -155,7 +134,6 @@ export function AppShell({
   const [activePage, setActivePage] = useState<AppPage>("dashboard");
   const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [showPayrollModal, setShowPayrollModal] = useState(false);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState<InviteSuccessState | null>(null);
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -419,20 +397,6 @@ export function AppShell({
     }
   };
 
-  const handlePayrollExport = (csvContent: string, fileName: string) => {
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", fileName);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    console.log(`✓ Exported ${fileName}`);
-  };
-
   const handleInstallApp = async () => {
     if (!deferredInstallPrompt) {
       return;
@@ -654,21 +618,6 @@ export function AppShell({
                         Review week
                         <input type="date" value={data.weekStart} onChange={(event) => void onRefresh(event.target.value)} />
                       </label>
-                      <button
-                        onClick={() => setShowPayrollModal(true)}
-                        style={{
-                          backgroundColor: BRAND_ORANGE,
-                          color: "white",
-                          border: "none",
-                          borderRadius: "14px",
-                          fontSize: "0.95rem",
-                          fontWeight: 700,
-                          width: "100%",
-                        }}
-                        type="button"
-                      >
-                        Export time cards
-                      </button>
                       {isInstallReady && !isInstalled ? (
                         <button
                           onClick={() => void handleInstallApp()}
@@ -692,23 +641,6 @@ export function AppShell({
                       <div style={{ color: "#6B7280", fontSize: "0.86rem", lineHeight: 1.45 }}>
                         Open the menu only when you need another page. The truck screen stays centered on this week.
                       </div>
-                      {effectiveViewer.role === "admin" ? (
-                        <button
-                          onClick={() => setShowPayrollModal(true)}
-                          style={{
-                            backgroundColor: BRAND_ORANGE,
-                            color: "white",
-                            border: "none",
-                            borderRadius: "14px",
-                            fontSize: "0.95rem",
-                            fontWeight: 700,
-                            width: "100%",
-                          }}
-                          type="button"
-                        >
-                          Export time cards
-                        </button>
-                      ) : null}
                       {isInstallReady && !isInstalled ? (
                         <button
                           onClick={() => void handleInstallApp()}
@@ -837,8 +769,6 @@ export function AppShell({
                     <OfficeDashboard
                       companySettings={data.companySettings}
                       employeeWeeks={data.employeeWeeks}
-                      onExport={onExport}
-                      onUpdateAdjustment={onUpdateAdjustment}
                       onReopenWeek={onReopenWeek}
                     />
                   </div>
@@ -941,16 +871,6 @@ export function AppShell({
           </div>
         </main>
 
-        <PayrollExportModal
-          isOpen={showPayrollModal}
-          data={data}
-          weekStart={data.weekStart}
-          onClose={() => setShowPayrollModal(false)}
-          onExport={handlePayrollExport}
-          onFetchQboPreview={onFetchQboPreview}
-          onDownloadQboCsv={onDownloadQboCsv}
-          onFetchHistory={onFetchExportHistory}
-        />
         <AddEmployeeModal
           isOpen={showAddEmployeeModal}
           crews={data.crews}
@@ -1202,39 +1122,6 @@ export function AppShell({
 
             <span style={{ flex: 1 }} />
 
-            {uiMode === "office" ? (
-              <button
-                className="app-nav__export-btn"
-                onClick={() => setShowPayrollModal(true)}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = "0 6px 16px rgba(255,140,0,0.3)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-                style={{
-                  boxSizing: "border-box",
-                  padding: "7px 14px",
-                  borderRadius: "6px",
-                  backgroundColor: BRAND_ORANGE,
-                  color: "white",
-                  border: "none",
-                  fontSize: "0.8rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  lineHeight: 1.2,
-                  minHeight: "37px",
-                  transition: "box-shadow 0.2s ease",
-                  whiteSpace: "nowrap",
-                }}
-                type="button"
-              >
-                Export Time Cards
-              </button>
-            ) : null}
-
-
-
             <button
               onClick={onboarding.restartTour}
               title="Restart tour"
@@ -1457,7 +1344,6 @@ export function AppShell({
                 <MissingTimeAlertBanner
                   employeeWeeks={data.employeeWeeks}
                   onQuickFix={handleQuickFixMissingTime}
-                  onSendReminders={onSendReminders}
                 />
               </>
             ) : null}
@@ -1485,8 +1371,6 @@ export function AppShell({
                 <OfficeDashboard
                   companySettings={data.companySettings}
                   employeeWeeks={data.employeeWeeks}
-                  onExport={onExport}
-                  onUpdateAdjustment={onUpdateAdjustment}
                   onReopenWeek={onReopenWeek}
                 />
               </div>
@@ -1595,17 +1479,6 @@ export function AppShell({
 
         {activePage === "archive" && canViewArchive ? <ArchivePanel archivedEmployees={data.archivedEmployees} /> : null}
       </main>
-
-      <PayrollExportModal
-        isOpen={showPayrollModal}
-        data={data}
-        weekStart={data.weekStart}
-        onClose={() => setShowPayrollModal(false)}
-        onExport={handlePayrollExport}
-        onFetchQboPreview={onFetchQboPreview}
-        onDownloadQboCsv={onDownloadQboCsv}
-        onFetchHistory={onFetchExportHistory}
-      />
 
       <AddEmployeeModal
         isOpen={showAddEmployeeModal}

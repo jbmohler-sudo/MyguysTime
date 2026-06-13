@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { DayEntry, EmployeeWeek, ExpenseSubmissionInput, TimesheetStatus, Viewer } from "../domain/models";
 import { adjustTimeValue, formatCurrency, formatDayCardDate } from "../domain/format";
-import { PayrollYtdSummaryGrid, workerTypeLabel } from "./PayrollYtdSummaryGrid";
 
 import {
   canApproveWeek,
@@ -497,10 +496,6 @@ export function EmployeeCard({
                 <span>Overtime</span>
                 <strong>{employeeWeek.overtimeHours.toFixed(2)}h</strong>
               </div>
-              <div className="employee-card__net">
-                <span>Labor value</span>
-                <strong>{formatCurrency(employeeWeek.payrollEstimate.grossPay)}</strong>
-              </div>
             </div>
             <div className="employee-card__workflow">
               <span className="employee-card__workflow-label">Weekly action</span>
@@ -549,12 +544,6 @@ export function EmployeeCard({
               <p className="employee-card__workflow-hint">{workflowMessage}</p>
             </div>
           </div>
-          <PayrollYtdSummaryGrid
-            className="employee-card__ytd"
-            summary={employeeWeek.ytdSummary}
-            heading={`${employeeWeek.ytdSummary.calendarYear} YTD reporting`}
-            subcopy={`${workerTypeLabel(employeeWeek.workerType)} totals only for office review.`}
-          />
           <ExpenseCapturePanel
             employeeWeek={employeeWeek}
             disabled={!canCaptureExpense}

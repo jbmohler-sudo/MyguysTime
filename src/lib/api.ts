@@ -321,42 +321,6 @@ export async function revokeInvite(token: string, inviteId: string) {
   );
 }
 
-export async function downloadExport(token: string, path: string) {
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (!response.ok) {
-    throw new Error("Export failed.");
-  }
-
-  return response;
-}
-
-export async function fetchQboPreview(token: string, weekStart: string) {
-  return request<import("../types/payroll").ExportPreview>(
-    `/exports/qbo-preview.json?weekStart=${encodeURIComponent(weekStart)}`,
-    {},
-    token,
-  );
-}
-
-export async function fetchExportHistory(token: string) {
-  return request<{ exports: import("../types/payroll").PayrollExportRecord[] }>(
-    "/exports/history",
-    {},
-    token,
-  );
-}
-
-export async function sendSmsReminders(token: string, employeeIds: string[]) {
-  return request<{ count: number; sent: boolean }>(
-    "/reminders/send-sms",
-    { method: "POST", body: JSON.stringify({ employeeIds }) },
-    token,
-  );
-}
-
 export async function triggerBackendSentryVerification(token: string) {
   return request<{ ok: boolean; eventId: string | null }>(
     "/debug/sentry-test",
