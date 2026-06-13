@@ -12,4 +12,4 @@ prisma/dev.db
 .claude/settings.local.json
 vite.config.js
 vite.config.d.ts
-scripts/_*.ps1
+scripts/*.ps1
