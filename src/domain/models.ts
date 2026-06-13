@@ -60,6 +60,7 @@ export interface ExpenseSubmissionSummary {
   amount: number;
   note: string;
   hasReceipt: boolean;
+  receiptPath: string | null;
   submittedAt: string;
   submittedByFullName: string;
 }
@@ -231,6 +232,7 @@ export interface ExpenseSubmissionInput {
   amount: number;
   note?: string;
   hasReceipt: boolean;
+  receiptImage?: string; // data URL of the captured/compressed receipt photo
 }
 
 export interface OnboardingEmployeeInput {

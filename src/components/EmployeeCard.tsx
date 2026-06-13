@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { DayEntry, EmployeeWeek, ExpenseSubmissionInput, TimesheetStatus, Viewer } from "../domain/models";
 import { adjustTimeValue, formatCurrency, formatDayCardDate } from "../domain/format";
+import { compressImageToDataUrl, openReceipt } from "../lib/receipts";
 
 import {
   canApproveWeek,
@@ -54,9 +55,24 @@ function ExpenseCapturePanel({
   const [category, setCategory] = useState<(typeof EXPENSE_OPTIONS)[number]["value"]>("gas");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
-  const [hasReceipt, setHasReceipt] = useState(false);
+  const [receiptImage, setReceiptImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  async function handleReceiptSelected(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImageToDataUrl(file);
+      setReceiptImage(dataUrl);
+      setError(null);
+    } catch (compressionError) {
+      setError(compressionError instanceof Error ? compressionError.message : "Could not process the photo.");
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
 
   async function submitExpense() {
     const parsedAmount = Number(amount);
@@ -72,11 +88,12 @@ function ExpenseCapturePanel({
         category,
         amount: parsedAmount,
         note: note.trim(),
-        hasReceipt,
+        hasReceipt: receiptImage !== null,
+        receiptImage: receiptImage ?? undefined,
       });
       setAmount("");
       setNote("");
-      setHasReceipt(false);
+      setReceiptImage(null);
       setCategory("gas");
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : "Could not save expense.");
@@ -119,15 +136,42 @@ function ExpenseCapturePanel({
           onChange={(event) => setNote(event.target.value)}
         />
       </label>
-      <label className="checkbox-row">
+      <div className="receipt-capture">
         <input
-          checked={hasReceipt}
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          style={{ display: "none" }}
           disabled={disabled || saving}
-          type="checkbox"
-          onChange={(event) => setHasReceipt(event.target.checked)}
+          onChange={(event) => void handleReceiptSelected(event)}
         />
-        Have receipt
-      </label>
+        {receiptImage ? (
+          <div className="receipt-capture__preview">
+            <img
+              src={receiptImage}
+              alt="Receipt preview"
+              style={{ maxWidth: "120px", maxHeight: "120px", borderRadius: "8px", border: "1px solid #D7DEE8" }}
+            />
+            <div className="status-actions">
+              <button type="button" disabled={disabled || saving} onClick={() => fileInputRef.current?.click()}>
+                Retake
+              </button>
+              <button type="button" disabled={disabled || saving} onClick={() => setReceiptImage(null)}>
+                Remove
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            disabled={disabled || saving}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            📷 Snap receipt
+          </button>
+        )}
+      </div>
       {error ? <div className="workflow-banner"><strong>Expense not saved</strong><span>{error}</span></div> : null}
       <div className="status-actions">
         <button disabled={disabled || saving} onClick={() => void submitExpense()} type="button">
@@ -146,7 +190,20 @@ function ExpenseCapturePanel({
                 {expense.submittedByFullName} - {formatExpenseTimestamp(expense.submittedAt)}
               </span>
               <span className="audit-row__note">
-                {expense.note || "No note recorded."} {expense.hasReceipt ? "Receipt on hand." : "No receipt marked."}
+                {expense.note || "No note recorded."}{" "}
+                {expense.receiptPath ? (
+                  <button
+                    type="button"
+                    className="link-button"
+                    onClick={() => void openReceipt(expense.id).catch(() => undefined)}
+                  >
+                    📎 View receipt
+                  </button>
+                ) : expense.hasReceipt ? (
+                  "Receipt on hand."
+                ) : (
+                  "No receipt."
+                )}
               </span>
             </div>
           ))}

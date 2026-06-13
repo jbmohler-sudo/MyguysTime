@@ -115,6 +115,7 @@ export function DemoShell({ role }: DemoShellProps) {
               amount: payload.amount,
               note: payload.note ?? "",
               hasReceipt: payload.hasReceipt,
+              receiptPath: null,
               submittedAt: new Date().toISOString(),
               submittedByFullName: curr.viewer.fullName,
             },

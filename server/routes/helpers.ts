@@ -584,6 +584,7 @@ export function serializeTimesheet(
       amount: currencyFromCents(expense.amountCents),
       note: expense.note ?? "",
       hasReceipt: expense.hasReceipt,
+      receiptPath: expense.receiptPath ?? null,
       submittedAt: expense.createdAt.toISOString(),
       submittedByFullName: usersById.get(expense.submittedByUserId) ?? "Unknown user",
     })),

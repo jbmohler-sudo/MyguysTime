@@ -250,6 +250,7 @@ model ExpenseSubmission {
   amountCents       Int
   note              String?
   hasReceipt        Boolean       @default(false)
+  receiptPath       String?
   submittedByUserId String
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt

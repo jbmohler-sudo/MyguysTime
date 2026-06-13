@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authenticate, getCurrentUserOrThrow, type AuthenticatedRequest } from "../auth.js";
 import { prisma } from "../db.js";
+import { getSupabaseAuthClient } from "../supabase.js";
 import { clampLunchMinutes, parseWeekStart, timeStringToMinutes } from "../utils.js";
 import {
   asyncHandler,
@@ -315,11 +316,12 @@ router.post("/timesheets/:timesheetId/expenses", authenticate, asyncHandler(asyn
     return;
   }
 
-  const { category, amount, note, hasReceipt } = req.body as {
+  const { category, amount, note, hasReceipt, receiptImage } = req.body as {
     category?: string;
     amount?: number;
     note?: string;
     hasReceipt?: boolean;
+    receiptImage?: string; // data URL: "data:image/jpeg;base64,...."
   };
 
   const normalizedCategory = category?.trim().toLowerCase() ?? "";
@@ -338,7 +340,7 @@ router.post("/timesheets/:timesheetId/expenses", authenticate, asyncHandler(asyn
     return;
   }
 
-  await prisma.expenseSubmission.create({
+  const createdExpense = await prisma.expenseSubmission.create({
     data: {
       companyId: req.auth!.companyId,
       employeeId: timesheet.employeeId,
@@ -350,6 +352,34 @@ router.post("/timesheets/:timesheetId/expenses", authenticate, asyncHandler(asyn
       submittedByUserId: req.auth!.userId,
     },
   });
+
+  // If a receipt photo was captured, decode the data URL and store it in the
+  // private "receipts" bucket via the service-role client, then record the path.
+  if (receiptImage && typeof receiptImage === "string" && receiptImage.startsWith("data:image/")) {
+    try {
+      const match = receiptImage.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
+      if (match) {
+        const mime = match[1];
+        const ext = mime === "image/png" ? "png" : mime === "image/webp" ? "webp" : "jpg";
+        const bytes = Buffer.from(match[2], "base64");
+        const path = `${req.auth!.companyId}/${createdExpense.id}.${ext}`;
+        const storage = getSupabaseAuthClient();
+        const { error: uploadError } = await storage.storage
+          .from("receipts")
+          .upload(path, bytes, { contentType: mime, upsert: true });
+        if (uploadError) {
+          console.error("[receipt:upload-failed]", uploadError.message);
+        } else {
+          await prisma.expenseSubmission.update({
+            where: { id: createdExpense.id },
+            data: { receiptPath: path, hasReceipt: true },
+          });
+        }
+      }
+    } catch (receiptError) {
+      console.error("[receipt:upload-exception]", receiptError);
+    }
+  }
 
   posthog?.capture({
     distinctId: req.auth!.userId,
@@ -373,6 +403,41 @@ router.post("/timesheets/:timesheetId/expenses", authenticate, asyncHandler(asyn
         createEmptyYtdSummary(asWorkerType(refreshed!.employee.workerType), refreshed!.weekStartDate.getFullYear()),
     ),
   });
+}));
+
+// Serve a receipt photo by redirecting to a short-lived signed URL.
+// Ownership: same company; employees may only view their own receipts.
+router.get("/expenses/:expenseId/receipt", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const expenseId = getParam(req.params.expenseId);
+  const expense = await prisma.expenseSubmission.findFirst({
+    where: { id: expenseId, companyId: req.auth!.companyId },
+    select: { receiptPath: true, employeeId: true },
+  });
+
+  if (!expense || !expense.receiptPath) {
+    res.status(404).json({ error: "Receipt not found." });
+    return;
+  }
+
+  if (req.auth!.role === "EMPLOYEE") {
+    const user = await getCurrentUserOrThrow(req.auth!.userId);
+    if (user.employeeId !== expense.employeeId) {
+      res.status(403).json({ error: "You can only view your own receipts." });
+      return;
+    }
+  }
+
+  const storage = getSupabaseAuthClient();
+  const { data, error } = await storage.storage
+    .from("receipts")
+    .createSignedUrl(expense.receiptPath, 60 * 5); // 5-minute link
+
+  if (error || !data?.signedUrl) {
+    res.status(502).json({ error: "Could not generate receipt link." });
+    return;
+  }
+
+  res.redirect(data.signedUrl);
 }));
 
 router.patch("/timesheets/:timesheetId/status", authenticate, asyncHandler(async (req: AuthenticatedRequest, res) => {
