@@ -1,3 +1,5 @@
+> **⚠️ Workspace-wide rules:** Before any file or git work, read [`../UMBRELLA-GOTCHAS.md`](../UMBRELLA-GOTCHAS.md) — the mount has known truncation, read-cache, and git-lock quirks that affect every repo here.
+
 # MyGuys — Claude Instructions
 
 ## Git workflow

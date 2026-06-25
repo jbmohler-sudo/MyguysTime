@@ -8,6 +8,7 @@ dist-server
 prisma/migration_lock.toml
 .env.*
 !.env.example
+repomix-output.xml
 prisma/dev.db
 .claude/settings.local.json
 vite.config.js
