@@ -14,3 +14,6 @@ prisma/dev.db
 vite.config.js
 vite.config.d.ts
 scripts/*.ps1
+
+# Local copy of the workspace gotchas doc - never commit (see scripts/sync-gotchas.ps1)
+UMBRELLA-GOTCHAS.md
