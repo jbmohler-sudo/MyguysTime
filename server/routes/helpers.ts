@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import express from "express";
 import { getCurrentUserOrThrow, type AuthenticatedRequest, type UserRole } from "../auth.js";
 import { prisma } from "../db.js";
+import { resolvePublicAppUrl } from "../publicUrl.js";
 import { calculateDayTotalMinutes, calculatePayrollEstimate } from "../payroll.js";
 import {
   addDays,
@@ -306,9 +307,7 @@ export function serializeInviteSummary(
 }
 
 export function buildInviteUrl(req: express.Request, token: string) {
-  const origin = req.get("origin")?.trim();
-  const baseUrl = origin || `${req.protocol}://${req.get("host")}`;
-  return `${baseUrl}/?invite=${encodeURIComponent(token)}`;
+  return `${resolvePublicAppUrl(req)}/?invite=${encodeURIComponent(token)}`;
 }
 
 export function isFiniteNonNegativeNumber(value: unknown): value is number {

@@ -60,45 +60,44 @@ router.post("/auth/signup", asyncHandler(async (req, res) => {
       return;
     }
 
+    const pendingInvite = await prisma.userInvite.findFirst({
+      where: {
+        email: normalizedEmail,
+        acceptedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      select: { id: true },
+    });
+
+    if (pendingInvite) {
+      res.status(409).json({
+        error: "This email has a pending invite. Use the invite link to create your login.",
+      });
+      return;
+    }
+
     const supabase = getSupabaseAuthClient();
     const existingAuthUser = await findSupabaseAuthUserByEmail(supabase, normalizedEmail);
 
-    let supabaseUserId: string;
-    let createdAuthUser = false;
-
     if (existingAuthUser) {
-      const { data: authData, error: authError } = await supabase.auth.admin.updateUserById(
-        existingAuthUser.id,
-        {
-          email: normalizedEmail,
-          password,
-          email_confirm: true,
-        },
-      );
-
-      if (authError || !authData.user) {
-        const errorMsg = authError?.message || "Failed to recover authentication account.";
-        res.status(400).json({ error: errorMsg });
-        return;
-      }
-
-      supabaseUserId = authData.user.id;
-    } else {
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: normalizedEmail,
-        password,
-        email_confirm: true,
-      });
-
-      if (authError || !authData.user) {
-        const errorMsg = authError?.message || "Failed to create authentication account.";
-        res.status(400).json({ error: errorMsg });
-        return;
-      }
-
-      supabaseUserId = authData.user.id;
-      createdAuthUser = true;
+      res.status(409).json({ error: "An account with this email already exists." });
+      return;
     }
+
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email: normalizedEmail,
+      password,
+      email_confirm: true,
+    });
+
+    if (authError || !authData.user) {
+      const errorMsg = authError?.message || "Failed to create authentication account.";
+      res.status(400).json({ error: errorMsg });
+      return;
+    }
+
+    const supabaseUserId = authData.user.id;
+    const createdAuthUser = true;
 
     let user;
 

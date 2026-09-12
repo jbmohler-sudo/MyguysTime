@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => {
         : []),
     ],
     build: {
-      sourcemap: true,
+      sourcemap: shouldUploadSentrySourcemaps || mode !== "production",
     },
     resolve: {
       alias: {

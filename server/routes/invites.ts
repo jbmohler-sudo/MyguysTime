@@ -149,6 +149,15 @@ router.post("/company/invites", authenticate, asyncHandler(async (req: Authentic
   }
 
   const rawToken = createInviteToken();
+  let inviteUrl: string;
+  try {
+    inviteUrl = buildInviteUrl(req, rawToken);
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : "Invite URL could not be built.",
+    });
+    return;
+  }
   const now = new Date();
   const expiresAt = new Date(now.getTime() + INVITE_EXPIRY_HOURS * 60 * 60 * 1000);
 
@@ -203,7 +212,6 @@ router.post("/company/invites", authenticate, asyncHandler(async (req: Authentic
     },
   });
 
-  const inviteUrl = buildInviteUrl(req, rawToken);
   let deliveryMode: "email" | "dev_link" | "test" = "dev_link";
 
   try {
@@ -286,7 +294,15 @@ router.post("/company/invites/:inviteId/resend", authenticate, asyncHandler(asyn
   }
 
   const rawToken = createInviteToken();
-  const inviteUrl = buildInviteUrl(req, rawToken);
+  let inviteUrl: string;
+  try {
+    inviteUrl = buildInviteUrl(req, rawToken);
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : "Invite URL could not be built.",
+    });
+    return;
+  }
 
   let deliveryMode: "email" | "dev_link" | "test" = "dev_link";
   try {

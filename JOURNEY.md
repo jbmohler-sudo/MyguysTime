@@ -8,11 +8,14 @@
 
 - **What it is:** payroll/timesheet management app — React/TypeScript + Node/Express + Supabase
   (project `ufbanjchatwkheaqafsf`), deployed on Vercel.
-- **In progress:** crew/timesheet workflow (weekly crew board, foreman approval, solo-crew
-  auto-approve, expense receipt capture).
-- **Just done:** security cleanup — removed committed env secrets from git history (see Session Log).
-- **Biggest open item:** ⚠️ **Rotate the leaked Neon DB password and Supabase service-role key** —
-  history was scrubbed but the values were already pushed and must be considered compromised.
+- **In progress:** credential rotation (user, tonight) and remaining audit residue (ghost payroll,
+  onboarding, dead API, schema SQL).
+- **Just done:** security session — signup no longer overwrites invite Auth passwords; ExpenseSubmission
+  RLS + GRANTs; `.env.example` scrubbed; CORS/invite URLs no longer trust a spoofed Origin; JWTs
+  only via `Authorization`.
+- **Biggest open item:** ⚠️ **Rotate Neon + Supabase keys and update Vercel env** — user is doing
+  this tonight. After that: delete stale GitHub branch `origin/claude/relaxed-austin-510c58`, apply
+  the new RLS migration on the live DB, then the residue sweep.
 
 ## The Story So Far
 
@@ -27,6 +30,8 @@ Storage.
 
 | Date | Decision | Why |
 |------|----------|-----|
+| 2026-09-12 | Unauthenticated signup must **create** Auth users only — never `updateUserById` | Invite-created Auth accounts were takeover targets: anyone who knew the email could set a new password. |
+| 2026-09-12 | Invite links and CORS use `APP_URL` / `CORS_ORIGINS`, not the request `Origin` | A spoofed Origin minted attacker-shaped invite URLs and reflected CORS. |
 | 2026-06-25 | Remediate leaked env secrets by **rewriting git history** (`git filter-repo`) + force-push, then rotate creds | Secrets (`.env.production.*`) had been committed and pushed; scrub limits future exposure, rotation neutralizes the leak. |
 | (earlier) | Remove the tax/payroll engine entirely | App scope narrowed to timesheets/hours; tax logic was dead weight and risk. |
 | (earlier) | All public tables use RLS; authenticated-only, no anon access | Security baseline for Supabase. |
@@ -37,7 +42,7 @@ Storage.
 |--------|---------|--------|------|
 | Frontend | React/TS app | live | Office view = hours + rate + notes (no payroll surface). |
 | Backend | Node/Express | live | Payroll export/report routes removed. |
-| Data | Supabase `ufbanjchatwkheaqafsf` | live | RLS on all public tables; new tables need explicit GRANTs. |
+| Data | Supabase `ufbanjchatwkheaqafsf` | live | RLS + REVOKE on ExpenseSubmission added 2026-09-12; apply migration on live DB. |
 | Crew workflow | weekly crew board, foreman approval | live | Solo crews (1 member) auto-approve past foreman. |
 | Expenses | receipt capture | live | Camera → Supabase Storage, signed-URL viewing. |
 | Secrets | `.env.*` (git-ignored) | hardened | `.env.production.*` purged from history 2026-06-25. |
@@ -53,6 +58,14 @@ Storage.
 - None recorded yet.
 
 ## Session Log
+
+### 2026-09-12 — Security session (signup takeover, RLS, CORS)
+**Did:** Removed signup `updateUserById` recovery; reject pending-invite and existing Auth emails. Added ExpenseSubmission RLS + explicit REVOKE/GRANT. Scrubbed `.env.example`. JWT only from Bearer header. CORS and invite URLs use `APP_URL`/`CORS_ORIGINS`. Prod source maps only when uploading to Sentry.
+**Decided:** Signup never resets an existing Auth password; invite acceptance remains the only password-set path for invited users.
+**Killed:** Query-string JWT, reflect-any-origin CORS, real-looking password in `.env.example`.
+**Deferred:** Credential rotation (user tonight). Stale GitHub branch delete. Ghost payroll / onboarding residue. Live-DB confirm of ExpenseSubmission exposure until migration is applied.
+**State after:** Code-side exploitable signup bug closed; RLS migration ready to apply. Keys still live until user rotates them.
+**Next:** Rotate Neon + Supabase keys, set `APP_URL`/`CORS_ORIGINS` on Vercel, apply the RLS migration, delete `claude/relaxed-austin-510c58`.
 
 ### 2026-06-25 — Purge committed env secrets from git history
 **Did:** Found `.env.production.vercel` and `.env.production.tmp` committed in history (live Neon

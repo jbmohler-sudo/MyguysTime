@@ -38,8 +38,7 @@ function toUserRole(role: string): UserRole | null {
 
 export async function authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const header = req.header("Authorization");
-  const queryToken = typeof req.query.token === "string" ? req.query.token : null;
-  const token = header?.startsWith("Bearer ") ? header.slice(7) : queryToken;
+  const token = header?.startsWith("Bearer ") ? header.slice(7) : null;
 
   if (!token) {
     res.status(401).json({ error: "Authentication required." });

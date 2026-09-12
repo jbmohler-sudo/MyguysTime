@@ -12,11 +12,18 @@ import { employeesRouter } from "./routes/employees.js";
 import { invitesRouter } from "./routes/invites.js";
 import { timesheetsRouter } from "./routes/timesheets.js";
 import { reportsRouter } from "./routes/reports.js";
+import { isOriginAllowed } from "./publicUrl.js";
 
 export const app = express();
 const port = Number(process.env.PORT || 3001);
 
-app.use(cors({ origin: true, credentials: false }));
+app.set("trust proxy", 1);
+app.use(cors({
+  origin(origin, callback) {
+    callback(null, isOriginAllowed(origin));
+  },
+  credentials: false,
+}));
 app.use(express.json({ limit: "8mb" }));
 
 app.use("/api", healthRouter);

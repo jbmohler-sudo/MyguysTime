@@ -182,6 +182,37 @@ await runCase("new admin signup returns a valid bootstrap with setup incomplete"
   }
 });
 
+await runCase("signup cannot overwrite an existing auth user's password", async () => {
+  const app = await bootApp();
+  try {
+    const takeover = await app.api("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fullName: "Attacker",
+        companyName: "Attack Co",
+        email: "marco@crewtime.local",
+        password: "hacked-password-99",
+      }),
+    });
+    const payload = await takeover.json();
+
+    assert.equal(takeover.status, 409);
+    assert.match(payload.error, /already exists/i);
+
+    const token = await app.login("marco@crewtime.local", "employee123");
+    assert.ok(token);
+
+    const stolen = await supabase.auth.signInWithPassword({
+      email: "marco@crewtime.local",
+      password: "hacked-password-99",
+    });
+    assert.ok(stolen.error);
+  } finally {
+    await app.shutdown();
+  }
+});
+
 await runCase("new admin can complete onboarding after signup", async () => {
   const app = await bootApp();
   try {

@@ -8,4 +8,6 @@ process.env.SENTRY_UPLOAD_SOURCEMAPS = "false";
 const { assertSafeFixtureMutationContext } = await import("../dist-server/server/envSafety.js");
 assertSafeFixtureMutationContext("tests/run-tests.mjs");
 
+await import("./security-guards.test.mjs");
+await import("./public-url.test.mjs");
 await import("./run-tests.mjs");
