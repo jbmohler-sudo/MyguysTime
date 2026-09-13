@@ -25,15 +25,15 @@ const workflowSteps: WorkflowStep[] = [
   {
     number: 2,
     title: 'Review the week in the office',
-    description: 'See your entire crew in one place. Perfect for small crew timecard management.',
+    description: 'See your entire crew in one place, with clear weekly status and day-by-day review.',
     details: 'It works as a small crew timecard app with clear weekly status and day-by-day review. Catch discrepancies before they slow the office down.',
     icon: <Eye className="w-8 h-8" />,
   },
   {
     number: 3,
     title: 'Adjust and finalize',
-    description: 'Handle reimbursements, deductions, and mixed crews. Works as a simple subcontractor 1099 tracker.',
-    details: 'It also works as a simple subcontractor 1099 tracker when you need clean weekly review. Manage all the details that matter to your bottom line.',
+    description: 'Handle reimbursements, deductions, and mixed crews — W-2 and 1099.',
+    details: 'Clean weekly review with all the details that matter to your bottom line.',
     icon: <BarChart3 className="w-8 h-8" />,
   },
   {
@@ -154,7 +154,7 @@ export function PublicHomepage() {
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
-    document.title = 'Contractor Hour Tracking App | My Guys Time';
+    document.title = 'My Guys Time — Simple Time Cards for Contractor Crews | $12/mo Flat';
   }, []);
 
   useEffect(() => {
@@ -272,6 +272,9 @@ export function PublicHomepage() {
             <a href="#features" className="text-slate-600 hover:text-orange-500 transition-colors text-sm font-medium">
               Features
             </a>
+            <a href="#pricing" className="text-slate-600 hover:text-orange-500 transition-colors text-sm font-medium">
+              Pricing
+            </a>
             {isInstallReady && !isInstalled ? (
               <button
                 onClick={() => void handleInstallApp()}
@@ -283,7 +286,7 @@ export function PublicHomepage() {
             <button
               onClick={handleStartClick}
               className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105">
-              Start your week
+              Start my free week
             </button>
           </nav>
         </div>
@@ -297,12 +300,12 @@ export function PublicHomepage() {
             <div>
               <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Simple Construction Time Cards</span>
               <h1 className="text-5xl md:text-6xl font-bold text-slate-900 leading-tight mt-3">
-                Track Crew Hours &amp; Review Time Cards in Seconds—Built for Contractors
+                Track crew hours without the Thursday-at-5pm scramble.
               </h1>
             </div>
 
             <p className="text-lg text-slate-600 leading-relaxed">
-              My Guys Time is a simple <strong>contractor hour tracking app</strong> built for small crews. Track your guys' hours, review the week, and export clean totals for the office. Perfect for roofing, masonry, landscaping, and other trades.
+              My Guys Time is a <strong>contractor hour tracking app</strong> built for small crews. Your guys log hours from the field, you review the week from the office, and the totals come out clean. Roofing, masonry, landscaping — any trade.
             </p>
             <p className="text-lg font-semibold text-orange-600 leading-relaxed">
               Stop using crinkled notebooks or scraps of wood from the jobsite to track hours.
@@ -312,7 +315,7 @@ export function PublicHomepage() {
               <button
                 onClick={handleStartClick}
                 className="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2">
-                Start your week
+                Start my free week
                 <ArrowRight className="w-5 h-5" />
               </button>
               {isInstallReady && !isInstalled ? (
@@ -331,13 +334,17 @@ export function PublicHomepage() {
               </a>
             </div>
 
+            <p className="text-sm font-semibold text-slate-700">
+              $12/month flat for the whole company — 7 days free, no per-seat fees, cancel anytime.
+            </p>
+
             <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-5">
               <div className="flex flex-col gap-4">
                 <div>
-                  <p className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Live Demo Access</p>
-                  <h3 className="text-xl font-bold text-slate-900 mt-2">Jump straight into the real app by role</h3>
+                  <p className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Live demo</p>
+                  <h3 className="text-xl font-bold text-slate-900 mt-2">See it working in 30 seconds.</h3>
                   <p className="text-sm text-slate-600 mt-2">
-                    Use seeded demo users so we can inspect the live interface without typing passwords every time.
+                    Pick a role and poke around the real app — no signup, no password.
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -380,6 +387,40 @@ export function PublicHomepage() {
         {/* Mobile Product Preview */}
         <div className="lg:hidden mt-12">
           <ProductPreview />
+        </div>
+      </section>
+
+      {/* Founder Story Section */}
+      <section className="max-w-6xl mx-auto px-6 py-20">
+        <div className="max-w-3xl mx-auto text-center space-y-6">
+          <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Why this exists</span>
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
+            Built by a contractor, for contractors.
+          </h2>
+          <img
+            src="/images/myguystime-story-hook.webp"
+            alt="Contractor staring into the camera, overwhelmed, with math swirling around his head"
+            className="rounded-2xl shadow-xl w-full"
+          />
+          <div className="text-left text-lg text-slate-600 leading-relaxed space-y-4">
+            <p>
+              I used to track hours on a chunk of 2x6 I kept behind the truck seat. Scribble the hours, done. It worked fine when it was my small crew and I was there to write it down.
+            </p>
+            <img
+              src="/images/myguystime-story-2x8.jpg"
+              alt="Hand writing crew hours on a 2x8 with a carpenter&apos;s pencil"
+              className="rounded-2xl shadow-xl w-full"
+            />
+            <p>
+              Then I put a foreman on a second crew, and every Thursday at 5pm they&apos;d try to reconstruct the entire week from memory while trying to get home. It was a mess.
+            </p>
+            <p>
+              I went looking on the Play Store. Everything was built for office people, and every one of them wanted to charge me per guy. Absurd that an app costs more because you hired another person.
+            </p>
+            <p>
+              So I built the app I actually wanted: one flat price, the whole crew. W-2s and 1099s, petty cash, and reimbursements for when the guys have to spend their own money. A contractor&apos;s app, made by one.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -552,15 +593,77 @@ export function PublicHomepage() {
           </div>
         </section>
 
-        {/* Trust Section */}
+          {/* Pricing Section */}
+        <section id="pricing" className="mb-32">
+          <div className="mb-16 text-center">
+            <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Pricing</span>
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight mt-4">
+              One price. The whole crew.
+            </h2>
+          </div>
+
+          <div className="max-w-2xl mx-auto bg-white rounded-2xl border-2 border-orange-500 shadow-xl p-8 md:p-12">
+            <div className="text-center mb-8">
+              <p className="text-5xl font-bold text-slate-900">$12<span className="text-xl font-semibold text-slate-600">/month</span></p>
+              <p className="text-slate-600 mt-2">Flat. No per-seat fees, no tiers, no surprises.</p>
+            </div>
+            <ul className="space-y-4 mb-8">
+              {[
+                'Every foreman, worker, and office user included',
+                '7 days free — run a full pay period before you pay a dime',
+                'Hiring another guy never raises your bill',
+                'Cancel anytime from the billing portal — no contracts, no phone calls',
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-3 text-slate-700 font-medium">
+                  <Check className="w-6 h-6 text-orange-500 flex-shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={handleStartClick}
+              className="w-full px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+            >
+              Start my free week
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section id="faq" className="mb-32">
+          <div className="mb-16">
+            <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Questions</span>
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight mt-4">
+              Asked by contractors, answered straight
+            </h2>
+          </div>
+          <div className="max-w-3xl mx-auto space-y-6">
+            {[
+              { q: 'Do I need to install anything?', a: "No app store, no downloads forced on anyone. It runs in the browser and installs to the home screen like an app on any phone." },
+              { q: 'Do I pay per employee?', a: "No. $12 a month covers the entire company — foremen, workers, office, all of them." },
+              { q: 'Does it handle 1099 subs or just W-2 guys?', a: "Both. Mixed crews are normal; the app doesn't care how you classify them." },
+              { q: 'What if my guys buy materials out of pocket?', a: "Log it as a reimbursement or petty cash right on the time card. It lands in the weekly totals." },
+              { q: 'What happens after the 7-day trial?', a: "The $12/month subscription starts. Cancel anytime before that and you pay nothing." },
+              { q: 'Can I cancel?', a: "Anytime, from the billing portal. No contract, no retention call." },
+            ].map((item) => (
+              <div key={item.q} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{item.q}</h3>
+                <p className="text-slate-600 leading-relaxed">{item.a}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+      {/* Trust Section */}
         <section className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-12 md:p-16 text-center text-white">
           <div className="max-w-3xl mx-auto">
-            <span className="text-xs font-semibold tracking-widest text-orange-400 uppercase">Time Card Reminder</span>
+            <span className="text-xs font-semibold tracking-widest text-orange-400 uppercase">No bloat</span>
             <h2 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-              Built for job site time cards
+              The missing middle between the job site and the office.
             </h2>
             <p className="text-lg text-slate-300 leading-relaxed">
-              My Guys Time helps you track hours, review totals, and hand off clean weekly records. Always verify hours and adjustments before sending totals along.
+              Not a heavy office system with seventeen modules you&apos;ll never open. Just clean hour tracking, weekly review, and totals the office can actually use.
             </p>
           </div>
         </section>
@@ -590,26 +693,14 @@ export function PublicHomepage() {
                     Features
                   </a>
                 </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
                 <li>
-                  <a href="#" className="hover:text-orange-500 transition-colors">
-                    About
+                  <a href="#pricing" className="hover:text-orange-500 transition-colors">
+                    Pricing
                   </a>
                 </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
                 <li>
-                  <a href="#" className="hover:text-orange-500 transition-colors">
-                    Privacy
+                  <a href="#faq" className="hover:text-orange-500 transition-colors">
+                    FAQ
                   </a>
                 </li>
               </ul>
