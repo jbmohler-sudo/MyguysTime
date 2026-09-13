@@ -8,7 +8,7 @@
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:client": "vite",
     "dev:server": "tsx watch server/index.ts",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && vite build --ssr scripts/public-homepage-ssr-entry.tsx --outDir dist/ssr --ssrManifest false && node -e \"const fs=require('fs');fs.renameSync('dist/ssr/public-homepage-ssr-entry.js','dist/ssr/public-homepage.mjs')\" && node scripts/prerender-landing.mjs",
     "preview": "vite preview",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",

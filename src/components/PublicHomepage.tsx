@@ -26,7 +26,7 @@ const workflowSteps: WorkflowStep[] = [
     number: 2,
     title: 'Review the week in the office',
     description: 'See your entire crew in one place, with clear weekly status and day-by-day review.',
-    details: 'It works as a small crew timecard app with clear weekly status and day-by-day review. Catch discrepancies before they slow the office down.',
+    details: 'It works as a small crew time card app with clear weekly status and day-by-day review. Catch discrepancies before they slow the office down.',
     icon: <Eye className="w-8 h-8" />,
   },
   {
@@ -52,7 +52,21 @@ const features = [
   'Manage multiple crews on different jobs seamlessly',
 ];
 
-function ProductPreview() {
+// Single source of truth for the FAQ — rendered on the page AND emitted as
+// FAQPage JSON-LD by scripts/build-structured-data.mjs so they cannot drift.
+export const faqItems: { q: string; a: string }[] = [
+  {
+    q: 'Do I need to install anything?',
+    a: "No app store, no downloads forced on anyone. It runs in the browser and installs to the home screen like an app on any phone — open the site menu and choose 'Add to Home Screen' when your phone offers it.",
+  },
+  { q: 'Do I pay per employee?', a: "No. $12 a month covers the entire company — foremen, workers, office, all of them." },
+  { q: 'Does it handle 1099 subs or just W-2 guys?', a: "Both. Mixed crews are normal; the app doesn't care how you classify them." },
+  { q: 'What if my guys buy materials out of pocket?', a: "Log it as a reimbursement or petty cash right on the time card. It lands in the weekly totals." },
+  { q: 'What happens after the 7-day trial?', a: "The $12/month subscription starts. Cancel anytime before that and you pay nothing." },
+  { q: 'Can I cancel?', a: "Anytime, from the billing portal. No contract, no retention call." },
+];
+
+export function ProductPreview() {
   return (
     <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200/50 hover:shadow-3xl transition-shadow duration-500">
       {/* Top Bar */}
@@ -66,7 +80,7 @@ function ProductPreview() {
           </div>
         </div>
         <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">
-          Time-card ready
+          Time card ready
         </span>
       </div>
 
@@ -263,7 +277,7 @@ export function PublicHomepage() {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
               <CheckCircle2 className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">My Guys Time</h1>
+            <p className="text-2xl font-bold text-slate-900">My Guys Time</p>
           </div>
           <nav className="hidden md:flex items-center gap-8">
             <a href="#workflow" className="text-slate-600 hover:text-orange-500 transition-colors text-sm font-medium">
@@ -308,27 +322,18 @@ export function PublicHomepage() {
               My Guys Time is a <strong>contractor hour tracking app</strong> built for small crews. Your guys log hours from the field, you review the week from the office, and the totals come out clean. Roofing, masonry, landscaping — any trade.
             </p>
             <p className="text-lg font-semibold text-orange-600 leading-relaxed">
-              Stop using crinkled notebooks or scraps of wood from the jobsite to track hours.
+              Stop using crinkled notebooks or scraps of wood from the job site to track hours.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={handleStartClick}
-                className="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2">
+                className="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap">
                 Start my free week
-                <ArrowRight className="w-5 h-5" />
               </button>
-              {isInstallReady && !isInstalled ? (
-                <button
-                  onClick={() => void handleInstallApp()}
-                  className="px-8 py-4 border-2 border-slate-300 hover:border-orange-500 text-slate-900 hover:text-orange-500 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
-                >
-                  Install on this phone
-                </button>
-              ) : null}
               <a
                 href="#workflow"
-                className="px-8 py-4 border-2 border-slate-300 hover:border-orange-500 text-slate-900 hover:text-orange-500 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+                className="px-8 py-4 border-2 border-slate-300 hover:border-orange-500 text-slate-900 hover:text-orange-500 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap"
               >
                 See how it works
               </a>
@@ -344,7 +349,8 @@ export function PublicHomepage() {
                   <p className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Live demo</p>
                   <h3 className="text-xl font-bold text-slate-900 mt-2">See it working in 30 seconds.</h3>
                   <p className="text-sm text-slate-600 mt-2">
-                    Pick a role and poke around the real app — no signup, no password.
+                    Pick a role and poke around the real app — no signup, no password. Or head straight to{" "}
+                    <a href="/demo/admin" className="text-orange-600 font-semibold hover:underline">the demo</a>.
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -397,29 +403,33 @@ export function PublicHomepage() {
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
             Built by a contractor, for contractors.
           </h2>
-          <img
-            src="/images/myguystime-story-hook.webp"
-            alt="Contractor staring into the camera, overwhelmed, with math swirling around his head"
-            className="rounded-2xl shadow-xl w-full"
-          />
           <div className="text-left text-lg text-slate-600 leading-relaxed space-y-4">
             <p>
               I used to track hours on a chunk of 2x6 I kept behind the truck seat. Scribble the hours, done. It worked fine when it was my small crew and I was there to write it down.
             </p>
             <img
               src="/images/myguystime-story-2x8.jpg"
-              alt="Hand writing crew hours on a 2x8 with a carpenter&apos;s pencil"
+              alt="Handwritten crew hours and names on a board, written with a carpenter's pencil"
               className="rounded-2xl shadow-xl w-full"
             />
             <p>
               Then I put a foreman on a second crew, and every Thursday at 5pm they&apos;d try to reconstruct the entire week from memory while trying to get home. It was a mess.
             </p>
             <p>
-              I went looking on the Play Store. Everything was built for office people, and every one of them wanted to charge me per guy. Absurd that an app costs more because you hired another person.
+              I went looking on the Play Store. Everything was built for office people, and every one of them wanted to charge me per guy. Why should the app cost more because you hired another guy?
             </p>
             <p>
-              So I built the app I actually wanted: one flat price, the whole crew. W-2s and 1099s, petty cash, and reimbursements for when the guys have to spend their own money. A contractor&apos;s app, made by one.
+              So I built it. One flat price, the whole crew, made by a contractor.
             </p>
+            <div className="pt-2">
+              <button
+                onClick={handleStartClick}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+              >
+                Start my free week
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -429,10 +439,10 @@ export function PublicHomepage() {
         <div className="max-w-3xl mx-auto px-6 text-center space-y-6">
           <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Why crews use it</span>
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
-            The bridge between the job site and the office, without the bloat
+            Hours in the field. Totals in the office. Nothing in between.
           </h2>
           <p className="text-lg text-slate-600 leading-relaxed">
-            This is the missing middle. Not a heavy office system. Just a clean way to check hours, review the week, and hand off time-card totals.
+            Not a heavy office system. Just a clean way to check hours, review the week, and hand off time-card totals.
           </p>
         </div>
       </section>
@@ -450,12 +460,11 @@ export function PublicHomepage() {
             </h2>
           </div>
 
-          {/* Workflow Steps */}
+          {/* Workflow Steps — vertical timeline: numbers on one side, cards aligned, continuous connector */}
           <div className="space-y-12 md:space-y-16">
             {workflowSteps.map((step, index) => {
               const isVisible = visibleSteps.has(step.number);
               const isExpanded = expandedStep === step.number;
-              const isLeft = index % 2 === 0;
 
               return (
                 <div
@@ -465,13 +474,13 @@ export function PublicHomepage() {
                     isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                   }`}
                 >
-                  <div className={`flex gap-8 md:gap-12 items-stretch ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
-                    {/* Left Side - Step Indicator */}
+                  <div className="flex gap-8 md:gap-12 items-stretch">
+                    {/* Left Side - Step Indicator (always on the left, continuous line below) */}
                     <div className="flex flex-col items-center flex-shrink-0">
-                      <div className="relative">
+                      <div className="relative flex flex-col items-center flex-1">
                         {/* Step Circle */}
                         <div
-                          className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-500 ${
+                          className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-500 flex-shrink-0 ${
                             isExpanded
                               ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 scale-110'
                               : 'bg-white border-2 border-slate-200 text-slate-900 shadow-sm'
@@ -479,10 +488,10 @@ export function PublicHomepage() {
                         >
                           {step.number}
                         </div>
-                        {/* Connecting Line */}
+                        {/* Connecting Line — continuous 1 through 4 */}
                         {index < workflowSteps.length - 1 && (
                           <div
-                            className={`absolute top-16 left-1/2 -translate-x-1/2 w-1 h-20 md:h-24 transition-all duration-700 ${
+                            className={`absolute top-16 bottom-[-3rem] md:bottom-[-4rem] left-1/2 -translate-x-1/2 w-1 transition-all duration-700 ${
                               isExpanded ? 'bg-orange-500' : 'bg-slate-200'
                             }`}
                           />
@@ -490,7 +499,7 @@ export function PublicHomepage() {
                       </div>
                     </div>
 
-                    {/* Right Side - Content Card */}
+                    {/* Right Side - Content Card (always on the right, top-aligned) */}
                     <div className="flex-1 pt-2">
                       <button
                         onClick={() => setExpandedStep(isExpanded ? null : step.number)}
@@ -504,19 +513,10 @@ export function PublicHomepage() {
                           }`}
                         >
                           {/* Step Label */}
-                          <div className="flex items-start justify-between mb-3">
+                          <div className="mb-3">
                             <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">
                               Step {step.number}
                             </span>
-                            <div
-                              className={`text-slate-400 transition-transform duration-500 ${
-                                isExpanded ? 'text-orange-500 rotate-90' : 'group-hover:text-slate-600'
-                              }`}
-                            >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                              </svg>
-                            </div>
                           </div>
 
                           {/* Icon and Title */}
@@ -630,7 +630,7 @@ export function PublicHomepage() {
           </div>
         </section>
 
-        {/* FAQ Section */}
+        {/* FAQ Section — cards align to the same left edge as the heading */}
         <section id="faq" className="mb-32">
           <div className="mb-16">
             <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">Questions</span>
@@ -638,15 +638,8 @@ export function PublicHomepage() {
               Asked by contractors, answered straight
             </h2>
           </div>
-          <div className="max-w-3xl mx-auto space-y-6">
-            {[
-              { q: 'Do I need to install anything?', a: "No app store, no downloads forced on anyone. It runs in the browser and installs to the home screen like an app on any phone." },
-              { q: 'Do I pay per employee?', a: "No. $12 a month covers the entire company — foremen, workers, office, all of them." },
-              { q: 'Does it handle 1099 subs or just W-2 guys?', a: "Both. Mixed crews are normal; the app doesn't care how you classify them." },
-              { q: 'What if my guys buy materials out of pocket?', a: "Log it as a reimbursement or petty cash right on the time card. It lands in the weekly totals." },
-              { q: 'What happens after the 7-day trial?', a: "The $12/month subscription starts. Cancel anytime before that and you pay nothing." },
-              { q: 'Can I cancel?', a: "Anytime, from the billing portal. No contract, no retention call." },
-            ].map((item) => (
+          <div className="space-y-6">
+            {faqItems.map((item) => (
               <div key={item.q} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                 <h3 className="text-lg font-bold text-slate-900 mb-2">{item.q}</h3>
                 <p className="text-slate-600 leading-relaxed">{item.a}</p>
@@ -658,13 +651,28 @@ export function PublicHomepage() {
       {/* Trust Section */}
         <section className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-12 md:p-16 text-center text-white">
           <div className="max-w-3xl mx-auto">
-            <span className="text-xs font-semibold tracking-widest text-orange-400 uppercase">No bloat</span>
+            <span className="text-xs font-semibold tracking-widest text-orange-600 uppercase">No bloat</span>
             <h2 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-              The missing middle between the job site and the office.
+              Hours in the truck. Totals in the office.
             </h2>
-            <p className="text-lg text-slate-300 leading-relaxed">
+            <p className="text-lg text-slate-300 leading-relaxed mb-8">
               Not a heavy office system with seventeen modules you&apos;ll never open. Just clean hour tracking, weekly review, and totals the office can actually use.
             </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={handleStartClick}
+                className="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                Start my free week
+                <ArrowRight className="w-5 h-5" />
+              </button>
+              <a
+                href="#workflow"
+                className="px-8 py-4 border-2 border-slate-500 hover:border-orange-400 text-slate-100 hover:text-orange-300 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                Try the demo
+              </a>
+            </div>
           </div>
         </section>
       </main>
@@ -701,6 +709,18 @@ export function PublicHomepage() {
                 <li>
                   <a href="#faq" className="hover:text-orange-500 transition-colors">
                     FAQ
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* TODO: Privacy + Terms pages don't exist in this app yet. Do not invent legal copy — add real static pages here when written. */}
+            <div>
+              <h4 className="font-semibold text-slate-900 mb-4">Company</h4>
+              <ul className="space-y-2 text-sm text-slate-600">
+                <li>
+                  <a href="mailto:jeff@myguystime.com" className="hover:text-orange-500 transition-colors">
+                    Contact
                   </a>
                 </li>
               </ul>
