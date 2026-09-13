@@ -610,7 +610,7 @@ export function PublicHomepage() {
             <ul className="space-y-4 mb-8">
               {[
                 'Every foreman, worker, and office user included',
-                '7 days free — run a full pay period before you pay a dime',
+                'Try before you buy — 7 days free, a full pay period before you pay a dime',
                 'Hiring another guy never raises your bill',
                 'Cancel anytime from the billing portal — no contracts, no phone calls',
               ].map((item) => (
