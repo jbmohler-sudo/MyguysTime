@@ -6,11 +6,14 @@
 
 ## Current State
 
-- **What it is:** payroll/timesheet management app — React/TypeScript + Node/Express + Supabase
-  (project `ufbanjchatwkheaqafsf`), deployed on Vercel.
-- **In progress:** Stripe billing code (Muse) — schema columns are on Neon; app code not in this repo yet.
-- **Just done:** added nullable Company Stripe fields and applied `20260913143000_add_company_stripe_billing` on Neon.
-- **Biggest open item:** Muse pulls `main` and pushes billing code (no second ALTER). Optional Neon→Supabase later.
+- **What it is:** timesheet/crew-board app — React/TypeScript + Node/Express. Auth is Supabase
+  `ufbanjchatwkheaqafsf`. App data is Neon. Live at `app.myguystime.com` on Vercel (Hobby).
+- **Live:** $12/mo company Stripe billing, checkout + webhook, Resend receipt on first paid
+  period, 7-day no-card trial on new signups. Paid companies stay on `active`.
+- **In progress:** `feat/landing-audit` — marketing landing pass (do not merge to `main` until
+  that work is handed back).
+- **Biggest open item:** finish the landing audit on the feature branch. Optional later:
+  Auth admin on `sb_secret_` (then disable legacy JWT), Neon→one Supabase DB.
 
 ## The Story So Far
 
@@ -19,12 +22,18 @@ engine out** (tax columns dropped from DB, tax types removed from models/UI, pay
 reports routes removed) — the office view is now hours + rate + notes only. On top of that, the
 crew workflow was built up: weekly crew board, foreman incident notes, solo-crew auto-approval
 past the foreman step, copyable invite links, and receipt-photo capture for expenses via Supabase
-Storage.
+Storage. September 2026 added live Stripe billing ($12/mo per company), a 7-day
+no-card trial, and a Resend receipt after the first paid period. Auth stayed on
+Supabase; app rows moved to Neon.
 
 ## Decisions Log
 
 | Date | Decision | Why |
 |------|----------|-----|
+| 2026-09-13 | New companies get a **7-day app trial** (no card), then $12/mo Checkout | Customary try-before-pay. `trialing` + `subscriptionTrialEndsAt`; gate after the date. Receipts only on Stripe `active`. |
+| 2026-09-13 | Vercel Hobby API routes need `api/<prefix>/[...path].ts` | Root `api/[...path]` only matches one extra segment (`/api/health` works; `/api/billing/checkout` 404'd). |
+| 2026-09-13 | Auth **admin** still uses legacy JWT `service_role`; publishable `sb_publishable_` for anon/VITE | `sb_secret_` was rejected by Auth admin. Do not put `service_role` in `VITE_*`. |
+| 2026-09-13 | App DB is Neon; Auth stays on Supabase `ufbanj…` | Wrong-project keys (`pmwzgag…`) cause Invalid API key. |
 | 2026-09-12 | Unauthenticated signup must **create** Auth users only — never `updateUserById` | Invite-created Auth accounts were takeover targets: anyone who knew the email could set a new password. |
 | 2026-09-12 | Invite links and CORS use `APP_URL` / `CORS_ORIGINS`, not the request `Origin` | A spoofed Origin minted attacker-shaped invite URLs and reflected CORS. |
 | 2026-06-25 | Remediate leaked env secrets by **rewriting git history** (`git filter-repo`) + force-push, then rotate creds | Secrets (`.env.production.*`) had been committed and pushed; scrub limits future exposure, rotation neutralizes the leak. |
@@ -36,8 +45,11 @@ Storage.
 | System | File(s) | Status | Note |
 |--------|---------|--------|------|
 | Frontend | React/TS app | live | Office view = hours + rate + notes (no payroll surface). |
-| Backend | Node/Express | live | Payroll export/report routes removed. |
-| Data | Supabase `ufbanjchatwkheaqafsf` | live | RLS + REVOKE on ExpenseSubmission added 2026-09-12; apply migration on live DB. |
+| Backend | Node/Express on Vercel `/api` | live | Dedicated handlers per prefix (`api/billing`, `api/stripe`, `api/auth`, …). |
+| Auth | Supabase `ufbanjchatwkheaqafsf` | live | Publishable anon + legacy JWT `service_role` for admin. |
+| Data | Neon (`neondb`) | live | Prisma + RLS. Auth is not on this DB. |
+| Billing | `server/routes/billing.ts` | live | $12/mo, 7-day trial, `/billing/sync` after Checkout, webhook `/api/billing/webhook`. |
+| Receipts | `server/email/subscriptionReceiptEmail.ts` | live | Resend to company admin on first paid period. |
 | Crew workflow | weekly crew board, foreman approval | live | Solo crews (1 member) auto-approve past foreman. |
 | Expenses | receipt capture | live | Camera → Supabase Storage, signed-URL viewing. |
 | Secrets | `.env.*` (git-ignored) | hardened | `.env.production.*` purged from history 2026-06-25. |
@@ -47,12 +59,23 @@ Storage.
 - **Tax / state-payroll engine** — killed. Tax columns, `StatePayrollRule`, tax types/UI, and
   payroll exports all removed. App is timesheet-only now.
 - **SMS reminder stub** — removed as unused.
+- **Unlock-only-via-Stripe-webhook** — killed. Checkout return now syncs from Stripe; webhook 308/404 left paid companies gated.
+- **Hard paywall on first login** — superseded 2026-09-13 by the 7-day no-card trial.
 
 ## Open Questions
 
-- None recorded yet.
+- After Auth admin accepts `sb_secret_`, can legacy JWT keys be disabled?
+- Keep Neon + Supabase, or move app data onto one Supabase project?
 
 ## Session Log
+
+### 2026-09-13 — Stripe billing live, receipts, 7-day trial
+**Did:** Shipped Checkout/portal/webhook, Vercel `api/billing` + `api/stripe` handlers, `/billing/sync` so pay unlocks without the webhook, Resend subscription receipt, 7-day trial on signup. Rotated/fixed Supabase+Neon keys earlier the same day (wrong project `pmwzgag…` first). Unlocked the paid test company after webhook 308s.
+**Decided:** App trial (no card) for 7 days, then $12/mo. Receipts only when Stripe status is `active`. Webhook URL `https://app.myguystime.com/api/billing/webhook` (HTTPS; Stripe will not follow 308s).
+**Killed:** Assuming `/api/[...path]` covers nested billing routes on Hobby.
+**Deferred:** `sb_secret_` for Auth admin; grandfathering old unpaid companies; monthly invoice emails (confirmation receipt only).
+**State after:** Billing + trial live on `main` / production (`1aa6b97` and later). Current working branch is `feat/landing-audit`.
+**Next:** Landing audit on the feature branch. Do not push that work to `main` until handed back.
 
 ### 2026-09-13 — Company Stripe columns on Neon
 **Did:** Added nullable `stripeCustomerId`, `stripeSubscriptionId`, `subscriptionStatus`, `subscriptionTrialEndsAt` on `Company`. Applied `20260913143000_add_company_stripe_billing` via `migrate deploy`.
@@ -77,24 +100,14 @@ Storage.
 **State after:** Code-side exploitable signup bug closed; RLS migration ready to apply. Keys still live until user rotates them.
 **Next:** Rotate Neon + Supabase keys, set `APP_URL`/`CORS_ORIGINS` on Vercel, apply the RLS migration, delete `claude/relaxed-austin-510c58`.
 
-### 2026-06-25 — Purge committed env secrets from git history
-**Did:** Found `.env.production.vercel` and `.env.production.tmp` committed in history (live Neon
-Postgres password + Supabase `service_role` key, plus anon keys/OIDC tokens). Sanitized both
-on-disk files (values blanked, still git-ignored). Ran `git filter-repo` to remove both files from
-all 136 commits across every branch; force-pushed `main` (`ee0c20b`→`a701c65`). Verified secrets
-and files gone from all local and remote-tracking refs. Backup bundle saved at
-`c:\Umbrella\MyGuysTime-backup-pre-filter-20260625.bundle`.
-**Decided:** Scrub history now, rotate credentials next (history rewrite ≠ un-leak).
-**Killed:** The two env files no longer exist anywhere in git history.
-**Deferred:** **Credential rotation (Neon + Supabase) — still owed by the user, dashboard access required.**
-**State after:** Repo and remote clean; on-disk env files sanitized and ignored; main at `a701c65`.
-**Next:** Rotate the Neon `neondb_owner` password and roll the Supabase JWT secret; update Vercel env.
-
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
 ## Hard Rules
 
 - Never commit `.env*` files. `.env.*` is git-ignored — keep it that way.
+- Never put Supabase `service_role` (or any secret) in `VITE_*` / anon keys.
 - All public Supabase tables use RLS (authenticated-only). New tables need explicit `GRANT`s.
+- New Vercel API prefixes need their own `api/<prefix>/[...path].ts` file.
 - After ANY code change: commit and push to the current branch without being asked.
 - Before file/git work, respect the mount quirks in [`../UMBRELLA-GOTCHAS.md`](../UMBRELLA-GOTCHAS.md).
+- `feat/landing-audit` must not be merged or pushed to `main` until that work is handed back.
