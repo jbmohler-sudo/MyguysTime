@@ -448,7 +448,7 @@ export async function ensureWeekData(companyId: string, weekStart?: Date) {
 }
 
 export async function recalculateTimesheet(timesheetId: string, companyId: string) {
-  const { payrollSettings } = await getCompanyContextOrThrow(companyId);
+  await getCompanyContextOrThrow(companyId);
   const timesheet = await prisma.timesheetWeek.findUniqueOrThrow({
     where: { id: timesheetId },
     include: {
@@ -471,26 +471,6 @@ export async function recalculateTimesheet(timesheetId: string, companyId: strin
     }
   }
 
-  const estimate = calculatePayrollEstimate({
-    employee: timesheet.employee,
-    dayEntries: timesheet.dayEntries,
-    adjustment: timesheet.adjustment,
-  });
-
-  if (timesheet.payrollEstimate) {
-    await prisma.payrollEstimate.update({
-      where: { timesheetWeekId: timesheet.id },
-      data: estimate,
-    });
-  } else {
-    await prisma.payrollEstimate.create({
-      data: {
-        employeeId: timesheet.employeeId,
-        timesheetWeekId: timesheet.id,
-        ...estimate,
-      },
-    });
-  }
 }
 
 export async function getAuthorizedTimesheet(req: AuthenticatedRequest, timesheetId: string) {
@@ -535,14 +515,27 @@ export async function getAuthorizedTimesheet(req: AuthenticatedRequest, timeshee
   return null;
 }
 
+function livePayrollEstimate(timesheet: {
+  employee: { hourlyRateCents: number; overtimeRateCents: number | null };
+  dayEntries: Array<{ totalMinutes: number }>;
+  adjustment: { gasReimbursementCents: number; pettyCashCents: number; deductionCents: number } | null;
+}) {
+  return calculatePayrollEstimate({
+    employee: timesheet.employee,
+    dayEntries: timesheet.dayEntries,
+    adjustment: timesheet.adjustment,
+  });
+}
+
 export function serializeTimesheet(
   timesheet: Awaited<ReturnType<typeof getAuthorizedTimesheet>> extends infer T ? Exclude<T, null> : never,
   viewerRole: UserRole,
   usersById: Map<string, string>,
   ytdSummary: ReturnType<typeof createEmptyYtdSummary>,
 ) {
+  const estimate = livePayrollEstimate(timesheet);
   const totalHours = timesheet.dayEntries.reduce((sum, day) => sum + day.totalMinutes, 0) / 60;
-  const overtimeHours = (timesheet.payrollEstimate?.overtimeMinutes ?? 0) / 60;
+  const overtimeHours = estimate.overtimeMinutes / 60;
   const confirmedDays = timesheet.dayEntries.filter((entry) => entry.employeeConfirmed).length;
 
   return {
@@ -568,7 +561,7 @@ export function serializeTimesheet(
     })),
     weeklyTotalHours: Math.round((totalHours + Number.EPSILON) * 100) / 100,
     overtimeHours: Math.round((overtimeHours + Number.EPSILON) * 100) / 100,
-    grossPay: currencyFromCents(timesheet.payrollEstimate?.grossPayCents ?? 0),
+    grossPay: currencyFromCents(estimate.grossPayCents),
     confirmedDays,
     missingConfirmationDays: 7 - confirmedDays,
     adjustment: {
@@ -588,14 +581,14 @@ export function serializeTimesheet(
       submittedByFullName: usersById.get(expense.submittedByUserId) ?? "Unknown user",
     })),
     payrollEstimate: {
-      regularHours: (timesheet.payrollEstimate?.regularMinutes ?? 0) / 60,
-      overtimeHours: (timesheet.payrollEstimate?.overtimeMinutes ?? 0) / 60,
-      grossPay: currencyFromCents(timesheet.payrollEstimate?.grossPayCents ?? 0),
+      regularHours: estimate.regularMinutes / 60,
+      overtimeHours: estimate.overtimeMinutes / 60,
+      grossPay: currencyFromCents(estimate.grossPayCents),
       reimbursements: currencyFromCents(
         (timesheet.adjustment?.gasReimbursementCents ?? 0) + (timesheet.adjustment?.pettyCashCents ?? 0),
       ),
       deductions: currencyFromCents(timesheet.adjustment?.deductionCents ?? 0),
-      netCheckEstimate: currencyFromCents(timesheet.payrollEstimate?.netCheckEstimateCents ?? 0),
+      netCheckEstimate: currencyFromCents(estimate.netCheckEstimateCents),
     },
     ytdSummary,
     exportedAt: timesheet.exportedAt?.toISOString() ?? null,
@@ -645,18 +638,19 @@ export async function buildYtdSummaries(
     include: {
       employee: true,
       adjustment: true,
-      payrollEstimate: true,
+      dayEntries: true,
     },
   });
 
   for (const timesheet of ytdTimesheets) {
+    const estimate = livePayrollEstimate(timesheet);
     const current = fallbackSummaries.get(timesheet.employeeId) ?? createEmptyYtdSummary(asWorkerType(timesheet.employee.workerType), calendarYear);
-    current.grossPayments += currencyFromCents(timesheet.payrollEstimate?.grossPayCents ?? 0);
+    current.grossPayments += currencyFromCents(estimate.grossPayCents);
     current.reimbursements += currencyFromCents(
       (timesheet.adjustment?.gasReimbursementCents ?? 0) + (timesheet.adjustment?.pettyCashCents ?? 0),
     );
     current.deductions += currencyFromCents(timesheet.adjustment?.deductionCents ?? 0);
-    current.netEstimate += currencyFromCents(timesheet.payrollEstimate?.netCheckEstimateCents ?? 0);
+    current.netEstimate += currencyFromCents(estimate.netCheckEstimateCents);
     fallbackSummaries.set(timesheet.employeeId, current);
   }
 
@@ -939,5 +933,3 @@ export async function finalizeEmployeeArchive(
 
   return result;
 }
-
-// Re-export for convenience in r

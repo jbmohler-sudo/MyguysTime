@@ -1121,7 +1121,7 @@ export function AppShell({
                   <button
                     className={[
                       isActive ? "app-nav__item app-nav__item--active" : "app-nav__item",
-                      item.key === "team" ? "nav__item--team" : "",
+                      item.key === "team" ? "nav__item--team" : item.key === "company-settings" ? "nav__item--company" : "",
                     ]
                       .filter(Boolean)
                       .join(" ")}

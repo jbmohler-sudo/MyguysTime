@@ -78,20 +78,6 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
   return payload as T;
 }
 
-export async function login(email: string, password: string) {
-  return request<{ token: string }>("/auth/login", {
-    method: "POST",
-    body: JSON.stringify({ email, password }),
-  });
-}
-
-export async function startDemoSession(role: "admin" | "foreman" | "employee") {
-  return request<{ token: string }>("/auth/demo-access", {
-    method: "POST",
-    body: JSON.stringify({ role }),
-  });
-}
-
 export async function signup(fullName: string, companyName: string, email: string, password: string) {
   return request<{ token: string }>("/auth/signup", {
     method: "POST",

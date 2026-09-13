@@ -8,11 +8,10 @@
 
 - **What it is:** payroll/timesheet management app — React/TypeScript + Node/Express + Supabase
   (project `ufbanjchatwkheaqafsf`), deployed on Vercel.
-- **In progress:** credential rotation (user, tonight) and remaining audit residue (ghost payroll,
-  onboarding, dead API, schema SQL).
-- **Just done:** security session — signup no longer overwrites invite Auth passwords; ExpenseSubmission
-  RLS + GRANTs; `.env.example` scrubbed; CORS/invite URLs no longer trust a spoofed Origin; JWTs
-  only via `Authorization`.
+- **In progress:** optional Neon→Supabase consolidation; Prisma migration-history repair on Neon.
+- **Just done:** residue sweep — no more PayrollEstimate writes on timesheet save, onboarding no
+  longer targets a deleted export button, dead login/demo API helpers gone, schema SQL regenerated
+  from Prisma with GRANTs, unused Checkly/Playwright/radix deps removed.
 - **Biggest open item:** ⚠️ **Rotate Neon + Supabase keys and update Vercel env** — user is doing
   this tonight. After that: delete stale GitHub branch `origin/claude/relaxed-austin-510c58`, apply
   the new RLS migration on the live DB, then the residue sweep.
@@ -58,6 +57,14 @@ Storage.
 - None recorded yet.
 
 ## Session Log
+
+### 2026-09-12 — Residue sweep (payroll ghost, onboarding, schema)
+**Did:** Stopped timesheet save from writing PayrollEstimate; YTD/serialize now compute from hours. Replaced broken export-payroll onboarding step. Removed dead `login`/`startDemoSession` API fns. Regenerated `guys_schema_migration.sql` from Prisma with RLS + GRANT/REVOKE. Removed unused checkly/playwright/radix/cva/jiti deps. Applied ExpenseSubmission RLS SQL on Neon (full `migrate deploy` still blocked by stale history).
+**Decided:** Leave the PayrollEstimate table in place; just stop writing it.
+**Killed:** Checkly config pointing at a missing checks dir; tax tables in the hand-written schema dump.
+**Deferred:** Prisma `_prisma_migrations` repair. Stale GitHub branch delete. Neon→Supabase move.
+**State after:** Residue items from the audit are code-complete; Neon history still messy.
+**Next:** Optional branch delete and migration-history cleanup.
 
 ### 2026-09-12 — Security session (signup takeover, RLS, CORS)
 **Did:** Removed signup `updateUserById` recovery; reject pending-invite and existing Auth emails. Added ExpenseSubmission RLS + explicit REVOKE/GRANT. Scrubbed `.env.example`. JWT only from Bearer header. CORS and invite URLs use `APP_URL`/`CORS_ORIGINS`. Prod source maps only when uploading to Sentry.
