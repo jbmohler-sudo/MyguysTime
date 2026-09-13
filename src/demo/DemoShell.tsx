@@ -175,6 +175,7 @@ export function DemoShell({ role }: DemoShellProps) {
             onCreateInvite={() => Promise.reject(new Error("Demo mode"))}
             onResendInvite={noopResendInvite}
             onRevokeInvite={noop}
+            onManageBilling={noop}
           />
         </OnboardingProvider>
       </ToastProvider>
