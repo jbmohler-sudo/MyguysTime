@@ -28,6 +28,7 @@ app.use(cors({
 // Stripe webhooks need the raw body for signature verification.
 // This must stay BEFORE express.json().
 app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
+app.use("/api/billing/webhook", express.raw({ type: "application/json" }));
 app.use(express.json({ limit: "8mb" }));
 
 app.use("/api", healthRouter);

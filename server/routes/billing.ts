@@ -160,9 +160,11 @@ async function applySubscriptionState(
 /**
  * Stripe webhook. Mounted with express.raw() in server/index.ts so the
  * signature can be verified. Never add express.json() before this route.
+ * /billing/webhook is the Vercel-reachable path (Hobby functions only
+ * match one extra path segment unless a dedicated api/<prefix> file exists).
  */
 router.post(
-  "/stripe/webhook",
+  ["/stripe/webhook", "/billing/webhook"],
   asyncHandler(async (req, res) => {
     const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
     if (!secret) {
