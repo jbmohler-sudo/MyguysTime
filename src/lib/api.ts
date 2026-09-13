@@ -316,3 +316,19 @@ export async function triggerBackendSentryVerification(token: string) {
     token,
   );
 }
+
+export async function createBillingCheckout(token: string) {
+  return request<{ url: string | null }>(
+    "/billing/checkout",
+    { method: "POST" },
+    token,
+  );
+}
+
+export async function createBillingPortal(token: string) {
+  return request<{ url: string | null }>(
+    "/billing/portal",
+    { method: "POST" },
+    token,
+  );
+}

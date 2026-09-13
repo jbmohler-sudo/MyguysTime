@@ -92,6 +92,7 @@ interface AppShellProps {
   }>;
   onRevokeInvite: (inviteId: string) => Promise<void>;
   onUpdateMe: (payload: { fullName?: string; preferredView?: "office" | "truck" }) => Promise<void>;
+  onManageBilling: () => Promise<void>;
   onVerifyBackendSentry?: () => Promise<string | null>;
 }
 
@@ -101,6 +102,7 @@ export function AppShell({
   onLogout,
   onRefresh,
   onUpdateMe,
+  onManageBilling,
   onVerifyBackendSentry,
   onUpdateDay,
   onApplyCrewDefaults,
@@ -1431,6 +1433,8 @@ export function AppShell({
           <AccountSettingsPanel
             viewer={data.viewer}
             onUpdateMe={onUpdateMe}
+            subscription={data.companySettings?.subscription ?? null}
+            onManageBilling={onManageBilling}
             onVerifyBackendSentry={onVerifyBackendSentry}
           />
         ) : null}

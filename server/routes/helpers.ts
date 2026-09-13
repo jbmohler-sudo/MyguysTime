@@ -184,6 +184,13 @@ export function serializeCompanySettings(
     payrollPrepDisclaimer: settings.payrollPrepDisclaimer ?? EXPORT_REMINDER,
     payrollReminder: EXPORT_REMINDER,
     setupComplete: Boolean(company.onboardingCompletedAt),
+    subscription: {
+      status: company.subscriptionStatus,
+      trialEndsAt: company.subscriptionTrialEndsAt
+        ? company.subscriptionTrialEndsAt.toISOString()
+        : null,
+      hasCustomer: Boolean(company.stripeCustomerId),
+    },
   };
 }
 

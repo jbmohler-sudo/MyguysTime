@@ -7,6 +7,8 @@ import { PasswordInput } from "./PasswordInput";
 interface AccountSettingsPanelProps {
   viewer: Viewer;
   onUpdateMe: (payload: { fullName?: string; preferredView?: "office" | "truck" }) => Promise<void>;
+  subscription: { status: string | null; hasCustomer: boolean } | null;
+  onManageBilling: () => Promise<void>;
   onVerifyBackendSentry?: () => Promise<string | null>;
 }
 
@@ -14,7 +16,7 @@ function readMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
-export function AccountSettingsPanel({ viewer, onUpdateMe, onVerifyBackendSentry }: AccountSettingsPanelProps) {
+export function AccountSettingsPanel({ viewer, onUpdateMe, onVerifyBackendSentry, subscription, onManageBilling }: AccountSettingsPanelProps) {
   // ── Profile ──────────────────────────────────────────────────────────────
   const [fullName, setFullName] = useState(viewer.fullName);
   const [nameSaving, setNameSaving] = useState(false);
@@ -185,6 +187,8 @@ export function AccountSettingsPanel({ viewer, onUpdateMe, onVerifyBackendSentry
   }
 
   const [verifyBusy, setVerifyBusy] = useState<"frontend" | "backend" | null>(null);
+  const [billingBusy, setBillingBusy] = useState(false);
+  const [billingError, setBillingError] = useState("");
   const [verifyError, setVerifyError] = useState("");
   const [verifySuccess, setVerifySuccess] = useState("");
 
@@ -441,6 +445,54 @@ export function AccountSettingsPanel({ viewer, onUpdateMe, onVerifyBackendSentry
           {prefError ? <p className="error-banner" style={{ marginTop: "0.5rem" }}>{prefError}</p> : null}
         </div>
       </section>
+
+      {viewer.role === "admin" ? (
+        <section className="settings-section">
+          <div className="settings-section__header">
+            <div>
+              <p className="eyebrow">Billing</p>
+              <h3>Subscription</h3>
+            </div>
+            <span className="settings-meta">
+              $12/month flat for the whole company. No per-seat fees.
+            </span>
+          </div>
+
+          <div className="settings-form">
+            <p style={{ marginBottom: "0.75rem" }}>
+              Status:{" "}
+              <strong>
+                {subscription?.status === "active"
+                  ? "Active"
+                  : subscription?.status === "trialing"
+                    ? "Trial"
+                    : subscription?.status === "past_due"
+                      ? "Past due"
+                      : subscription?.status === "canceled"
+                        ? "Canceled"
+                        : "No subscription"}
+              </strong>
+            </p>
+            <div className="adjustment-actions" style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              <button
+                className="button"
+                disabled={billingBusy}
+                onClick={() => {
+                  setBillingBusy(true);
+                  setBillingError("");
+                  onManageBilling().catch((err) =>
+                    setBillingError(err instanceof Error ? err.message : "Could not open billing."),
+                  ).finally(() => setBillingBusy(false));
+                }}
+                type="button"
+              >
+                {billingBusy ? "Opening..." : "Manage billing"}
+              </button>
+            </div>
+            {billingError ? <p className="error-banner" style={{ marginTop: "0.75rem" }}>{billingError}</p> : null}
+          </div>
+        </section>
+      ) : null}
 
       {(frontendSentryVerificationEnabled || onVerifyBackendSentry) && viewer.role === "admin" ? (
         <section className="settings-section">

@@ -4,6 +4,7 @@ import { OnboardingProvider } from "./hooks/useOnboarding";
 import { ToastProvider } from "./hooks/useToast";
 import { ViewProvider } from "./context/ViewContext";
 import { CompanySetupScreen } from "./components/CompanySetupScreen";
+import { BillingGate } from "./components/BillingGate";
 import { PublicHomepage } from "./components/PublicHomepage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -17,6 +18,8 @@ import { getWeekStartIso } from "./domain/week";
 import {
   applyCrewDefaults,
   completeCompanySetup,
+  createBillingCheckout,
+  createBillingPortal,
   createEmployee,
   createExpenseSubmission,
   createInvite,
@@ -59,9 +62,15 @@ function AppContent() {
 
   const [data, setData] = useState<BootstrapPayload | null>(null);
   const [error, setError] = useState<string>("");
+  const [billingBusy, setBillingBusy] = useState(false);
+  const [billingError, setBillingError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(Boolean(token));
   const [authMode, setAuthMode] = useState<"login" | "signup">(() => (path === "/signup" ? "signup" : "login"));
   const [openedAt] = useState(() => new Date());
+  // Capture the Stripe return param once on mount. The URL gets cleaned up
+  // in an effect below; reading it during render meant the param was stripped
+  // before the post-checkout refresh effect could see it.
+  const [billingReturn] = useState<"success" | "cancelled" | null>(() => billingReturnState());
 
   function setStoredToken(nextToken: string | null) {
     if (nextToken) {
@@ -105,6 +114,30 @@ function AppContent() {
   useEffect(() => {
     capturePostHogPageview(path);
   }, [path]);
+
+  // After a Stripe checkout redirect, give the webhook a moment to land,
+  // then reload so an active subscription clears the billing gate.
+  // Driven by the captured billingReturn state (not the URL) because the
+  // ?billing= param is cleaned from the address bar on mount.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (billingReturn !== "success" || !token) return;
+    const timer = setTimeout(() => {
+      void handleRefresh().catch(() => undefined);
+    }, 3000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, billingReturn]);
+
+  // Clean the ?billing= param so refresh keeps a clean URL. Runs once on
+  // mount, after the refresh effect above has captured what it needs.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (billingReturn) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function loadApp(nextToken: string, weekStart?: string) {
     setLoading(true);
@@ -209,6 +242,46 @@ function AppContent() {
 
     await loadApp(token, weekStart);
   }
+
+  function subscriptionIsActive(): boolean {
+    const status = data?.companySettings?.subscription?.status;
+    return status === "active" || status === "trialing";
+  }
+
+  function billingReturnState(): "success" | "cancelled" | null {
+    if (typeof window === "undefined") return null;
+    const param = new URLSearchParams(window.location.search).get("billing");
+    return param === "success" || param === "cancelled" ? param : null;
+  }
+
+  async function handleSubscribe() {
+    if (!token) return;
+    setBillingBusy(true);
+    setBillingError(null);
+    try {
+      const { url } = await createBillingCheckout(token);
+      if (!url) throw new Error("Checkout did not return a URL.");
+      window.location.href = url;
+    } catch (err) {
+      setBillingError(err instanceof Error ? err.message : "Could not start checkout.");
+      setBillingBusy(false);
+    }
+  }
+
+  async function handleManageBilling() {
+    if (!token) return;
+    setBillingBusy(true);
+    setBillingError(null);
+    try {
+      const { url } = await createBillingPortal(token);
+      if (!url) throw new Error("Billing portal did not return a URL.");
+      window.location.href = url;
+    } catch (err) {
+      setBillingError(err instanceof Error ? err.message : "Could not open the billing portal.");
+      setBillingBusy(false);
+    }
+  }
+
 
   async function handleUpdateMe(payload: { fullName?: string; preferredView?: "office" | "truck" }) {
     if (!token) return;
@@ -509,6 +582,23 @@ function AppContent() {
     );
   }
 
+  if (data.companySettings && !subscriptionIsActive()) {
+    return (
+      <BillingGate
+        companyName={data.companySettings.companyName}
+        isAdmin={data.viewer.role === "admin"}
+        hasCustomer={data.companySettings.subscription.hasCustomer}
+        status={data.companySettings.subscription.status}
+        busy={billingBusy}
+        error={billingError}
+        justSubscribed={billingReturn === "success"}
+        onSubscribe={handleSubscribe}
+        onManageBilling={handleManageBilling}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
   return (
     <ViewProvider>
     <ToastProvider>
@@ -519,6 +609,7 @@ function AppContent() {
         onLogout={handleLogout}
         onRefresh={handleRefresh}
         onUpdateMe={handleUpdateMe}
+        onManageBilling={handleManageBilling}
         onUpdateDay={handleUpdateDay}
         onApplyCrewDefaults={handleApplyCrewDefaults}
         onStatusChange={handleStatusChange}

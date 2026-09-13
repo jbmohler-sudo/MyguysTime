@@ -34,6 +34,10 @@ CREATE TABLE "Company" (
     "payrollDisclaimerAcceptedAt" TIMESTAMP(3),
     "payrollDisclaimerAcceptedByUserId" TEXT,
     "payrollDisclaimerVersion" TEXT,
+    "stripeCustomerId" TEXT,
+    "stripeSubscriptionId" TEXT,
+    "subscriptionStatus" TEXT,
+    "subscriptionTrialEndsAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

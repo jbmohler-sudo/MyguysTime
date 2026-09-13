@@ -12,6 +12,7 @@ import { employeesRouter } from "./routes/employees.js";
 import { invitesRouter } from "./routes/invites.js";
 import { timesheetsRouter } from "./routes/timesheets.js";
 import { reportsRouter } from "./routes/reports.js";
+import { billingRouter } from "./routes/billing.js";
 import { isOriginAllowed } from "./publicUrl.js";
 
 export const app = express();
@@ -24,6 +25,9 @@ app.use(cors({
   },
   credentials: false,
 }));
+// Stripe webhooks need the raw body for signature verification.
+// This must stay BEFORE express.json().
+app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
 app.use(express.json({ limit: "8mb" }));
 
 app.use("/api", healthRouter);
@@ -33,6 +37,7 @@ app.use("/api", employeesRouter);
 app.use("/api", invitesRouter);
 app.use("/api", timesheetsRouter);
 app.use("/api", reportsRouter);
+app.use("/api", billingRouter);
 
 if (sentryEnabled) {
   Sentry.setupExpressErrorHandler(app);

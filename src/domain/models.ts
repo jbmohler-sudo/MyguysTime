@@ -205,6 +205,11 @@ export interface CompanySettingsSummary {
   payrollPrepDisclaimer: string;
   payrollReminder: string;
   setupComplete: boolean;
+  subscription: {
+    status: string | null;
+    trialEndsAt: string | null;
+    hasCustomer: boolean;
+  };
 }
 
 export interface BootstrapPayload {
