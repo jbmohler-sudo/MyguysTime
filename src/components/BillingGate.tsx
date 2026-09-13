@@ -3,6 +3,7 @@ interface BillingGateProps {
   isAdmin: boolean;
   hasCustomer: boolean;
   status: string | null;
+  trialEndsAt: string | null;
   busy: boolean;
   error: string | null;
   justSubscribed: boolean;
@@ -11,7 +12,14 @@ interface BillingGateProps {
   onLogout: () => void;
 }
 
-function statusNote(status: string | null): string | null {
+function trialHasEnded(status: string | null, trialEndsAt: string | null): boolean {
+  return status === "trialing" && Boolean(trialEndsAt) && new Date(trialEndsAt!).getTime() <= Date.now();
+}
+
+function statusNote(status: string | null, trialEndsAt: string | null): string | null {
+  if (trialHasEnded(status, trialEndsAt)) {
+    return "Your 7-day trial has ended. Subscribe to keep the crew board running.";
+  }
   if (status === "past_due") {
     return "Your last payment didn't go through. Update your payment method to keep the crew board running.";
   }
@@ -29,6 +37,7 @@ export function BillingGate({
   isAdmin,
   hasCustomer,
   status,
+  trialEndsAt,
   busy,
   error,
   justSubscribed,
@@ -36,14 +45,19 @@ export function BillingGate({
   onManageBilling,
   onLogout,
 }: BillingGateProps) {
-  const note = statusNote(status);
+  const note = statusNote(status, trialEndsAt);
+  const expiredTrial = trialHasEnded(status, trialEndsAt);
 
   return (
     <div className="loading-screen">
       <div className="panel compact-panel" style={{ maxWidth: "30rem", textAlign: "center" }}>
         <p className="eyebrow">Billing</p>
         <h2 style={{ marginTop: "0.25rem" }}>
-          {justSubscribed ? "You're subscribed!" : `${companyName} needs a subscription`}
+          {justSubscribed
+            ? "You're subscribed!"
+            : expiredTrial
+              ? `${companyName}'s trial has ended`
+              : `${companyName} needs a subscription`}
         </h2>
         {justSubscribed ? (
           <p style={{ marginTop: "0.75rem" }}>
@@ -53,6 +67,7 @@ export function BillingGate({
         ) : (
           <>
             <p style={{ marginTop: "0.75rem" }}>
+              New companies get a <strong>7-day free trial</strong>. After that,
               MyGuysTime is <strong>$12/month flat</strong> for the whole company — every
               foreman, worker, and office user included. No per-seat fees.
             </p>

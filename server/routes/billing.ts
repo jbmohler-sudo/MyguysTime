@@ -2,6 +2,7 @@ import { Router } from "express";
 import Stripe from "stripe";
 import { authenticate, type AuthenticatedRequest } from "../auth.js";
 import { prisma } from "../db.js";
+import { companyHasPaidAccess } from "../billingAccess.js";
 import { sendSubscriptionReceiptEmail } from "../email/subscriptionReceiptEmail.js";
 import { asyncHandler, getCompanyContextOrThrow } from "./helpers.js";
 
@@ -123,7 +124,10 @@ router.get(
       status: company.subscriptionStatus,
       trialEndsAt: company.subscriptionTrialEndsAt,
       hasCustomer: Boolean(company.stripeCustomerId),
-      active: hasActiveSubscription(company.subscriptionStatus),
+      active: companyHasPaidAccess(
+        company.subscriptionStatus,
+        company.subscriptionTrialEndsAt,
+      ),
     });
   }),
 );
@@ -143,7 +147,10 @@ router.post(
       res.json({
         status: company.subscriptionStatus,
         hasCustomer: false,
-        active: hasActiveSubscription(company.subscriptionStatus),
+        active: companyHasPaidAccess(
+          company.subscriptionStatus,
+          company.subscriptionTrialEndsAt,
+        ),
       });
       return;
     }
@@ -163,10 +170,13 @@ router.post(
     }
 
     const status = subscription?.status ?? company.subscriptionStatus;
+    const trialEndsAt = subscription?.trial_end
+      ? new Date(subscription.trial_end * 1000)
+      : company.subscriptionTrialEndsAt;
     res.json({
       status,
       hasCustomer: true,
-      active: hasActiveSubscription(status),
+      active: companyHasPaidAccess(status, trialEndsAt),
     });
   }),
 );
@@ -200,7 +210,7 @@ async function applySubscriptionState(
     },
   });
 
-  if (hasActiveSubscription(subscription.status) && !company.subscriptionReceiptSentAt) {
+  if (subscription.status === "active" && !company.subscriptionReceiptSentAt) {
     const admin = await prisma.user.findFirst({
       where: { companyId: company.id, role: "ADMIN", status: "ACTIVE" },
       orderBy: { createdAt: "asc" },

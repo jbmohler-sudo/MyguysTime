@@ -7,7 +7,11 @@ import { PasswordInput } from "./PasswordInput";
 interface AccountSettingsPanelProps {
   viewer: Viewer;
   onUpdateMe: (payload: { fullName?: string; preferredView?: "office" | "truck" }) => Promise<void>;
-  subscription: { status: string | null; hasCustomer: boolean } | null;
+  subscription: {
+    status: string | null;
+    trialEndsAt?: string | null;
+    hasCustomer: boolean;
+  } | null;
   onManageBilling: () => Promise<void>;
   onVerifyBackendSentry?: () => Promise<string | null>;
 }
@@ -454,7 +458,7 @@ export function AccountSettingsPanel({ viewer, onUpdateMe, onVerifyBackendSentry
               <h3>Subscription</h3>
             </div>
             <span className="settings-meta">
-              $12/month flat for the whole company. No per-seat fees.
+              7-day free trial, then $12/month flat for the whole company. No per-seat fees.
             </span>
           </div>
 
@@ -465,7 +469,12 @@ export function AccountSettingsPanel({ viewer, onUpdateMe, onVerifyBackendSentry
                 {subscription?.status === "active"
                   ? "Active"
                   : subscription?.status === "trialing"
-                    ? "Trial"
+                    ? subscription.trialEndsAt &&
+                      new Date(subscription.trialEndsAt).getTime() <= Date.now()
+                      ? "Trial ended"
+                      : subscription.trialEndsAt
+                        ? `Trial — ends ${new Date(subscription.trialEndsAt).toLocaleDateString()}`
+                        : "Trial"
                     : subscription?.status === "past_due"
                       ? "Past due"
                       : subscription?.status === "canceled"

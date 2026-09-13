@@ -14,6 +14,7 @@ import type { DemoRole } from "./demo/demoData";
 import { SignupAfterMagicLink } from "./components/SignupAfterMagicLink";
 import { SignupScreen } from "./components/SignupScreen";
 import type { BootstrapPayload, CompanyOnboardingInput, PrivateReportInput, TimesheetStatus } from "./domain/models";
+import { companyHasPaidAccess } from "./domain/subscription";
 import { getWeekStartIso } from "./domain/week";
 import {
   applyCrewDefaults,
@@ -248,8 +249,8 @@ function AppContent() {
   }
 
   function subscriptionIsActive(): boolean {
-    const status = data?.companySettings?.subscription?.status;
-    return status === "active" || status === "trialing";
+    const subscription = data?.companySettings?.subscription;
+    return companyHasPaidAccess(subscription?.status, subscription?.trialEndsAt);
   }
 
   function billingReturnState(): "success" | "cancelled" | null {
@@ -593,6 +594,7 @@ function AppContent() {
         isAdmin={data.viewer.role === "admin"}
         hasCustomer={data.companySettings.subscription.hasCustomer}
         status={data.companySettings.subscription.status}
+        trialEndsAt={data.companySettings.subscription.trialEndsAt}
         busy={billingBusy}
         error={billingError}
         justSubscribed={billingReturn === "success"}

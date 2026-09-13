@@ -15,6 +15,7 @@ import {
   SIGNUP_DEFAULT_STATE_CODE,
 } from "./helpers.js";
 import { posthog } from "../posthog.js";
+import { trialEndsAtFromNow } from "../billingAccess.js";
 
 const router = Router();
 
@@ -118,12 +119,15 @@ router.post("/auth/signup", asyncHandler(async (req, res) => {
           },
         });
 
+        const trialEndsAt = trialEndsAtFromNow();
         const companyId = reusableCompany?.id ?? (
           await tx.company.create({
             data: {
               companyName: trimmedCompanyName,
               ownerName: trimmedFullName,
               stateCode: SIGNUP_DEFAULT_STATE_CODE,
+              subscriptionStatus: "trialing",
+              subscriptionTrialEndsAt: trialEndsAt,
               updatedAt: new Date(),
             },
             select: {
@@ -131,6 +135,18 @@ router.post("/auth/signup", asyncHandler(async (req, res) => {
             },
           })
         ).id;
+
+        if (reusableCompany) {
+          await tx.company.update({
+            where: { id: companyId },
+            data: {
+              ownerName: trimmedFullName,
+              subscriptionStatus: "trialing",
+              subscriptionTrialEndsAt: trialEndsAt,
+              updatedAt: new Date(),
+            },
+          });
+        }
 
         await tx.companyPayrollSettings.upsert({
           where: {
