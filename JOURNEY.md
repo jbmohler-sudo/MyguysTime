@@ -8,13 +8,9 @@
 
 - **What it is:** payroll/timesheet management app — React/TypeScript + Node/Express + Supabase
   (project `ufbanjchatwkheaqafsf`), deployed on Vercel.
-- **In progress:** optional Neon→Supabase consolidation; Prisma migration-history repair on Neon.
-- **Just done:** residue sweep — no more PayrollEstimate writes on timesheet save, onboarding no
-  longer targets a deleted export button, dead login/demo API helpers gone, schema SQL regenerated
-  from Prisma with GRANTs, unused Checkly/Playwright/radix deps removed.
-- **Biggest open item:** ⚠️ **Rotate Neon + Supabase keys and update Vercel env** — user is doing
-  this tonight. After that: delete stale GitHub branch `origin/claude/relaxed-austin-510c58`, apply
-  the new RLS migration on the live DB, then the residue sweep.
+- **In progress:** Stripe billing code (Muse) — schema columns are on Neon; app code not in this repo yet.
+- **Just done:** added nullable Company Stripe fields and applied `20260913143000_add_company_stripe_billing` on Neon.
+- **Biggest open item:** Muse pulls `main` and pushes billing code (no second ALTER). Optional Neon→Supabase later.
 
 ## The Story So Far
 
@@ -57,6 +53,13 @@ Storage.
 - None recorded yet.
 
 ## Session Log
+
+### 2026-09-13 — Company Stripe columns on Neon
+**Did:** Added nullable `stripeCustomerId`, `stripeSubscriptionId`, `subscriptionStatus`, `subscriptionTrialEndsAt` on `Company`. Applied `20260913143000_add_company_stripe_billing` via `migrate deploy`.
+**Decided:** Columns land here first so Muse can push billing code without a duplicate ALTER.
+**Deferred:** Stripe app code stays in Muse's workspace until they pull `main` and push.
+**State after:** Neon has the four columns. Existing companies unchanged (all nullable).
+**Next:** Muse pulls `main` and pushes billing only (no second migration).
 
 ### 2026-09-12 — Residue sweep (payroll ghost, onboarding, schema)
 **Did:** Stopped timesheet save from writing PayrollEstimate; YTD/serialize now compute from hours. Replaced broken export-payroll onboarding step. Removed dead `login`/`startDemoSession` API fns. Regenerated `guys_schema_migration.sql` from Prisma with RLS + GRANT/REVOKE. Removed unused checkly/playwright/radix/cva/jiti deps. Applied ExpenseSubmission RLS SQL on Neon (full `migrate deploy` still blocked by stale history).

@@ -45,6 +45,10 @@ model Company {
   payrollDisclaimerAcceptedAt       DateTime?
   payrollDisclaimerAcceptedByUserId String?
   payrollDisclaimerVersion          String?
+  stripeCustomerId                  String?                @unique
+  stripeSubscriptionId              String?                @unique
+  subscriptionStatus                String?
+  subscriptionTrialEndsAt           DateTime?
   createdAt                         DateTime               @default(now())
   updatedAt                         DateTime               @updatedAt
   payrollSettings                   CompanyPayrollSettings?
