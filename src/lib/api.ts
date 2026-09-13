@@ -332,3 +332,11 @@ export async function createBillingPortal(token: string) {
     token,
   );
 }
+
+export async function syncBillingSubscription(token: string) {
+  return request<{ status: string | null; hasCustomer: boolean; active: boolean }>(
+    "/billing/sync",
+    { method: "POST" },
+    token,
+  );
+}

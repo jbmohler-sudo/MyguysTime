@@ -127,6 +127,49 @@ router.get(
   }),
 );
 
+/**
+ * Pull the company's latest Stripe subscription into the database.
+ * Used after Checkout returns so access does not depend on the webhook alone.
+ */
+router.post(
+  "/billing/sync",
+  authenticate,
+  asyncHandler(async (req: AuthenticatedRequest, res) => {
+    const stripe = getStripe();
+    const { company } = await getCompanyContextOrThrow(req.auth!.companyId);
+
+    if (!company.stripeCustomerId) {
+      res.json({
+        status: company.subscriptionStatus,
+        hasCustomer: false,
+        active: hasActiveSubscription(company.subscriptionStatus),
+      });
+      return;
+    }
+
+    const subscriptions = await stripe.subscriptions.list({
+      customer: company.stripeCustomerId,
+      status: "all",
+      limit: 10,
+    });
+    const subscription =
+      subscriptions.data.find((row) => hasActiveSubscription(row.status)) ??
+      subscriptions.data[0] ??
+      null;
+
+    if (subscription) {
+      await applySubscriptionState(subscription, company.id);
+    }
+
+    const status = subscription?.status ?? company.subscriptionStatus;
+    res.json({
+      status,
+      hasCustomer: true,
+      active: hasActiveSubscription(status),
+    });
+  }),
+);
+
 async function applySubscriptionState(
   subscription: Stripe.Subscription,
   companyId: string | null,

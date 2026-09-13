@@ -20,6 +20,7 @@ import {
   completeCompanySetup,
   createBillingCheckout,
   createBillingPortal,
+  syncBillingSubscription,
   createEmployee,
   createExpenseSubmission,
   createInvite,
@@ -123,8 +124,11 @@ function AppContent() {
     if (typeof window === "undefined") return;
     if (billingReturn !== "success" || !token) return;
     const timer = setTimeout(() => {
-      void handleRefresh().catch(() => undefined);
-    }, 3000);
+      void syncBillingSubscription(token)
+        .catch(() => undefined)
+        .then(() => handleRefresh())
+        .catch(() => undefined);
+    }, 1500);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, billingReturn]);
