@@ -93,7 +93,7 @@ const COMPANY_SETTINGS = {
   payrollPrepDisclaimer: "Review hours and adjustments before exporting or sending totals.",
   payrollReminder: "Review hours and adjustments before exporting or sending totals.",
   setupComplete: true,
-  subscription: { status: "active", trialEndsAt: null, hasCustomer: true },
+  subscription: { status: "active", trialEndsAt: null, hasCustomer: true, receiptSent: true },
 };
 
 function makeEstimate(gross: number, reimb = 0, deduction = 0) {

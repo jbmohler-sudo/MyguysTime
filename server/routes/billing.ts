@@ -2,6 +2,7 @@ import { Router } from "express";
 import Stripe from "stripe";
 import { authenticate, type AuthenticatedRequest } from "../auth.js";
 import { prisma } from "../db.js";
+import { sendSubscriptionReceiptEmail } from "../email/subscriptionReceiptEmail.js";
 import { asyncHandler, getCompanyContextOrThrow } from "./helpers.js";
 
 // Flat $12/month per company, whole crew included.
@@ -198,6 +199,40 @@ async function applySubscriptionState(
         : null,
     },
   });
+
+  if (hasActiveSubscription(subscription.status) && !company.subscriptionReceiptSentAt) {
+    const admin = await prisma.user.findFirst({
+      where: { companyId: company.id, role: "ADMIN", status: "ACTIVE" },
+      orderBy: { createdAt: "asc" },
+      select: { email: true, fullName: true },
+    });
+    if (admin?.email) {
+      try {
+        let appUrl = "https://app.myguystime.com";
+        try {
+          appUrl = getAppUrl();
+        } catch {
+          // Receipts should still send if APP_URL is missing in a webhook process.
+        }
+        const sent = await sendSubscriptionReceiptEmail({
+          to: admin.email,
+          companyName: company.companyName,
+          subscriberName: admin.fullName,
+          amountLabel: "$12.00 / month",
+          subscriptionId: subscription.id,
+          appUrl,
+        });
+        if (sent) {
+          await prisma.company.update({
+            where: { id: company.id },
+            data: { subscriptionReceiptSentAt: new Date() },
+          });
+        }
+      } catch (error) {
+        console.warn("[billing:receipt] send threw:", (error as Error).message);
+      }
+    }
+  }
 }
 
 /**

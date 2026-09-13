@@ -49,6 +49,7 @@ model Company {
   stripeSubscriptionId              String?                @unique
   subscriptionStatus                String?
   subscriptionTrialEndsAt           DateTime?
+  subscriptionReceiptSentAt         DateTime?
   createdAt                         DateTime               @default(now())
   updatedAt                         DateTime               @updatedAt
   payrollSettings                   CompanyPayrollSettings?

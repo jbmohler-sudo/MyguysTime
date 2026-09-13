@@ -190,6 +190,7 @@ export function serializeCompanySettings(
         ? company.subscriptionTrialEndsAt.toISOString()
         : null,
       hasCustomer: Boolean(company.stripeCustomerId),
+      receiptSent: Boolean(company.subscriptionReceiptSentAt),
     },
   };
 }

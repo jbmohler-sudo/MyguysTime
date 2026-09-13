@@ -209,6 +209,7 @@ export interface CompanySettingsSummary {
     status: string | null;
     trialEndsAt: string | null;
     hasCustomer: boolean;
+    receiptSent: boolean;
   };
 }
 
