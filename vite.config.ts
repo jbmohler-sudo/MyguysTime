@@ -39,6 +39,11 @@ export default defineConfig(({ mode }) => {
     build: {
       sourcemap: shouldUploadSentrySourcemaps || mode !== "production",
     },
+    // The SSR entry emits CJS/ESM named exports the prerender script imports;
+    // exclude nothing so PublicHomepage + faqItems resolve at runtime.
+    ssr: {
+      noExternal: true,
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),

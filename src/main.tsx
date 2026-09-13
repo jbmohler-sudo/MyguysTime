@@ -21,10 +21,23 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+// Landing-page host: dist/index.html ships prerendered PublicHomepage markup
+// inside #root (data-prerendered marker set by scripts/prerender-landing.mjs).
+// Hydrate it instead of re-rendering, so crawlers get real HTML and the demo
+// buttons / login routing stay interactive without a double render.
+const rootElement = document.getElementById("root")!;
+const isPrerenderedLanding = rootElement.hasAttribute("data-prerendered");
+
+const app = (
   <React.StrictMode>
     <Sentry.ErrorBoundary fallback={<div>An error occurred</div>}>
       <App />
     </Sentry.ErrorBoundary>
-  </React.StrictMode>,
+  </React.StrictMode>
 );
+
+if (isPrerenderedLanding) {
+  ReactDOM.hydrateRoot(rootElement, app);
+} else {
+  ReactDOM.createRoot(rootElement).render(app);
+}
