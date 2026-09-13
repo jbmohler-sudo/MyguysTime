@@ -37,6 +37,10 @@ const app = (
 );
 
 if (isPrerenderedLanding) {
+  // Hydration on the landing host: the injected HTML is an exact render of the
+  // same tree, so hydrateRoot attaches event listeners without re-rendering.
+  // Any future mismatch falls back to client render (React default) — noisy in
+  // console but never a blank page.
   ReactDOM.hydrateRoot(rootElement, app);
 } else {
   ReactDOM.createRoot(rootElement).render(app);

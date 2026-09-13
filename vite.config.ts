@@ -39,6 +39,11 @@ export default defineConfig(({ mode }) => {
     build: {
       sourcemap: shouldUploadSentrySourcemaps || mode !== "production",
     },
+    preview: {
+      // Local hydration checks map myguystime.com -> 127.0.0.1 to verify the
+      // prerendered page hydrates correctly on its production host.
+      allowedHosts: ["myguystime.com", "www.myguystime.com"],
+    },
     // The SSR entry emits CJS/ESM named exports the prerender script imports;
     // exclude nothing so PublicHomepage + faqItems resolve at runtime.
     ssr: {

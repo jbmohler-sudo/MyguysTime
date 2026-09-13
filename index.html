@@ -39,6 +39,28 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Prerender parity: dist/index.html ships prerendered landing markup, but
+      // only the public homepage host (and localhost for vite preview) renders
+      // PublicHomepage. On app hosts, clear the prerendered content BEFORE the
+      // bundle runs so app users don't see a marketing-page flash and hydration
+      // never mismatches.
+      (function () {
+        var h = window.location.hostname;
+        var isPublic =
+          h === "myguystime.com" ||
+          h === "www.myguystime.com" ||
+          h === "localhost" ||
+          h === "127.0.0.1";
+        if (!isPublic) {
+          var root = document.getElementById("root");
+          if (root && root.hasAttribute("data-prerendered")) {
+            root.innerHTML = "";
+            root.removeAttribute("data-prerendered");
+          }
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -277,7 +277,7 @@ export function PublicHomepage() {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
               <CheckCircle2 className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">My Guys Time</h1>
+            <p className="text-2xl font-bold text-slate-900">My Guys Time</p>
           </div>
           <nav className="hidden md:flex items-center gap-8">
             <a href="#workflow" className="text-slate-600 hover:text-orange-500 transition-colors text-sm font-medium">
