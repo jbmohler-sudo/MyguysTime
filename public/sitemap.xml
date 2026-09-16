@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Landing page (pillar): canonical host is www — Vercel redirects the apex
+       here with a 308, and the <link rel="canonical"> matches. -->
+  <url>
+    <loc>https://www.myguystime.com/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <!-- Live demo spokes — interactive product pages, no signup required. -->
+  <url>
+    <loc>https://www.myguystime.com/demo/admin</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.myguystime.com/demo/foreman</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.myguystime.com/demo/employee</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>

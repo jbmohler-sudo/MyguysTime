@@ -667,7 +667,7 @@ export function PublicHomepage() {
                 <ArrowRight className="w-5 h-5" />
               </button>
               <a
-                href="#workflow"
+                href="/demo/admin"
                 className="px-8 py-4 border-2 border-slate-500 hover:border-orange-400 text-slate-100 hover:text-orange-300 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap"
               >
                 Try the demo

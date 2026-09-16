@@ -4,7 +4,7 @@
  * Safe to render from the public homepage for all three role previews.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "../components/AppShell";
 import { OnboardingProvider } from "../hooks/useOnboarding";
 import { ToastProvider } from "../hooks/useToast";
@@ -18,6 +18,13 @@ interface DemoShellProps {
 
 export function DemoShell({ role }: DemoShellProps) {
   const [data, setData] = useState<BootstrapPayload>(() => getDemoPayload(role));
+
+  // Demo spokes are real indexable pages — give each role a descriptive title
+  // instead of inheriting the landing page title.
+  useEffect(() => {
+    const roleLabel = role === "admin" ? "Office Admin" : role === "foreman" ? "Foreman" : "Crew Member";
+    document.title = `Live Demo — ${roleLabel} View | My Guys Time`;
+  }, [role]);
 
   // ─── Local-state mutators (no API calls) ─────────────────────────────────────
 

@@ -85,8 +85,37 @@ const faqPageLd = {
   })),
 };
 
+// Organization + WebSite — emitted here (not in index.html) so the canonical
+// host lives in one place and cannot drift from the <link rel="canonical">.
+const canonicalHost = "https://www.myguystime.com";
+const organizationLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "My Guys Time",
+  url: canonicalHost + "/",
+  logo: canonicalHost + "/images/og-myguystime.png",
+  description: "Simple time cards for contractor crews. Track crew hours, review the week, and export clean time card totals. $12/mo flat.",
+};
+
+const websiteLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "My Guys Time",
+  url: canonicalHost + "/",
+  publisher: {
+    "@type": "Organization",
+    name: "My Guys Time",
+    url: canonicalHost + "/",
+  },
+};
+
 let finalHtml = prerendered;
-for (const [id, data] of [["ld-softwareapplication", softwareApplicationLd], ["ld-faqpage", faqPageLd]]) {
+for (const [id, data] of [
+  ["ld-softwareapplication", softwareApplicationLd],
+  ["ld-faqpage", faqPageLd],
+  ["ld-organization", organizationLd],
+  ["ld-website", websiteLd],
+]) {
   const openTag = `<script type="application/ld+json" id="${id}">`;
   const closeTag = "</" + "script>";
   const start = finalHtml.indexOf(openTag);
@@ -112,8 +141,8 @@ if (missing.length > 0) {
   process.exit(1);
 }
 
-// JSON-LD must parse — validate both blocks before writing.
-for (const id of ["ld-softwareapplication", "ld-faqpage"]) {
+// JSON-LD must parse — validate all blocks before writing.
+for (const id of ["ld-softwareapplication", "ld-faqpage", "ld-organization", "ld-website"]) {
   const match = finalHtml.match(new RegExp(`<script type="application/ld\\+json" id="${id}">([\\s\\S]*?)<`));
   try {
     JSON.parse(match[1]);
