@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_SENTRY_TRACES_SAMPLE_RATE?: string;
   readonly VITE_SENTRY_VERIFY_ENABLED?: string;
   readonly VITE_SENTRY_BACKEND_VERIFY_ENABLED?: string;
+  readonly VITE_PLATFORM_COMPLIMENTARY_EMAILS?: string;
 }
 
 interface ImportMeta {

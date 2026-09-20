@@ -1,24 +1,34 @@
-export const SUBSCRIPTION_TRIAL_DAYS = 7;
+export {
+  DEFAULT_PLATFORM_COMPLIMENTARY_EMAILS,
+  SUBSCRIPTION_TRIAL_DAYS,
+  isPlatformComplimentaryEmail,
+  parseComplimentaryEmailList,
+  trialEndsAtFromNow,
+} from "../shared/billingAccess.js";
 
-export function trialEndsAtFromNow(from = new Date()) {
-  return new Date(from.getTime() + SUBSCRIPTION_TRIAL_DAYS * 24 * 60 * 60 * 1000);
+import {
+  companyHasPaidAccess as sharedCompanyHasPaidAccess,
+  isPlatformComplimentaryEmail,
+  parseComplimentaryEmailList,
+} from "../shared/billingAccess.js";
+
+export function extraComplimentaryEmailsFromEnv() {
+  return parseComplimentaryEmailList(process.env.PLATFORM_COMPLIMENTARY_EMAILS);
 }
 
 export function companyHasPaidAccess(
   status: string | null | undefined,
   trialEndsAt?: Date | string | null,
+  viewerEmail?: string | null,
 ): boolean {
-  if (status === "active") {
-    return true;
-  }
+  return sharedCompanyHasPaidAccess(
+    status,
+    trialEndsAt,
+    viewerEmail,
+    extraComplimentaryEmailsFromEnv(),
+  );
+}
 
-  if (status !== "trialing") {
-    return false;
-  }
-
-  if (!trialEndsAt) {
-    return true;
-  }
-
-  return new Date(trialEndsAt).getTime() > Date.now();
+export function viewerHasComplimentaryAccess(email: string | null | undefined): boolean {
+  return isPlatformComplimentaryEmail(email, extraComplimentaryEmailsFromEnv());
 }

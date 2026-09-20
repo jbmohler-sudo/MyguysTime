@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import express from "express";
 import { getCurrentUserOrThrow, type AuthenticatedRequest, type UserRole } from "../auth.js";
+import { companyHasPaidAccess, viewerHasComplimentaryAccess } from "../billingAccess.js";
 import { prisma } from "../db.js";
 import { resolvePublicAppUrl } from "../publicUrl.js";
 import { calculateDayTotalMinutes, calculatePayrollEstimate } from "../payroll.js";
@@ -165,10 +166,27 @@ export function buildPayrollSettingsDefaults(
   };
 }
 
+export async function companyHasComplimentaryMember(companyId: string): Promise<boolean> {
+  const users = await prisma.user.findMany({
+    where: { companyId, status: "ACTIVE" },
+    select: { email: true },
+  });
+
+  return users.some((user) => viewerHasComplimentaryAccess(user.email));
+}
+
 export function serializeCompanySettings(
   company: Awaited<ReturnType<typeof getCompanySettingsOrThrow>>,
+  access?: { viewerEmail?: string | null; complimentary?: boolean },
 ) {
   const settings = company.payrollSettings!;
+  const paid =
+    Boolean(access?.complimentary) ||
+    companyHasPaidAccess(
+      company.subscriptionStatus,
+      company.subscriptionTrialEndsAt,
+      access?.viewerEmail,
+    );
 
   return {
     id: company.id,
@@ -191,6 +209,7 @@ export function serializeCompanySettings(
         : null,
       hasCustomer: Boolean(company.stripeCustomerId),
       receiptSent: Boolean(company.subscriptionReceiptSentAt),
+      active: paid,
     },
   };
 }
@@ -761,12 +780,16 @@ export async function buildBootstrap(userId: string, role: UserRole, companyId: 
     viewer: {
       id: user.id,
       fullName: user.fullName,
+      email: user.email,
       role: user.role.toLowerCase(),
       employeeId: user.employeeId,
       preferredView: (user as Record<string, unknown>)["preferredView"] as string ?? "office",
     },
     weekStart: formatIsoDate(weekStart),
-    companySettings: serializeCompanySettings(company),
+    companySettings: serializeCompanySettings(company, {
+      viewerEmail: user.email,
+      complimentary: await companyHasComplimentaryMember(companyId),
+    }),
     crews: crews.map((crew) => ({
       id: crew.id,
       name: crew.name,

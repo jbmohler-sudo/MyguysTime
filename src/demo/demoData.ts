@@ -93,7 +93,7 @@ const COMPANY_SETTINGS = {
   payrollPrepDisclaimer: "Review hours and adjustments before exporting or sending totals.",
   payrollReminder: "Review hours and adjustments before exporting or sending totals.",
   setupComplete: true,
-  subscription: { status: "active", trialEndsAt: null, hasCustomer: true, receiptSent: true },
+  subscription: { status: "active", trialEndsAt: null, hasCustomer: true, receiptSent: true, active: true },
 };
 
 function makeEstimate(gross: number, reimb = 0, deduction = 0) {
@@ -263,6 +263,7 @@ export const DEMO_ADMIN_PAYLOAD: BootstrapPayload = {
   viewer: {
     id: "demo-admin",
     fullName: "Jeff Mohler",
+    email: "demo-admin@example.com",
     role: "admin",
     employeeId: null,
     preferredView: "office",
@@ -279,6 +280,7 @@ export const DEMO_FOREMAN_PAYLOAD: BootstrapPayload = {
   viewer: {
     id: "demo-foreman",
     fullName: "Carlos Mendoza",
+    email: "demo-foreman@example.com",
     role: "foreman",
     employeeId: "emp-carlos",
     preferredView: "truck",
@@ -296,6 +298,7 @@ export const DEMO_EMPLOYEE_PAYLOAD: BootstrapPayload = {
   viewer: {
     id: "demo-employee",
     fullName: "Darius Washington",
+    email: "demo-employee@example.com",
     role: "employee",
     employeeId: "emp-darius",
     preferredView: "truck",

@@ -429,6 +429,7 @@ router.patch("/auth/me", authenticate, asyncHandler(async (req: AuthenticatedReq
     viewer: {
       id: updated.id,
       fullName: updated.fullName,
+      email: updated.email,
       role: updated.role.toLowerCase(),
       employeeId: updated.employeeId,
       preferredView: updated.preferredView,

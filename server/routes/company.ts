@@ -5,6 +5,7 @@ import { parseWeekStart } from "../utils.js";
 import {
   asyncHandler,
   buildBootstrap,
+  companyHasComplimentaryMember,
   ensureWeekData,
   getCompanyContextOrThrow,
   getCompanySettingsOrThrow,
@@ -223,7 +224,13 @@ router.patch("/company-settings", authenticate, asyncHandler(async (req: Authent
   });
 
   res.json({
-    companySettings: serializeCompanySettings({ ...updatedCompany, payrollSettings: updatedSettings }),
+    companySettings: serializeCompanySettings(
+      { ...updatedCompany, payrollSettings: updatedSettings },
+      {
+        viewerEmail: req.user!.email,
+        complimentary: await companyHasComplimentaryMember(currentCompany.id),
+      },
+    ),
   });
 }));
 

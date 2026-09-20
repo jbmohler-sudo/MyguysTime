@@ -4,7 +4,7 @@ import { authenticate, type AuthenticatedRequest } from "../auth.js";
 import { prisma } from "../db.js";
 import { companyHasPaidAccess } from "../billingAccess.js";
 import { sendSubscriptionReceiptEmail } from "../email/subscriptionReceiptEmail.js";
-import { asyncHandler, getCompanyContextOrThrow } from "./helpers.js";
+import { asyncHandler, companyHasComplimentaryMember, getCompanyContextOrThrow } from "./helpers.js";
 
 // Flat $12/month per company, whole crew included.
 const DEFAULT_PRICE_ID = "price_1UF0CWGqAqGK5sfYZG3ecr05";
@@ -124,10 +124,13 @@ router.get(
       status: company.subscriptionStatus,
       trialEndsAt: company.subscriptionTrialEndsAt,
       hasCustomer: Boolean(company.stripeCustomerId),
-      active: companyHasPaidAccess(
-        company.subscriptionStatus,
-        company.subscriptionTrialEndsAt,
-      ),
+      active:
+        (await companyHasComplimentaryMember(company.id)) ||
+        companyHasPaidAccess(
+          company.subscriptionStatus,
+          company.subscriptionTrialEndsAt,
+          req.user!.email,
+        ),
     });
   }),
 );
@@ -147,10 +150,13 @@ router.post(
       res.json({
         status: company.subscriptionStatus,
         hasCustomer: false,
-        active: companyHasPaidAccess(
-          company.subscriptionStatus,
-          company.subscriptionTrialEndsAt,
-        ),
+        active:
+          (await companyHasComplimentaryMember(company.id)) ||
+          companyHasPaidAccess(
+            company.subscriptionStatus,
+            company.subscriptionTrialEndsAt,
+            req.user!.email,
+          ),
       });
       return;
     }
@@ -176,7 +182,9 @@ router.post(
     res.json({
       status,
       hasCustomer: true,
-      active: companyHasPaidAccess(status, trialEndsAt),
+      active:
+        (await companyHasComplimentaryMember(company.id)) ||
+        companyHasPaidAccess(status, trialEndsAt, req.user!.email),
     });
   }),
 );
