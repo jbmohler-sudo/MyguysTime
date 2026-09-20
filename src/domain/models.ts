@@ -17,6 +17,7 @@ export interface Viewer {
   id: string;
   fullName: string;
   role: UserRole;
+  email?: string | null;
   employeeId: string | null;
   preferredView: "office" | "truck";
 }
@@ -210,6 +211,7 @@ export interface CompanySettingsSummary {
     trialEndsAt: string | null;
     hasCustomer: boolean;
     receiptSent: boolean;
+    active?: boolean;
   };
 }
 

@@ -250,7 +250,10 @@ function AppContent() {
 
   function subscriptionIsActive(): boolean {
     const subscription = data?.companySettings?.subscription;
-    return companyHasPaidAccess(subscription?.status, subscription?.trialEndsAt);
+    return (
+      Boolean(subscription?.active) ||
+      companyHasPaidAccess(subscription?.status, subscription?.trialEndsAt, data?.viewer.email)
+    );
   }
 
   function billingReturnState(): "success" | "cancelled" | null {
