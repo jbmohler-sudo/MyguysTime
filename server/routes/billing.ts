@@ -101,7 +101,12 @@ router.post(
     const { company } = await getCompanyContextOrThrow(req.auth!.companyId);
 
     if (!company.stripeCustomerId) {
-      res.status(409).json({ error: "No billing account yet. Subscribe first." });
+      const complimentary = await companyHasComplimentaryMember(company.id);
+      res.status(409).json({
+        error: complimentary
+          ? "This company is complimentary and has no Stripe billing account to manage."
+          : "No billing account yet. Subscribe first.",
+      });
       return;
     }
 

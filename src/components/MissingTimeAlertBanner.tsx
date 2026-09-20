@@ -11,6 +11,10 @@ interface MissingTimeAlertBannerProps {
   onSendReminders?: (employeeIds: string[]) => Promise<{ count: number; sent: boolean }>;
 }
 
+export function weekHasMissingWorkdayHours(week: EmployeeWeek): boolean {
+  return week.entries.some((day) => day.dayIndex < 5 && (day.totalHours || 0) === 0);
+}
+
 export function MissingTimeAlertBanner({
   employeeWeeks,
   onQuickFix,
@@ -21,13 +25,7 @@ export function MissingTimeAlertBanner({
   const [sending, setSending] = useState(false);
 
   const employeesWithMissingTime = useMemo(() => {
-    return employeeWeeks.filter((week) => {
-      return week.entries.some((day) => {
-        const isWorkday = day.dayIndex < 5;
-        const hasMissingTime = (day.totalHours || 0) === 0;
-        return isWorkday && hasMissingTime;
-      });
-    });
+    return employeeWeeks.filter(weekHasMissingWorkdayHours);
   }, [employeeWeeks]);
 
   const missingTimeCount = employeesWithMissingTime.length;
@@ -37,10 +35,7 @@ export function MissingTimeAlertBanner({
   }
 
   const handleQuickFix = () => {
-    alertRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    if (onQuickFix) {
-      setTimeout(onQuickFix, 300);
-    }
+    onQuickFix?.();
   };
 
   const handleSendReminders = async () => {

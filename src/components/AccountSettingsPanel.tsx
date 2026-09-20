@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { captureFrontendSentryVerification, frontendSentryVerificationEnabled } from "../lib/sentry";
 import { getAuthRedirectUrl, supabase } from "../lib/supabase";
 import type { Viewer } from "../domain/models";
+import { isPlatformComplimentaryEmail } from "../domain/subscription";
 import { PasswordInput } from "./PasswordInput";
 
 interface AccountSettingsPanelProps {
@@ -11,6 +12,7 @@ interface AccountSettingsPanelProps {
     status: string | null;
     trialEndsAt?: string | null;
     hasCustomer: boolean;
+    active?: boolean;
   } | null;
   onManageBilling: () => Promise<void>;
   onVerifyBackendSentry?: () => Promise<string | null>;
@@ -18,6 +20,44 @@ interface AccountSettingsPanelProps {
 
 function readMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
+}
+
+function hasComplimentaryAccess(
+  viewerEmail: string | null | undefined,
+  subscription: AccountSettingsPanelProps["subscription"],
+) {
+  if (isPlatformComplimentaryEmail(viewerEmail)) {
+    return true;
+  }
+  return Boolean(subscription?.active) && !subscription?.hasCustomer && !subscription?.status;
+}
+
+function subscriptionStatusLabel(
+  viewerEmail: string | null | undefined,
+  subscription: AccountSettingsPanelProps["subscription"],
+) {
+  if (hasComplimentaryAccess(viewerEmail, subscription)) {
+    return "Complimentary";
+  }
+  if (subscription?.status === "active") {
+    return "Active";
+  }
+  if (subscription?.status === "trialing") {
+    if (subscription.trialEndsAt && new Date(subscription.trialEndsAt).getTime() <= Date.now()) {
+      return "Trial ended";
+    }
+    if (subscription.trialEndsAt) {
+      return `Trial — ends ${new Date(subscription.trialEndsAt).toLocaleDateString()}`;
+    }
+    return "Trial";
+  }
+  if (subscription?.status === "past_due") {
+    return "Past due";
+  }
+  if (subscription?.status === "canceled") {
+    return "Canceled";
+  }
+  return "No subscription";
 }
 
 export function AccountSettingsPanel({ viewer, onUpdateMe, onVerifyBackendSentry, subscription, onManageBilling }: AccountSettingsPanelProps) {
@@ -465,40 +505,37 @@ export function AccountSettingsPanel({ viewer, onUpdateMe, onVerifyBackendSentry
           <div className="settings-form">
             <p style={{ marginBottom: "0.75rem" }}>
               Status:{" "}
-              <strong>
-                {subscription?.status === "active"
-                  ? "Active"
-                  : subscription?.status === "trialing"
-                    ? subscription.trialEndsAt &&
-                      new Date(subscription.trialEndsAt).getTime() <= Date.now()
-                      ? "Trial ended"
-                      : subscription.trialEndsAt
-                        ? `Trial — ends ${new Date(subscription.trialEndsAt).toLocaleDateString()}`
-                        : "Trial"
-                    : subscription?.status === "past_due"
-                      ? "Past due"
-                      : subscription?.status === "canceled"
-                        ? "Canceled"
-                        : "No subscription"}
-              </strong>
+              <strong>{subscriptionStatusLabel(viewer.email, subscription)}</strong>
             </p>
-            <div className="adjustment-actions" style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              <button
-                className="button"
-                disabled={billingBusy}
-                onClick={() => {
-                  setBillingBusy(true);
-                  setBillingError("");
-                  onManageBilling().catch((err) =>
-                    setBillingError(err instanceof Error ? err.message : "Could not open billing."),
-                  ).finally(() => setBillingBusy(false));
-                }}
-                type="button"
-              >
-                {billingBusy ? "Opening..." : "Manage billing"}
-              </button>
-            </div>
-            {billingError ? <p className="error-banner" style={{ marginTop: "0.75rem" }}>{billingError}</p> : null}
+            {subscription?.hasCustomer ? (
+              <>
+                <div className="adjustment-actions" style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                  <button
+                    className="button"
+                    disabled={billingBusy}
+                    onClick={() => {
+                      setBillingBusy(true);
+                      setBillingError("");
+                      onManageBilling()
+                        .catch((err) =>
+                          setBillingError(err instanceof Error ? err.message : "Could not open billing."),
+                        )
+                        .finally(() => setBillingBusy(false));
+                    }}
+                    type="button"
+                  >
+                    {billingBusy ? "Opening..." : "Manage billing"}
+                  </button>
+                </div>
+                {billingError ? <p className="error-banner" style={{ marginTop: "0.75rem" }}>{billingError}</p> : null}
+              </>
+            ) : (
+              <p className="settings-meta" style={{ margin: 0 }}>
+                {hasComplimentaryAccess(viewer.email, subscription)
+                  ? "This company is on complimentary access, so there is no Stripe billing account to manage."
+                  : "No Stripe billing account yet. The customer portal is only available after you subscribe."}
+              </p>
+            )}
           </div>
         </section>
       ) : null}

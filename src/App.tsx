@@ -277,7 +277,11 @@ function AppContent() {
   }
 
   async function handleManageBilling() {
-    if (!token) return;
+    if (!token) {
+      const message = "You need to be signed in to manage billing.";
+      setBillingError(message);
+      throw new Error(message);
+    }
     setBillingBusy(true);
     setBillingError(null);
     try {
@@ -285,8 +289,10 @@ function AppContent() {
       if (!url) throw new Error("Billing portal did not return a URL.");
       window.location.href = url;
     } catch (err) {
-      setBillingError(err instanceof Error ? err.message : "Could not open the billing portal.");
+      const message = err instanceof Error ? err.message : "Could not open the billing portal.";
+      setBillingError(message);
       setBillingBusy(false);
+      throw err instanceof Error ? err : new Error(message);
     }
   }
 

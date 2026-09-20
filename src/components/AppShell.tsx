@@ -16,7 +16,7 @@ import { AccountSettingsPanel } from "./AccountSettingsPanel";
 import { ArchivePanel } from "./ArchivePanel";
 import { InviteEmployeeModal } from "./InviteEmployeeModal";
 import { InviteManagementPanel } from "./InviteManagementPanel";
-import { MissingTimeAlertBanner } from "./MissingTimeAlertBanner";
+import { MissingTimeAlertBanner, weekHasMissingWorkdayHours } from "./MissingTimeAlertBanner";
 import { OnboardingOverlay } from "./OnboardingOverlay";
 import { CompanySettingsPanel } from "./CompanySettingsPanel";
 import { Logo } from "./Logo";
@@ -26,6 +26,7 @@ import { TeamManagementPanel } from "./TeamManagementPanel";
 import { WeeklyCrewBoard } from "./WeeklyCrewBoard";
 
 import { useOnboardingContext } from "../hooks/useOnboarding";
+import { useToast } from "../hooks/useToast";
 import { Home, Users, Settings, Archive, LogOut } from "lucide-react";
 import { getWeekStartIso } from "../domain/week";
 
@@ -119,6 +120,7 @@ export function AppShell({
   onRevokeInvite,
 }: AppShellProps) {
   const onboarding = useOnboardingContext();
+  const { showToast } = useToast();
 
   const truckViewportQuery = "(max-width: 1024px)";
 
@@ -142,6 +144,7 @@ export function AppShell({
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallReady, setIsInstallReady] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [quickFixTimesheetId, setQuickFixTimesheetId] = useState<string | null>(null);
 
   const visibleWeeks = useMemo(
     () =>
@@ -376,28 +379,76 @@ export function AppShell({
     }
   }, [activePage, canViewArchive, canViewCompanySettings, canViewTeam]);
 
-  const handleQuickFix = () => {
+  const focusTimesheetCard = (timesheetId: string, message: string, secondary: string) => {
     setActivePage("dashboard");
-    setTimeout(() => {
-      const firstDraft = document.querySelector<HTMLElement>('[data-status="draft"]');
-      if (firstDraft) {
-        firstDraft.scrollIntoView({ behavior: "smooth", block: "center" });
-        firstDraft.style.transition = "outline 0s";
-        firstDraft.style.outline = "3px solid #FF8C00";
-        setTimeout(() => {
-          firstDraft.style.outline = "";
-        }, 1800);
-      } else {
-        document.querySelector(".weekly-crew-board")?.scrollIntoView({ behavior: "smooth" });
+    const week = data.employeeWeeks.find((item) => item.id === timesheetId);
+    if (week && selectedCrewId !== "all" && week.crewId !== selectedCrewId) {
+      setSelectedCrewId("all");
+    }
+    setQuickFixTimesheetId(timesheetId);
+    showToast(message, "success", secondary);
+  };
+
+  useEffect(() => {
+    if (!quickFixTimesheetId || activePage !== "dashboard") {
+      return;
+    }
+
+    const highlightCard = () => {
+      const card = document.querySelector<HTMLElement>(
+        `[data-timesheet-id="${CSS.escape(quickFixTimesheetId)}"]`,
+      );
+      if (!card) {
+        return false;
       }
-    }, 0);
+      card.scrollIntoView({ behavior: "smooth", block: "center" });
+      card.classList.add("employee-card--quick-fix");
+      return true;
+    };
+
+    const frame = window.requestAnimationFrame(() => {
+      if (!highlightCard()) {
+        document.querySelector(".weekly-crew-board")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+
+    const clearHighlight = window.setTimeout(() => {
+      document.querySelectorAll(".employee-card--quick-fix").forEach((element) => {
+        element.classList.remove("employee-card--quick-fix");
+      });
+      setQuickFixTimesheetId((current) => (current === quickFixTimesheetId ? null : current));
+    }, 2200);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(clearHighlight);
+    };
+  }, [activePage, quickFixTimesheetId, selectedCrewId, visibleWeeks]);
+
+  const handleQuickFix = () => {
+    const firstDraft = data.employeeWeeks.find((week) => week.status === "draft");
+    if (!firstDraft) {
+      document.querySelector(".weekly-crew-board")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    focusTimesheetCard(
+      firstDraft.id,
+      `Open ${firstDraft.employeeName}'s timesheet`,
+      "This week is still waiting for submission.",
+    );
   };
 
   const handleQuickFixMissingTime = () => {
-    const crewBoardElement = document.querySelector(".crew-board, .weekly-crew-board");
-    if (crewBoardElement) {
-      crewBoardElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    const firstMissing = data.employeeWeeks.find(weekHasMissingWorkdayHours);
+    if (!firstMissing) {
+      document.querySelector(".weekly-crew-board")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
     }
+    focusTimesheetCard(
+      firstMissing.id,
+      `Open ${firstMissing.employeeName}'s hours`,
+      "One or more workdays still have no hours logged.",
+    );
   };
 
   const handleInstallApp = async () => {
