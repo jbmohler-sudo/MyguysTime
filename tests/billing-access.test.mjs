@@ -24,6 +24,11 @@ assert.match(
   "billing status/sync must pass the authenticated email into paid-access checks",
 );
 assert.match(
+  billingRouteSource,
+  /This company is complimentary and has no Stripe billing account to manage\./,
+  "billing portal must tell complimentary companies they have no Stripe customer",
+);
+assert.match(
   helpersSource,
   /complimentary: await companyHasComplimentaryMember\(companyId\)/,
   "bootstrap must treat a complimentary owner's company as paid",

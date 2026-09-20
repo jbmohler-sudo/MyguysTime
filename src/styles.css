@@ -689,6 +689,12 @@ button:disabled {
   width: 100%;
 }
 
+.employee-card--quick-fix {
+  outline: 3px solid #ff8c00;
+  box-shadow: 0 0 0 6px rgba(255, 140, 0, 0.22);
+  transition: outline 0.2s ease, box-shadow 0.2s ease;
+}
+
 .employee-card--truck {
   max-width: 100%;
   min-width: 0;

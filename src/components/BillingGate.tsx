@@ -94,7 +94,9 @@ export function BillingGate({
                     className="button"
                     type="button"
                     disabled={busy}
-                    onClick={onManageBilling}
+                    onClick={() => {
+                      void Promise.resolve(onManageBilling()).catch(() => undefined);
+                    }}
                   >
                     Manage billing
                   </button>

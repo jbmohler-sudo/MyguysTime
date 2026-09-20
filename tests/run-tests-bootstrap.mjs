@@ -11,4 +11,6 @@ assertSafeFixtureMutationContext("tests/run-tests.mjs");
 await import("./security-guards.test.mjs");
 await import("./public-url.test.mjs");
 await import("./billing-access.test.mjs");
+await import("./dashboard-quick-fix-ui.test.mjs");
+await import("./account-billing-ui.test.mjs");
 await import("./run-tests.mjs");
