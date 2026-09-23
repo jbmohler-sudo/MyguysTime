@@ -49,7 +49,7 @@ export function MarketingFooter() {
   return (
     <footer className="border-t border-slate-200 bg-slate-50 mt-20">
       <div className="max-w-6xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-12 mb-12">
           <div>
             <div className="flex items-center gap-2 mb-6">
               <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
@@ -71,6 +71,18 @@ export function MarketingFooter() {
                   </a>
                 </li>
               ))}
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-4">Trades</h4>
+            <ul className="space-y-2 text-sm text-slate-600">
+              <li><a href="/trades/roofing" className="hover:text-orange-500 transition-colors">Roofing</a></li>
+              <li><a href="/trades/masonry" className="hover:text-orange-500 transition-colors">Masonry</a></li>
+              <li><a href="/trades/landscaping" className="hover:text-orange-500 transition-colors">Landscaping</a></li>
+              <li><a href="/trades/painting" className="hover:text-orange-500 transition-colors">Painting</a></li>
+              <li><a href="/trades/plumbing" className="hover:text-orange-500 transition-colors">Plumbing</a></li>
+              <li><a href="/trades/electrical" className="hover:text-orange-500 transition-colors">Electrical</a></li>
+              <li><a href="/trades/general-contracting" className="hover:text-orange-500 transition-colors">General Contracting</a></li>
             </ul>
           </div>
           <div>
