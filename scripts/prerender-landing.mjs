@@ -188,7 +188,9 @@ function replaceMeta(html, attr, name, value) {
     console.error(`[prerender] meta ${attr}="${name}" not found in template.`);
     process.exit(1);
   }
-  return html.replace(re, `<meta$1${attr}="${name}"$2content="${value}"$3/>`);
+  // Replacement FUNCTION: a string replacement would treat $ sequences in
+  // value (e.g. "$12/mo") as capture-group references and corrupt the output.
+  return html.replace(re, (m, g1, g2, g3) => `<meta${g1}${attr}="${name}"${g2}content="${value}"${g3}/>`);
 }
 
 for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets] of pages) {
@@ -211,7 +213,7 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     console.error("[prerender] <title> not found in template.");
     process.exit(1);
   }
-  finalHtml = finalHtml.replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`);
+  finalHtml = finalHtml.replace(/<title>[^<]*<\/title>/, () => `<title>${title}</title>`);
 
   // Meta + OG/Twitter + canonical — all page-specific (no duplicate-meta repeats).
   const canonical = canonicalHost + routePath;
