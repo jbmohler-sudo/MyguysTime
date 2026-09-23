@@ -6,6 +6,10 @@ import { ViewProvider } from "./context/ViewContext";
 import { CompanySetupScreen } from "./components/CompanySetupScreen";
 import { BillingGate } from "./components/BillingGate";
 import { PublicHomepage } from "./components/PublicHomepage";
+import { FeaturesPage } from "./components/FeaturesPage";
+import { PricingPage } from "./components/PricingPage";
+import { HowItWorksPage } from "./components/HowItWorksPage";
+import { FaqPage } from "./components/FaqPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LoginPage } from "./pages/LoginPage";
 import { DemoShell } from "./demo/DemoShell";
@@ -496,6 +500,21 @@ function AppContent() {
   const demoRole = demoRouteMap[path];
   if (demoRole) {
     return <DemoShell role={demoRole} />;
+  }
+
+  // ─── Marketing pages — prerendered to static HTML, hydrated by App ──────────
+  if (showPublicHomepage) {
+    const cleanPath = path.length > 1 ? path.replace(/\/+$/, "") : path;
+    const marketingPageMap: Record<string, React.ReactNode> = {
+      "/features": <FeaturesPage />,
+      "/pricing": <PricingPage />,
+      "/how-it-works": <HowItWorksPage />,
+      "/faq": <FaqPage />,
+    };
+    const marketingPage = marketingPageMap[cleanPath];
+    if (marketingPage) {
+      return marketingPage;
+    }
   }
 
   if (showPublicHomepage) {
