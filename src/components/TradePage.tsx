@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { AlertCircle, ArrowRight, CheckCircle2, ClipboardList } from "lucide-react";
-import { MarketingChrome } from "./MarketingChrome";
+import { CtaBand, CtaButtons, MarketingChrome } from "./MarketingChrome";
 import { TRADES, getTrade, type TradeConfig } from "./trades";
 
 export function TradePage({ slug }: { slug: string }) {
@@ -28,7 +28,7 @@ export function TradePage({ slug }: { slug: string }) {
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">{trade.h1}</h1>
           <p className="text-xl text-slate-600 mb-4">{trade.sub}</p>
           <p className="text-slate-600 mb-8 max-w-3xl mx-auto">{trade.intro}</p>
-          <MarketingChrome.CtaButtons />
+          <CtaButtons />
           <p className="text-sm text-slate-500 mt-4">$12/mo flat for the whole company · 7-day free trial · Cancel anytime</p>
         </div>
       </section>
@@ -138,7 +138,7 @@ export function TradePage({ slug }: { slug: string }) {
         </div>
       </section>
 
-      <MarketingChrome.CtaBand
+      <CtaBand
         title={`Run a ${trade.trade.toLowerCase()} crew? Try it free for 7 days.`}
         sub="One flat price. The whole crew. Cancel anytime."
       />
