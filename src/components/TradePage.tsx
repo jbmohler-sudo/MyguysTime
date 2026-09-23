@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { AlertCircle, ArrowRight, CheckCircle2, ClipboardList } from "lucide-react";
 import { CtaBand, CtaButtons, MarketingChrome } from "./MarketingChrome";
 import { TRADES, getTrade, type TradeConfig } from "./trades";
@@ -10,9 +9,9 @@ export function TradePage({ slug }: { slug: string }) {
       <MarketingChrome>
         <div className="max-w-3xl mx-auto px-4 py-24 text-center">
           <h1 className="text-3xl font-bold text-slate-900 mb-4">Trade not found</h1>
-          <Link to="/features" className="text-orange-600 hover:underline">
+          <a href="/features" className="text-orange-600 hover:underline">
             See all features
-          </Link>
+          </a>
         </div>
       </MarketingChrome>
     );
@@ -113,9 +112,9 @@ export function TradePage({ slug }: { slug: string }) {
             ))}
           </div>
           <div className="text-center mt-8">
-            <Link to="/faq" className="text-orange-600 hover:underline font-medium inline-flex items-center gap-1">
+            <a href="/faq" className="text-orange-600 hover:underline font-medium inline-flex items-center gap-1">
               <ClipboardList className="w-4 h-4" /> All frequently asked questions <ArrowRight className="w-4 h-4" />
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -126,13 +125,13 @@ export function TradePage({ slug }: { slug: string }) {
           <h2 className="text-xl font-bold text-slate-900 mb-4 text-center">Other trades</h2>
           <div className="flex flex-wrap justify-center gap-3">
             {others.map((t) => (
-              <Link
+              <a
                 key={t.slug}
-                to={`/trades/${t.slug}`}
+                href={`/trades/${t.slug}`}
                 className="px-4 py-2 border border-slate-200 rounded-full text-sm text-slate-700 hover:border-orange-400 hover:text-orange-600 transition-colors"
               >
                 {t.trade}
-              </Link>
+              </a>
             ))}
           </div>
         </div>
