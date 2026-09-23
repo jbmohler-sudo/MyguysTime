@@ -173,6 +173,47 @@ const pages = [
   ],
 ];
 
+// Trade pages — [slug, trade name, page title, meta description, H1 snippet]
+const tradePages = [
+  ["roofing", "Roofing", "Roofing Time Tracking for Roofing Crews | My Guys Time",
+    "Tear-off and install crews, weather days, and 1099 subs — log roofing hours from the field. $12/mo flat, no per-seat fees.",
+    "Roofing hours, tracked from the ground."],
+  ["masonry", "Masonry", "Masonry Time Tracking for Masonry Crews | My Guys Time",
+    "Block, brick, stone, and hardscapes — daily hour logging from the field for masonry crews. $12/mo flat, no per-seat fees.",
+    "Masonry hours without the Thursday scramble."],
+  ["landscaping", "Landscaping", "Landscaping Time Tracking for Landscaping Crews | My Guys Time",
+    "Mowing routes and install crews on one weekly board. Seasonal hires logging day one. $12/mo flat, no per-seat fees.",
+    "Mowing routes and install crews, one weekly review."],
+  ["painting", "Painting", "Time Tracking for Painting Crews | My Guys Time",
+    "Prep days, paint days, and touch-up callbacks — log painting hours the day they're worked. $12/mo flat, no per-seat fees.",
+    "Prep days, paint days, one clean time card."],
+  ["plumbing", "Plumbing", "Plumbing Time Tracking for Service & Construction | My Guys Time",
+    "Service calls, rough-ins, apprentices, and on-call hours — with W-2/1099 cleanly separated. $12/mo flat.",
+    "Service calls and rough-ins, hours that add up."],
+  ["electrical", "Electrical", "Electrical Time Tracking for Electricians | My Guys Time",
+    "Service trucks, construction crews, apprentices, and emergency call-outs — every hour accounted for. $12/mo flat.",
+    "Every hour on every job, accounted for."],
+  ["general-contracting", "General Contracting", "Time Tracking for General Contractors | My Guys Time",
+    "Your W-2 crew and your 1099 subs on one weekly board, cleanly separated for payroll and 1099s. $12/mo flat.",
+    "Your crew and your subs, one weekly payroll picture."],
+];
+
+for (const [slug, trade, title, description, h1] of tradePages) {
+  pages.push([
+    `/trades/${slug}`,
+    `trades/${slug}/index.html`,
+    () => ssr.renderTradeHtml(slug),
+    title,
+    description,
+    [
+      ["ld-softwareapplication", softwareApplicationLd],
+      ["ld-organization", organizationLd],
+      ["ld-website", websiteLd],
+    ],
+    [h1, `For ${trade === "General Contracting" ? "GC crews" : trade.toLowerCase() + " crews"}`],
+  ]);
+}
+
 const template = fs.readFileSync(templatePath, "utf8");
 const rootMarker = '<div id="root">';
 const hydrationFlag = '<div id="root" data-prerendered="true">';
