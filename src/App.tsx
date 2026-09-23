@@ -10,6 +10,8 @@ import { FeaturesPage } from "./components/FeaturesPage";
 import { PricingPage } from "./components/PricingPage";
 import { HowItWorksPage } from "./components/HowItWorksPage";
 import { FaqPage } from "./components/FaqPage";
+import { TradePage } from "./components/TradePage";
+import { TRADES } from "./components/trades";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LoginPage } from "./pages/LoginPage";
 import { DemoShell } from "./demo/DemoShell";
@@ -514,6 +516,12 @@ function AppContent() {
     const marketingPage = marketingPageMap[cleanPath];
     if (marketingPage) {
       return marketingPage;
+    }
+    if (cleanPath.startsWith("/trades/")) {
+      const slug = cleanPath.slice("/trades/".length);
+      if (TRADES.some((t) => t.slug === slug)) {
+        return <TradePage slug={slug} />;
+      }
     }
   }
 
