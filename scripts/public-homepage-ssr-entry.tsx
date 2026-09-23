@@ -13,6 +13,7 @@ import { FeaturesPage } from "../src/components/FeaturesPage";
 import { PricingPage } from "../src/components/PricingPage";
 import { HowItWorksPage } from "../src/components/HowItWorksPage";
 import { FaqPage, faqPageItems } from "../src/components/FaqPage";
+import { TradePage } from "../src/components/TradePage";
 
 export { faqItems, faqPageItems };
 
@@ -34,4 +35,8 @@ export function renderHowItWorksHtml(): string {
 
 export function renderFaqHtml(): string {
   return renderToStaticMarkup(createElement(FaqPage));
+}
+
+export function renderTradeHtml(slug: string): string {
+  return renderToStaticMarkup(createElement(TradePage, { slug }));
 }
