@@ -697,17 +697,22 @@ export function PublicHomepage() {
               <h4 className="font-semibold text-slate-900 mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-slate-600">
                 <li>
-                  <a href="#workflow" className="hover:text-orange-500 transition-colors">
+                  <a href="/features" className="hover:text-orange-500 transition-colors">
                     Features
                   </a>
                 </li>
                 <li>
-                  <a href="#pricing" className="hover:text-orange-500 transition-colors">
+                  <a href="/how-it-works" className="hover:text-orange-500 transition-colors">
+                    How It Works
+                  </a>
+                </li>
+                <li>
+                  <a href="/pricing" className="hover:text-orange-500 transition-colors">
                     Pricing
                   </a>
                 </li>
                 <li>
-                  <a href="#faq" className="hover:text-orange-500 transition-colors">
+                  <a href="/faq" className="hover:text-orange-500 transition-colors">
                     FAQ
                   </a>
                 </li>
