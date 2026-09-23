@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AppShell } from "./components/AppShell";
 import { OnboardingProvider } from "./hooks/useOnboarding";
 import { ToastProvider } from "./hooks/useToast";
@@ -505,7 +505,7 @@ function AppContent() {
   // ─── Marketing pages — prerendered to static HTML, hydrated by App ──────────
   if (showPublicHomepage) {
     const cleanPath = path.length > 1 ? path.replace(/\/+$/, "") : path;
-    const marketingPageMap: Record<string, React.ReactNode> = {
+    const marketingPageMap: Record<string, ReactNode> = {
       "/features": <FeaturesPage />,
       "/pricing": <PricingPage />,
       "/how-it-works": <HowItWorksPage />,
