@@ -1,6 +1,6 @@
 export interface TradeFaq {
   q: string;
-  a: string;
+  text: string;
 }
 
 export interface TradeConfig {
