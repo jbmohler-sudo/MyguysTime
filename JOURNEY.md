@@ -146,3 +146,20 @@ Supabase; app rows moved to Neon.
 **Verified live:** all 4 pages 200 with prerendered HTML, unique titles/descriptions, self-referencing canonicals, single H1 each; homepage 200 unchanged; sitemap lists 8 URLs.
 
 **Next:** batch 2 = 7 trade pages (`/trades/[trade]`), batch 3 = 3 comparisons (`/vs/*`). Plan: `workspace/goals/content-outreach-engine-running/files/myguystime-page-plan.md`.
+
+## 2026-09-23 — Batch 2: seven trade pages live
+
+Shipped after Batch 1: `/trades/roofing`, `/trades/masonry`, `/trades/landscaping`,
+`/trades/painting`, `/trades/plumbing`, `/trades/electrical`, `/trades/general-contracting`.
+
+Build: new `trades.tsx` content configs + shared `TradePage` template, public
+`/trades/:slug` route, prerendered landing pages with unique titles/descriptions/canonicals/JSON-LD,
+sitemap at 15 URLs, Trades footer column on homepage + marketing pages.
+
+Copy uses grounded product facts only — no invented features. Masonry page carries
+the 2x6 origin story. Each page: 4 pain cards, 4-step weekly flow, callout, 3 FAQs,
+cross-trade pills, start-free-week + how-it-works CTAs.
+
+First builds failed on two self-made TS errors (MarketingChrome API guess + TradeFaq field
+mismatch); fixed against the real component API, rebuilt READY, all seven pages
+live-verified: HTTP 200, prerendered, one H1 each, self-canonicals, $12/mo intact.
