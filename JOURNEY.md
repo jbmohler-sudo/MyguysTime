@@ -163,3 +163,20 @@ cross-trade pills, start-free-week + how-it-works CTAs.
 First builds failed on two self-made TS errors (MarketingChrome API guess + TradeFaq field
 mismatch); fixed against the real component API, rebuilt READY, all seven pages
 live-verified: HTTP 200, prerendered, one H1 each, self-canonicals, $12/mo intact.
+
+## 2026-09-24 — Batch 3: three comparison pages live
+
+Shipped after Jeff approved the drafts (`/vs/paper-timesheets`, `/vs/quickbooks-time`,
+`/vs/spreadsheets`). Build: new `vs.tsx` content configs + shared `VsPage` template with a
+side-by-side comparison table (old way vs My Guys Time), public `/vs/:slug` route, prerendered
+landing pages with unique titles/descriptions/canonicals/JSON-LD, sitemap now 18 URLs,
+Comparisons footer column on homepage + marketing pages.
+
+Copy uses grounded product facts only — $12/mo flat, no per-seat, 7-day trial, browser-based,
+crew-board review flow, CSV exports, receipt photos, mixed W-2/1099. Paper page carries the 2x6
+origin story; QuickBooks page positions flat pricing against per-seat billing without inventing
+competitor prices; spreadsheet page targets the Thursday-at-5pm rebuild. Each page: 4 pain
+cards, 5-row comparison table, 4-step weekly flow, callout, 3 FAQs, cross-comparison pills.
+
+Draft files and phone-readable copy preview staged under
+`workspace/goals/my-guys-time-marketing-page-buildout/drafts/batch3-vs/` before go-live.

@@ -80,4 +80,20 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <!-- Comparison pages — prerendered static HTML. -->
+  <url>
+    <loc>https://www.myguystime.com/vs/paper-timesheets</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.myguystime.com/vs/quickbooks-time</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.myguystime.com/vs/spreadsheets</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>

@@ -213,6 +213,35 @@ for (const [slug, trade, title, description, h1] of tradePages) {
     [h1, `For ${trade === "General Contracting" ? "GC crews" : trade.toLowerCase() + " crews"}`],
   ]);
 }
+// Comparison pages — [slug, name, page title, meta description, H1 snippet]
+const vsPages = [
+  ["paper-timesheets", "Paper Timesheets", "Paper Timesheets vs My Guys Time | Contractor Time Cards",
+    "Still running crew hours on paper time cards? Lost hours, Thursday-night reconstruction, unreadable handwriting — see what changes with $12/mo flat time cards.",
+    "Retire the paper time card."],
+  ["quickbooks-time", "QuickBooks Time", "QuickBooks Time Alternative for Contractors | My Guys Time",
+    "QuickBooks Time charges per user — every hire raises the bill. My Guys Time is $12/mo flat for the whole company. Contractor time tracking without per-seat pricing.",
+    "Stop paying per head."],
+  ["spreadsheets", "Spreadsheets", "Spreadsheet Time Tracking vs My Guys Time | $12/mo Flat",
+    "If your time-tracking 'system' is a spreadsheet rebuilt every Thursday at 5pm, you're paying for it in lost hours. Daily field logging, one weekly review, clean CSV export.",
+    "Kill the Thursday spreadsheet."],
+];
+
+for (const [slug, name, title, description, h1] of vsPages) {
+  pages.push([
+    `/vs/${slug}`,
+    `vs/${slug}/index.html`,
+    () => ssr.renderVsHtml(slug),
+    title,
+    description,
+    [
+      ["ld-softwareapplication", softwareApplicationLd],
+      ["ld-organization", organizationLd],
+      ["ld-website", websiteLd],
+    ],
+    [h1, `My Guys Time vs ${name}`],
+  ]);
+}
+
 
 const template = fs.readFileSync(templatePath, "utf8");
 const rootMarker = '<div id="root">';

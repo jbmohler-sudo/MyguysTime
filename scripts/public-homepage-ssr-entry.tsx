@@ -14,6 +14,7 @@ import { PricingPage } from "../src/components/PricingPage";
 import { HowItWorksPage } from "../src/components/HowItWorksPage";
 import { FaqPage, faqPageItems } from "../src/components/FaqPage";
 import { TradePage } from "../src/components/TradePage";
+import { VsPage } from "../src/components/VsPage";
 
 export { faqItems, faqPageItems };
 
@@ -39,4 +40,8 @@ export function renderFaqHtml(): string {
 
 export function renderTradeHtml(slug: string): string {
   return renderToStaticMarkup(createElement(TradePage, { slug }));
+}
+
+export function renderVsHtml(slug: string): string {
+  return renderToStaticMarkup(createElement(VsPage, { slug }));
 }

@@ -11,7 +11,9 @@ import { PricingPage } from "./components/PricingPage";
 import { HowItWorksPage } from "./components/HowItWorksPage";
 import { FaqPage } from "./components/FaqPage";
 import { TradePage } from "./components/TradePage";
+import { VsPage } from "./components/VsPage";
 import { TRADES } from "./components/trades";
+import { VS_PAGES } from "./components/vs";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LoginPage } from "./pages/LoginPage";
 import { DemoShell } from "./demo/DemoShell";
@@ -521,6 +523,12 @@ function AppContent() {
       const slug = cleanPath.slice("/trades/".length);
       if (TRADES.some((t) => t.slug === slug)) {
         return <TradePage slug={slug} />;
+      }
+    }
+    if (cleanPath.startsWith("/vs/")) {
+      const slug = cleanPath.slice("/vs/".length);
+      if (VS_PAGES.some((v) => v.slug === slug)) {
+        return <VsPage slug={slug} />;
       }
     }
   }
