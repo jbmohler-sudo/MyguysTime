@@ -1,8 +1,7 @@
 # MyGuys — JOURNEY
 
-> The living story of this project. Read this first. Format defined by
-> [`../JOURNEY_PROTOCOL.md`](../JOURNEY_PROTOCOL.md). Workspace mount quirks:
-> [`../UMBRELLA-GOTCHAS.md`](../UMBRELLA-GOTCHAS.md).
+> The living story of this project. Read this first. **How to update this file:** [AGENTS.md](AGENTS.md)
+> (new session entries go at the top of the Session Log, 4 max; never append at the end of the file).
 
 ## Current State
 
@@ -10,9 +9,10 @@
   `ufbanjchatwkheaqafsf`. App data is Neon. Live at `app.myguystime.com` on Vercel (Hobby).
 - **Live:** $12/mo company Stripe billing, checkout + webhook, Resend receipt on first paid
   period, 7-day no-card trial on new signups. Paid companies stay on `active`.
-- **In progress:** `feat/landing-audit` — marketing landing pass (do not merge to `main` until
-  that work is handed back).
-- **Biggest open item:** finish the landing audit on the feature branch. Optional later:
+- **Marketing site live (2026-09-23/24, Muse):** `/features`, `/pricing`, `/how-it-works`, `/faq`, seven
+  `/trades/:slug` pages, and `/vs/{paper-timesheets,quickbooks-time,spreadsheets}` — all prerendered, in the
+  sitemap. (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
+- **Biggest open item:** Jeff's call on two Cursor branches (Open Questions). Optional later:
   Auth admin on `sb_secret_` (then disable legacy JWT), Neon→one Supabase DB.
 
 ## The Story So Far
@@ -39,6 +39,7 @@ Supabase; app rows moved to Neon.
 | 2026-06-25 | Remediate leaked env secrets by **rewriting git history** (`git filter-repo`) + force-push, then rotate creds | Secrets (`.env.production.*`) had been committed and pushed; scrub limits future exposure, rotation neutralizes the leak. |
 | (earlier) | Remove the tax/payroll engine entirely | App scope narrowed to timesheets/hours; tax logic was dead weight and risk. |
 | (earlier) | All public tables use RLS; authenticated-only, no anon access | Security baseline for Supabase. |
+| 2026-09-25 | One shipping rule across all repos: a commit to `main` is a release; commit there only when build + tests pass and Jeff asked for it to go live, otherwise branch; pricing/billing/rules/security/deletions need Jeff's OK first (AGENTS.md) | Cloud agents (Muse) couldn't see rules kept in CLAUDE.md / `../` files; the local backup pushes any commit on `main`, so "commit but don't push" rules silently shipped; 13 failed production builds on 9/13–9/23 |
 
 ## System Map
 
@@ -66,70 +67,57 @@ Supabase; app rows moved to Neon.
 
 - After Auth admin accepts `sb_secret_`, can legacy JWT keys be disabled?
 - Keep Neon + Supabase, or move app data onto one Supabase project?
+- `feat/landing-audit` has no commits since 9/13 and the marketing pages shipped on `main` 9/23–24 — delete the
+  branch, or is a separate landing audit still planned?
+- Two Cursor branches wait on Jeff: `cursor/complimentary-owner-billing-95c4` (e470e7c, 9/20 — billing access
+  for the platform owner, 16 files) and `cursor/ga4-gtag-07bd` (16658cc, 9/23 — GA4 on every page). Both are ~30
+  commits behind `main`: merge (after rebase + build) or drop?
 
 ## Session Log
 
-### 2026-09-16 — Portfolio SEO pass (MyGuysTime property)
-**Did:** SEO audit + remediation.
-- **Canonical consolidation:** found the `<link rel="canonical">` pointed at the apex (`myguystime.com`) while Vercel domain config 308-redirects the apex to `www.myguystime.com`. Aligned all code-side signals to the www host instead of reversing the live routing: canonical, `og:url`, `og:image`, `twitter:image` now `https://www.myguystime.com/...`.
-- **New `public/sitemap.xml`** — landing page + 3 live demo spokes (`/demo/admin`, `/demo/foreman`, `/demo/employee`), all on the www canonical host.
-- **New `public/robots.txt`** — allow-all, `/api/` disallowed, sitemap declared.
-- **Schema:** prerender now injects Organization + WebSite JSON-LD alongside SoftwareApplication + FAQPage (placeholders added in `index.html`; single canonical-host constant in `scripts/prerender-landing.mjs`).
-- **Index hygiene:** inline script in `index.html` now adds `<meta name="robots" content="noindex">` on app hosts (`app.myguystime.com`, `myguystime.vercel.app`, previews) so only the landing host ranks.
-- **Interlinking fix:** "Try the demo" button in the Trust section linked to `#workflow` despite its label — now points to `/demo/admin`.
-- **Demo spokes:** each role view sets its own `document.title` ("Live Demo — Admin/Foreman/Crew Member View") instead of inheriting the landing title.
-- **Link model:** audit found zero violations — only outbound links are `app.myguystime.com/login` (own app) and `mailto:jeff@myguystime.com`. No sibling-property links, no IronAtForty links.
-- **Hero images (inventory, report only):** hero uses a CSS ProductPreview mockup (no photo). Founder-story section uses `public/images/myguystime-story-2x8.jpg` (authentic photo of handwritten hours on a board — on-brand, keep). OG image `public/images/og-myguystime.png`. Orphans worth cleaning later: `public/images/myguystime-story-hook.webp` (558 KB, unreferenced) and `src/assets/my-guys-time-option-b.png` (90 KB, unreferenced).
-**Decided:** Canonical host = `www.myguystime.com` (matches the Vercel apex→www 308); code canonicals/sitemap follow the infrastructure, not the other way around.
-**Killed:** The `#workflow` "Try the demo" mislabeled anchor.
-**Deferred:** Removing the two orphan images; flipping the apex/www redirect direction (deliberate existing config — leave to Jeff).
-**State after:** Pushed to `main`; Vercel auto-deploy verified READY, production URLs returning 200.
-**Next:** Nothing open on SEO; next property in the sweep.
+### 2026-09-25 — Agent rules in-repo (new AGENTS.md); journal repaired; stale guidance fixed (Claude)
+**Did:** Cross-repo audit. Found: Muse (cloud, `jbmohler-sudo`) built the marketing site 9/23–9/24 by pushing each change straight to `main` with no local build, per the old "commit and push without being asked" rule — **13 Vercel production builds failed** (11 in a row on 9/23: 7aada9f…ccc139b) before a green one; the live site stayed on the last good build. The three batch entries had been appended at the end of this file and the Session Log held 5 entries. Fix: new AGENTS.md (shared rules: sync first, shipping, **build + test before every commit**, JOURNEY format) and CLAUDE.md now imports it, with its stale "payroll app on Supabase" description corrected (payroll removed; app data on Neon). Journal: header points at AGENTS.md instead of `../` files; strays folded in newest-first (headings demoted only); cap applied; Current State and Hard Rules brought current.
+**Decided:** One shipping rule in every repo: a commit to `main` is a release, so commit there only when `npm run build` and `npm test` pass and Jeff asked for the work to go live; everything else on a branch. Pricing, billing, rules, security/migrations, and deletions always need Jeff's OK first. Replaces "commit and push without being asked."
+**Killed:** "After ANY code change: commit and push without being asked"; the `feat/landing-audit` hold rule (the branch has no commits since 9/13 and the marketing work shipped on `main`).
+**Deferred:** Two Cursor branches await Jeff (see Open Questions).
+**State after:** Local checkout synced with origin; marketing pages live; rules readable by every agent.
+**Next:** Jeff decides the two Cursor branches and whether to delete `feat/landing-audit`.
 
-### 2026-09-13 — Stripe billing live, receipts, 7-day trial
-**Did:** Shipped Checkout/portal/webhook, Vercel `api/billing` + `api/stripe` handlers, `/billing/sync` so pay unlocks without the webhook, Resend subscription receipt, 7-day trial on signup. Rotated/fixed Supabase+Neon keys earlier the same day (wrong project `pmwzgag…` first). Unlocked the paid test company after webhook 308s.
-**Decided:** App trial (no card) for 7 days, then $12/mo. Receipts only when Stripe status is `active`. Webhook URL `https://app.myguystime.com/api/billing/webhook` (HTTPS; Stripe will not follow 308s).
-**Killed:** Assuming `/api/[...path]` covers nested billing routes on Hobby.
-**Deferred:** `sb_secret_` for Auth admin; grandfathering old unpaid companies; monthly invoice emails (confirmation receipt only).
-**State after:** Billing + trial live on `main` / production (`1aa6b97` and later). Current working branch is `feat/landing-audit`.
-**Next:** Landing audit on the feature branch. Do not push that work to `main` until handed back.
+### 2026-09-24 — Batch 3: three comparison pages live
 
-### 2026-09-13 — Company Stripe columns on Neon
-**Did:** Added nullable `stripeCustomerId`, `stripeSubscriptionId`, `subscriptionStatus`, `subscriptionTrialEndsAt` on `Company`. Applied `20260913143000_add_company_stripe_billing` via `migrate deploy`.
-**Decided:** Columns land here first so Muse can push billing code without a duplicate ALTER.
-**Deferred:** Stripe app code stays in Muse's workspace until they pull `main` and push.
-**State after:** Neon has the four columns. Existing companies unchanged (all nullable).
-**Next:** Muse pulls `main` and pushes billing only (no second migration).
+Shipped after Jeff approved the drafts (`/vs/paper-timesheets`, `/vs/quickbooks-time`,
+`/vs/spreadsheets`). Build: new `vs.tsx` content configs + shared `VsPage` template with a
+side-by-side comparison table (old way vs My Guys Time), public `/vs/:slug` route, prerendered
+landing pages with unique titles/descriptions/canonicals/JSON-LD, sitemap now 18 URLs,
+Comparisons footer column on homepage + marketing pages.
 
-### 2026-09-12 — Residue sweep (payroll ghost, onboarding, schema)
-**Did:** Stopped timesheet save from writing PayrollEstimate; YTD/serialize now compute from hours. Replaced broken export-payroll onboarding step. Removed dead `login`/`startDemoSession` API fns. Regenerated `guys_schema_migration.sql` from Prisma with RLS + GRANT/REVOKE. Removed unused checkly/playwright/radix/cva/jiti deps. Applied ExpenseSubmission RLS SQL on Neon (full `migrate deploy` still blocked by stale history).
-**Decided:** Leave the PayrollEstimate table in place; just stop writing it.
-**Killed:** Checkly config pointing at a missing checks dir; tax tables in the hand-written schema dump.
-**Deferred:** Prisma `_prisma_migrations` repair. Stale GitHub branch delete. Neon→Supabase move.
-**State after:** Residue items from the audit are code-complete; Neon history still messy.
-**Next:** Optional branch delete and migration-history cleanup.
+Copy uses grounded product facts only — $12/mo flat, no per-seat, 7-day trial, browser-based,
+crew-board review flow, CSV exports, receipt photos, mixed W-2/1099. Paper page carries the 2x6
+origin story; QuickBooks page positions flat pricing against per-seat billing without inventing
+competitor prices; spreadsheet page targets the Thursday-at-5pm rebuild. Each page: 4 pain
+cards, 5-row comparison table, 4-step weekly flow, callout, 3 FAQs, cross-comparison pills.
 
-### 2026-09-12 — Security session (signup takeover, RLS, CORS)
-**Did:** Removed signup `updateUserById` recovery; reject pending-invite and existing Auth emails. Added ExpenseSubmission RLS + explicit REVOKE/GRANT. Scrubbed `.env.example`. JWT only from Bearer header. CORS and invite URLs use `APP_URL`/`CORS_ORIGINS`. Prod source maps only when uploading to Sentry.
-**Decided:** Signup never resets an existing Auth password; invite acceptance remains the only password-set path for invited users.
-**Killed:** Query-string JWT, reflect-any-origin CORS, real-looking password in `.env.example`.
-**Deferred:** Credential rotation (user tonight). Stale GitHub branch delete. Ghost payroll / onboarding residue. Live-DB confirm of ExpenseSubmission exposure until migration is applied.
-**State after:** Code-side exploitable signup bug closed; RLS migration ready to apply. Keys still live until user rotates them.
-**Next:** Rotate Neon + Supabase keys, set `APP_URL`/`CORS_ORIGINS` on Vercel, apply the RLS migration, delete `claude/relaxed-austin-510c58`.
+Draft files and phone-readable copy preview staged under
+`workspace/goals/my-guys-time-marketing-page-buildout/drafts/batch3-vs/` before go-live.
 
-> Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
+### 2026-09-23 — Batch 2: seven trade pages live
 
-## Hard Rules
+Shipped after Batch 1: `/trades/roofing`, `/trades/masonry`, `/trades/landscaping`,
+`/trades/painting`, `/trades/plumbing`, `/trades/electrical`, `/trades/general-contracting`.
 
-- Never commit `.env*` files. `.env.*` is git-ignored — keep it that way.
-- Never put Supabase `service_role` (or any secret) in `VITE_*` / anon keys.
-- All public Supabase tables use RLS (authenticated-only). New tables need explicit `GRANT`s.
-- New Vercel API prefixes need their own `api/<prefix>/[...path].ts` file.
-- After ANY code change: commit and push to the current branch without being asked.
-- Before file/git work, respect the mount quirks in [`../UMBRELLA-GOTCHAS.md`](../UMBRELLA-GOTCHAS.md).
-- `feat/landing-audit` must not be merged or pushed to `main` until that work is handed back.
+Build: new `trades.tsx` content configs + shared `TradePage` template, public
+`/trades/:slug` route, prerendered landing pages with unique titles/descriptions/canonicals/JSON-LD,
+sitemap at 15 URLs, Trades footer column on homepage + marketing pages.
 
-## 2026-09-23 — Marketing pages batch 1 (features/pricing/how-it-works/faq)
+Copy uses grounded product facts only — no invented features. Masonry page carries
+the 2x6 origin story. Each page: 4 pain cards, 4-step weekly flow, callout, 3 FAQs,
+cross-trade pills, start-free-week + how-it-works CTAs.
+
+First builds failed on two self-made TS errors (MarketingChrome API guess + TradeFaq field
+mismatch); fixed against the real component API, rebuilt READY, all seven pages
+live-verified: HTTP 200, prerendered, one H1 each, self-canonicals, $12/mo intact.
+
+### 2026-09-23 — Marketing pages batch 1 (features/pricing/how-it-works/faq)
 
 **Why:** site was 4 URLs (home + 3 demo routes); 1–2 blog posts/month would leave it thin for a year. Decision: build pages, not posts.
 
@@ -147,36 +135,14 @@ Supabase; app rows moved to Neon.
 
 **Next:** batch 2 = 7 trade pages (`/trades/[trade]`), batch 3 = 3 comparisons (`/vs/*`). Plan: `workspace/goals/content-outreach-engine-running/files/myguystime-page-plan.md`.
 
-## 2026-09-23 — Batch 2: seven trade pages live
+> Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
-Shipped after Batch 1: `/trades/roofing`, `/trades/masonry`, `/trades/landscaping`,
-`/trades/painting`, `/trades/plumbing`, `/trades/electrical`, `/trades/general-contracting`.
+## Hard Rules
 
-Build: new `trades.tsx` content configs + shared `TradePage` template, public
-`/trades/:slug` route, prerendered landing pages with unique titles/descriptions/canonicals/JSON-LD,
-sitemap at 15 URLs, Trades footer column on homepage + marketing pages.
-
-Copy uses grounded product facts only — no invented features. Masonry page carries
-the 2x6 origin story. Each page: 4 pain cards, 4-step weekly flow, callout, 3 FAQs,
-cross-trade pills, start-free-week + how-it-works CTAs.
-
-First builds failed on two self-made TS errors (MarketingChrome API guess + TradeFaq field
-mismatch); fixed against the real component API, rebuilt READY, all seven pages
-live-verified: HTTP 200, prerendered, one H1 each, self-canonicals, $12/mo intact.
-
-## 2026-09-24 — Batch 3: three comparison pages live
-
-Shipped after Jeff approved the drafts (`/vs/paper-timesheets`, `/vs/quickbooks-time`,
-`/vs/spreadsheets`). Build: new `vs.tsx` content configs + shared `VsPage` template with a
-side-by-side comparison table (old way vs My Guys Time), public `/vs/:slug` route, prerendered
-landing pages with unique titles/descriptions/canonicals/JSON-LD, sitemap now 18 URLs,
-Comparisons footer column on homepage + marketing pages.
-
-Copy uses grounded product facts only — $12/mo flat, no per-seat, 7-day trial, browser-based,
-crew-board review flow, CSV exports, receipt photos, mixed W-2/1099. Paper page carries the 2x6
-origin story; QuickBooks page positions flat pricing against per-seat billing without inventing
-competitor prices; spreadsheet page targets the Thursday-at-5pm rebuild. Each page: 4 pain
-cards, 5-row comparison table, 4-step weekly flow, callout, 3 FAQs, cross-comparison pills.
-
-Draft files and phone-readable copy preview staged under
-`workspace/goals/my-guys-time-marketing-page-buildout/drafts/batch3-vs/` before go-live.
+- Never commit `.env*` files. `.env.*` is git-ignored — keep it that way.
+- Never put Supabase `service_role` (or any secret) in `VITE_*` / anon keys.
+- All public Supabase tables use RLS (authenticated-only). New tables need explicit `GRANT`s.
+- New Vercel API prefixes need their own `api/<prefix>/[...path].ts` file.
+- Shipping follows [AGENTS.md](AGENTS.md): `npm run build` + `npm test` before every commit; commit to `main`
+  (= release) only when Jeff asked for the work to go live; everything else on a branch.
+- On Jeff's machine only: respect the mount quirks in `C:\Umbrella\UMBRELLA-GOTCHAS.md`.
