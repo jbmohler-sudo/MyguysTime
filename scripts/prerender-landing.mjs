@@ -88,6 +88,63 @@ const faqPageLd = {
   })),
 };
 
+const constructionRoute = "/construction-time-tracking";
+
+if (!Array.isArray(ssr.constructionFaqItems) || ssr.constructionFaqItems.length !== 9) {
+  console.error("[prerender] construction FAQ array missing or not 9 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+
+const constructionFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: ssr.constructionFaqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const constructionSoftwareLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "My Guys Time",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: canonicalHost + constructionRoute,
+  offers: {
+    "@type": "Offer",
+    price: "12",
+    priceCurrency: "USD",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: 12,
+      priceCurrency: "USD",
+      billingDuration: "P1M",
+      unitText: "per company per month",
+    },
+  },
+};
+
+const constructionBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Construction Time Tracking",
+      item: canonicalHost + constructionRoute,
+    },
+  ],
+};
+
 function webPageLd(title, routePath, description) {
   return {
     "@context": "https://schema.org",
@@ -170,6 +227,26 @@ const pages = [
       ["ld-website", websiteLd],
     ],
     ["Asked by contractors, answered straight"],
+  ],
+  [
+    constructionRoute,
+    "construction-time-tracking/index.html",
+    () => ssr.renderConstructionTimeTrackingHtml(),
+    "Construction Time Tracking for Small Crews | $12/mo Flat",
+    "Log crew hours from the truck, review the week in the office, export clean CSV totals. Built by a contractor. $12/mo flat for the whole crew. 7 days free.",
+    [
+      ["ld-softwareapplication", constructionSoftwareLd],
+      ["ld-faqpage", constructionFaqLd],
+      ["ld-breadcrumb", constructionBreadcrumbLd],
+      ["ld-organization", organizationLd],
+      ["ld-website", websiteLd],
+    ],
+    [
+      "Construction Time Tracking for Small Crews, Built by a Contractor",
+      "The simplest way to track construction crew hours",
+      "How much does a construction clock time tracker cost?",
+      "$12/mo",
+    ],
   ],
 ];
 
@@ -309,15 +386,15 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
   if (routePath !== "/") {
     wanted.set("ld-webpage", webPageLd(title, routePath, description));
   }
-  for (const id of ["ld-softwareapplication", "ld-faqpage", "ld-organization", "ld-website", "ld-webpage"]) {
+  for (const id of ["ld-softwareapplication", "ld-faqpage", "ld-breadcrumb", "ld-organization", "ld-website", "ld-webpage"]) {
     const openTag = `<script type="application/ld+json" id="${id}">`;
     const closeTag = "</" + "script>";
     const start = finalHtml.indexOf(openTag);
     const data = wanted.get(id);
     if (data) {
       if (start === -1) {
-        // Template only ships 4 placeholders; webpage block is appended before </head>.
-        if (id !== "ld-webpage") {
+        // Template only ships 4 placeholders; webpage and breadcrumb blocks are appended before </head>.
+        if (id !== "ld-webpage" && id !== "ld-breadcrumb") {
           console.error(`[prerender] JSON-LD placeholder #${id} not found in template.`);
           process.exit(1);
         }

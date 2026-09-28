@@ -76,6 +76,14 @@ export function FeaturesPage() {
           sub="No seventeen modules you'll never open. Just the weekly workflow: hours in the field, totals in the office."
         />
 
+        <p className="text-center text-slate-600 max-w-3xl mx-auto px-6">
+          Every item on this page is part of{" "}
+          <a href="/construction-time-tracking" className="text-orange-600 font-semibold hover:underline">
+            construction time tracking
+          </a>{" "}
+          for a small crew.
+        </p>
+
         <section className="max-w-6xl mx-auto px-6 mt-12">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {FEATURES.map((f) => (

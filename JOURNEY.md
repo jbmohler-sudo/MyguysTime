@@ -12,6 +12,10 @@
 - **Marketing site live (2026-09-23/24, Muse):** `/features`, `/pricing`, `/how-it-works`, `/faq`, seven
   `/trades/:slug` pages, and `/vs/{paper-timesheets,quickbooks-time,spreadsheets}` — all prerendered, in the
   sitemap. (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
+- **Not live yet:** `/construction-time-tracking` is built on `cursor/construction-time-tracking-dcd4`
+  (`4d1b590`). `npm run build` passed and the prerendered HTML has the right title, one H1, canonical,
+  JSON-LD, and `$12/mo`. It is not on `main` because `npm test` refused to run here: no local fixture
+  database or Supabase keys, and the safety check blocks remote fixture mutation.
 - **Biggest open item:** Jeff's call on two Cursor branches (Open Questions). Optional later:
   Auth admin on `sb_secret_` (then disable legacy JWT), Neon→one Supabase DB.
 
@@ -75,6 +79,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-09-28 — Construction time tracking pillar built, held off main (4d1b590)
+**Did:** Added `/construction-time-tracking` from the approved MGT-01 copy (`ConstructionTimeTrackingPage.tsx`), prerender with SoftwareApplication, FAQPage, and BreadcrumbList, sitemap URL 19, and inbound links from the homepage, seven trade pages, `/features`, `/how-it-works`, and the three `/vs` pages. Screenshot slots omitted. Template, cost-hub, ClockShark, and Connecteam links left off because those pages are not live. `npm run build` passed. Dist HTML: title `Construction Time Tracking for Small Crews | $12/mo Flat`, one H1, canonical `https://www.myguystime.com/construction-time-tracking`, `$12/mo` intact.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** production release. `npm test` exited 1 in this environment (`assertSafeFixtureMutationContext`: no local `DATABASE_URL`, no Supabase fixture keys). Did not point tests at production Neon or Supabase, and did not push `main`.
+**State after:** page is on `cursor/construction-time-tracking-dcd4` only. Live site unchanged.
+**Next:** run `npm test` against a local fixture database, then commit to `main` and confirm the Vercel deploy.
+
 ### 2026-09-25 — Agent rules in-repo (new AGENTS.md); journal repaired; stale guidance fixed (Claude)
 **Did:** Cross-repo audit. Found: Muse (cloud, `jbmohler-sudo`) built the marketing site 9/23–9/24 by pushing each change straight to `main` with no local build, per the old "commit and push without being asked" rule — **13 Vercel production builds failed** (11 in a row on 9/23: 7aada9f…ccc139b) before a green one; the live site stayed on the last good build. The three batch entries had been appended at the end of this file and the Session Log held 5 entries. Fix: new AGENTS.md (shared rules: sync first, shipping, **build + test before every commit**, JOURNEY format) and CLAUDE.md now imports it, with its stale "payroll app on Supabase" description corrected (payroll removed; app data on Neon). Journal: header points at AGENTS.md instead of `../` files; strays folded in newest-first (headings demoted only); cap applied; Current State and Hard Rules brought current.
 **Decided:** One shipping rule in every repo: a commit to `main` is a release, so commit there only when `npm run build` and `npm test` pass and Jeff asked for the work to go live; everything else on a branch. Pricing, billing, rules, security/migrations, and deletions always need Jeff's OK first. Replaces "commit and push without being asked."
@@ -116,24 +128,6 @@ cross-trade pills, start-free-week + how-it-works CTAs.
 First builds failed on two self-made TS errors (MarketingChrome API guess + TradeFaq field
 mismatch); fixed against the real component API, rebuilt READY, all seven pages
 live-verified: HTTP 200, prerendered, one H1 each, self-canonicals, $12/mo intact.
-
-### 2026-09-23 — Marketing pages batch 1 (features/pricing/how-it-works/faq)
-
-**Why:** site was 4 URLs (home + 3 demo routes); 1–2 blog posts/month would leave it thin for a year. Decision: build pages, not posts.
-
-**What shipped:**
-- New prerendered pages: `/features`, `/pricing`, `/how-it-works`, `/faq` — new components under `src/components/`, shared `MarketingChrome.tsx` (header/footer/CTA), routed in `App.tsx` on the public host only.
-- `scripts/prerender-landing.mjs` generalized: renders all 5 marketing pages to `dist/<route>/index.html` with per-page title/meta/OG/canonical + JSON-LD (SoftwareApplication on home/features/pricing, FAQPage from the same arrays the pages render, WebPage per sub-page). Vercel serves the static files ahead of the SPA rewrite; `main.tsx` hydration unchanged (App routes by pathname).
-- Homepage footer Product links now point at the new pages (header keeps #anchors for scroll UX). Sitemap lists all 4.
-- All copy from real product facts only (JOURNEY + homepage): $12 flat, 7-day trial, roles, CSV exports, reimbursements, receipt photos, mixed W-2/1099, office-only reports.
-
-**Gotchas fixed:**
-- `React.ReactNode` → `type ReactNode` import (no React namespace import in App.tsx).
-- Prerender meta replacement corrupted `$12` → `$1`+`2` (JS `$n` capture-group substitution in string replacements). Fixed with replacement functions. Verified `$12/mo` intact in meta/OG/body post-fix.
-
-**Verified live:** all 4 pages 200 with prerendered HTML, unique titles/descriptions, self-referencing canonicals, single H1 each; homepage 200 unchanged; sitemap lists 8 URLs.
-
-**Next:** batch 2 = 7 trade pages (`/trades/[trade]`), batch 3 = 3 comparisons (`/vs/*`). Plan: `workspace/goals/content-outreach-engine-running/files/myguystime-page-plan.md`.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 

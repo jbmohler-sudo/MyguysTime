@@ -54,6 +54,14 @@ export function HowItWorksPage() {
           sub="A simple weekly workflow for crews and office. Hours in the field, totals in the office, nothing in between."
         />
 
+        <p className="text-center text-slate-600 max-w-3xl mx-auto px-6">
+          The same weekly rhythm, written out for{" "}
+          <a href="/construction-time-tracking" className="text-orange-600 font-semibold hover:underline">
+            construction time tracking
+          </a>
+          .
+        </p>
+
         <section className="max-w-4xl mx-auto px-6 mt-12">
           <div className="space-y-6">
             {STEPS.map((s, i) => (
