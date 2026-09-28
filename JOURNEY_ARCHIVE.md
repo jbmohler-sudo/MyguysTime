@@ -2,6 +2,24 @@
 
 > Older Session Log entries rolled out of [JOURNEY.md](JOURNEY.md). Newest of these first.
 
+### 2026-09-23 — Marketing pages batch 1 (features/pricing/how-it-works/faq)
+
+**Why:** site was 4 URLs (home + 3 demo routes); 1–2 blog posts/month would leave it thin for a year. Decision: build pages, not posts.
+
+**What shipped:**
+- New prerendered pages: `/features`, `/pricing`, `/how-it-works`, `/faq` — new components under `src/components/`, shared `MarketingChrome.tsx` (header/footer/CTA), routed in `App.tsx` on the public host only.
+- `scripts/prerender-landing.mjs` generalized: renders all 5 marketing pages to `dist/<route>/index.html` with per-page title/meta/OG/canonical + JSON-LD (SoftwareApplication on home/features/pricing, FAQPage from the same arrays the pages render, WebPage per sub-page). Vercel serves the static files ahead of the SPA rewrite; `main.tsx` hydration unchanged (App routes by pathname).
+- Homepage footer Product links now point at the new pages (header keeps #anchors for scroll UX). Sitemap lists all 4.
+- All copy from real product facts only (JOURNEY + homepage): $12 flat, 7-day trial, roles, CSV exports, reimbursements, receipt photos, mixed W-2/1099, office-only reports.
+
+**Gotchas fixed:**
+- `React.ReactNode` → `type ReactNode` import (no React namespace import in App.tsx).
+- Prerender meta replacement corrupted `$12` → `$1`+`2` (JS `$n` capture-group substitution in string replacements). Fixed with replacement functions. Verified `$12/mo` intact in meta/OG/body post-fix.
+
+**Verified live:** all 4 pages 200 with prerendered HTML, unique titles/descriptions, self-referencing canonicals, single H1 each; homepage 200 unchanged; sitemap lists 8 URLs.
+
+**Next:** batch 2 = 7 trade pages (`/trades/[trade]`), batch 3 = 3 comparisons (`/vs/*`). Plan: `workspace/goals/content-outreach-engine-running/files/myguystime-page-plan.md`.
+
 ### 2026-09-16 — Portfolio SEO pass (MyGuysTime property)
 **Did:** SEO audit + remediation.
 - **Canonical consolidation:** found the `<link rel="canonical">` pointed at the apex (`myguystime.com`) while Vercel domain config 308-redirects the apex to `www.myguystime.com`. Aligned all code-side signals to the www host instead of reversing the live routing: canonical, `og:url`, `og:image`, `twitter:image` now `https://www.myguystime.com/...`.
