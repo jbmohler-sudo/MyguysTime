@@ -71,6 +71,11 @@ export function MarketingFooter() {
                   </a>
                 </li>
               ))}
+              <li>
+                <a href="/construction-time-tracking" className="hover:text-orange-500 transition-colors">
+                  Construction Time Tracking
+                </a>
+              </li>
             </ul>
           </div>
           <div>

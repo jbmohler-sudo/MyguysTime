@@ -44,6 +44,13 @@ export function TradePage({ slug }: { slug: string }) {
 
         <section className="max-w-3xl mx-auto px-6 mt-4 text-center">
           <p className="text-slate-600 leading-relaxed">{trade.intro}</p>
+          <p className="text-slate-600 leading-relaxed mt-4">
+            More on{" "}
+            <a href="/construction-time-tracking" className="text-orange-600 font-semibold hover:underline">
+              construction time tracking
+            </a>{" "}
+            for crews that log hours from the job.
+          </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <a
               href={APP_LOGIN_URL}

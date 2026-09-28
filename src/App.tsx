@@ -10,6 +10,7 @@ import { FeaturesPage } from "./components/FeaturesPage";
 import { PricingPage } from "./components/PricingPage";
 import { HowItWorksPage } from "./components/HowItWorksPage";
 import { FaqPage } from "./components/FaqPage";
+import { ConstructionTimeTrackingPage } from "./components/ConstructionTimeTrackingPage";
 import { TradePage } from "./components/TradePage";
 import { VsPage } from "./components/VsPage";
 import { TRADES } from "./components/trades";
@@ -514,6 +515,7 @@ function AppContent() {
       "/pricing": <PricingPage />,
       "/how-it-works": <HowItWorksPage />,
       "/faq": <FaqPage />,
+      "/construction-time-tracking": <ConstructionTimeTrackingPage />,
     };
     const marketingPage = marketingPageMap[cleanPath];
     if (marketingPage) {

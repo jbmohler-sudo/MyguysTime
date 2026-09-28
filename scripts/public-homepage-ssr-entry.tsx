@@ -15,8 +15,12 @@ import { HowItWorksPage } from "../src/components/HowItWorksPage";
 import { FaqPage, faqPageItems } from "../src/components/FaqPage";
 import { TradePage } from "../src/components/TradePage";
 import { VsPage } from "../src/components/VsPage";
+import {
+  ConstructionTimeTrackingPage,
+  constructionFaqItems,
+} from "../src/components/ConstructionTimeTrackingPage";
 
-export { faqItems, faqPageItems };
+export { faqItems, faqPageItems, constructionFaqItems };
 
 export function renderLandingHtml(): string {
   return renderToStaticMarkup(createElement(PublicHomepage));
@@ -36,6 +40,10 @@ export function renderHowItWorksHtml(): string {
 
 export function renderFaqHtml(): string {
   return renderToStaticMarkup(createElement(FaqPage));
+}
+
+export function renderConstructionTimeTrackingHtml(): string {
+  return renderToStaticMarkup(createElement(ConstructionTimeTrackingPage));
 }
 
 export function renderTradeHtml(slug: string): string {

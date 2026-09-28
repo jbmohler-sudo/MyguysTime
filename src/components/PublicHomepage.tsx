@@ -321,6 +321,13 @@ export function PublicHomepage() {
             <p className="text-lg text-slate-600 leading-relaxed">
               My Guys Time is a <strong>contractor hour tracking app</strong> built for small crews. Your guys log hours from the field, you review the week from the office, and the totals come out clean. Roofing, masonry, landscaping — any trade.
             </p>
+            <p className="text-lg text-slate-600 leading-relaxed">
+              See{" "}
+              <a href="/construction-time-tracking" className="text-orange-600 font-semibold hover:underline">
+                construction time tracking for small crews
+              </a>
+              {" "}— log hours from the truck, review the week in the office.
+            </p>
             <p className="text-lg font-semibold text-orange-600 leading-relaxed">
               Stop using crinkled notebooks or scraps of wood from the job site to track hours.
             </p>
@@ -569,6 +576,13 @@ export function PublicHomepage() {
             <h2 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
               Small feature list, focused on weekly work—no bloat
             </h2>
+            <p className="text-lg text-slate-600 mt-4 max-w-3xl">
+              The short list below is{" "}
+              <a href="/construction-time-tracking" className="text-orange-600 font-semibold hover:underline">
+                construction time tracking for small crews
+              </a>
+              : hours from the truck, a weekly review, and a clean handoff.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -714,6 +728,11 @@ export function PublicHomepage() {
                 <li>
                   <a href="/faq" className="hover:text-orange-500 transition-colors">
                     FAQ
+                  </a>
+                </li>
+                <li>
+                  <a href="/construction-time-tracking" className="hover:text-orange-500 transition-colors">
+                    Construction Time Tracking
                   </a>
                 </li>
               </ul>
