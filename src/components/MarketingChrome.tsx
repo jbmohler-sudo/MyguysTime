@@ -96,6 +96,7 @@ export function MarketingFooter() {
               <li><a href="/vs/paper-timesheets" className="hover:text-orange-500 transition-colors">vs Paper Timesheets</a></li>
               <li><a href="/vs/quickbooks-time" className="hover:text-orange-500 transition-colors">vs QuickBooks Time</a></li>
               <li><a href="/vs/spreadsheets" className="hover:text-orange-500 transition-colors">vs Spreadsheets</a></li>
+              <li><a href="/vs/clockshark" className="hover:text-orange-500 transition-colors">vs ClockShark</a></li>
             </ul>
           </div>
           <div>

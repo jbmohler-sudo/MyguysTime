@@ -15,12 +15,19 @@ import { HowItWorksPage } from "../src/components/HowItWorksPage";
 import { FaqPage, faqPageItems } from "../src/components/FaqPage";
 import { TradePage } from "../src/components/TradePage";
 import { VsPage } from "../src/components/VsPage";
+import { getVs } from "../src/components/vs";
 import {
   ConstructionTimeTrackingPage,
   constructionFaqItems,
 } from "../src/components/ConstructionTimeTrackingPage";
 
 export { faqItems, faqPageItems, constructionFaqItems };
+
+export function vsPageFaqs(slug: string): { q: string; a: string }[] {
+  const page = getVs(slug);
+  if (!page) return [];
+  return page.faqs.map((item) => ({ q: item.q, a: item.text }));
+}
 
 export function renderLandingHtml(): string {
   return renderToStaticMarkup(createElement(PublicHomepage));

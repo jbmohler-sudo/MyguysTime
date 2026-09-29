@@ -1,12 +1,19 @@
 export interface VsFaq {
   q: string;
   text: string;
+  link?: { phrase: string; href: string; external?: boolean };
 }
 
 export interface VsCompareRow {
   label: string;
   oldWay: string;
   myGuys: string;
+}
+
+export interface VsTextPart {
+  text: string;
+  href?: string;
+  external?: boolean;
 }
 
 export interface VsConfig {
@@ -16,11 +23,23 @@ export interface VsConfig {
   sub: string;
   intro: string;
   pains: { title: string; text: string }[];
+  painHeading?: string;
+  painSub?: string;
   compare: VsCompareRow[];
+  /** Extra CTAs under the comparison table (free week + foreman demo). */
+  compareCta?: boolean;
   flow: { title: string; text: string }[];
+  flowHeading?: string;
+  flowLink?: { label: string; href: string };
+  fit?: {
+    columns: { heading: string; points: string[] }[];
+    footer?: VsTextPart[];
+  };
   calloutTitle: string;
   calloutText: string;
+  faqHeading?: string;
   faqs: VsFaq[];
+  closingHeading?: string;
 }
 
 export const VS_PAGES: VsConfig[] = [
@@ -287,6 +306,143 @@ export const VS_PAGES: VsConfig[] = [
         text: "The foreman logs from the phone browser — it takes seconds a day. There's nothing to install and no spreadsheet skills required on the crew's end.",
       },
     ],
+  },
+  {
+    slug: "clockshark",
+    name: "ClockShark",
+    h1: "ClockShark vs My Guys Time: Per-User Pricing or One Flat Price",
+    sub: "One bill grows every time you hire. The other stays at $12 whether you run three guys or thirty.",
+    intro:
+      "ClockShark charges a monthly base fee plus a fee for every user, so the bill rises each time you add a worker. My Guys Time is $12/month flat for the whole company. ClockShark does more (GPS tracking, scheduling, payroll integrations); My Guys Time is a simpler weekly crew time card with CSV exports.",
+    painHeading: "What per-user pricing costs a small crew every week",
+    painSub: "If any of these sound like your week, the pricing model is working against you.",
+    pains: [
+      {
+        title: "Every hire raises the bill.",
+        text: "On a per-user plan, the laborer you add in spring shows up on next month's invoice, and every month he stays. Growing the crew is supposed to make you money, not grow your software bill.",
+      },
+      {
+        title: "Seasonal crews move the number.",
+        text: "Construction headcount moves with the weather and the backlog. Under a per-user model, the bill moves with it. You end up budgeting software around how many guys you hired instead of how much work got done.",
+      },
+      {
+        title: "More app than the crew needs.",
+        text: "GPS, geofencing, scheduling and job costing are real tools, and some outfits need them. A five-guy crew that just needs hours in and a clean week out is paying for a platform built to do a lot more.",
+      },
+      {
+        title: "The Thursday rebuild still happens.",
+        text: "No app fixes hours that never got entered. If nobody logs the day it's worked, somebody rebuilds the week at 5pm Thursday. The fix is a foreman who taps in hours from the truck before he leaves the job.",
+      },
+    ],
+    compareCta: true,
+    compare: [
+      {
+        label: "Pricing model",
+        oldWay: "A monthly base fee plus a fee per user, on Standard or Pro plans",
+        myGuys: "$12/month flat for the whole company. One plan.",
+      },
+      {
+        label: "What's included",
+        oldWay:
+          "Time tracking with GPS and geofencing, scheduling, job and task tracking, manager approvals. Pro adds PTO, multi-department controls and advanced job costing.",
+        myGuys:
+          "Crew time cards, weekly crew board, foreman approval (one-person crews auto-approve), foreman incident notes, receipt photos for expenses, W-2 and 1099 on one board",
+      },
+      {
+        label: "Getting hours to payroll",
+        oldWay: "Direct integrations, including QuickBooks, ADP, Gusto, Xero and Sage 100 Contractor",
+        myGuys: "Weekly summary CSV and time detail CSV for whoever runs payroll. No integrations, and it doesn't calculate pay.",
+      },
+      {
+        label: "How the crew uses it",
+        oldWay: "Android and iOS mobile apps, or the website",
+        myGuys: "Runs in the phone's browser; add it to the home screen. Invite the crew with a copyable link.",
+      },
+      {
+        label: "Trying it",
+        oldWay: "14-day free trial",
+        myGuys: "7-day free trial, no card. Demo roles with no signup.",
+      },
+    ],
+    flowHeading: "How a week runs in My Guys Time",
+    flowLink: { label: "See the weekly workflow", href: "/how-it-works" },
+    flow: [
+      {
+        title: "Foreman logs from the truck",
+        text: "Before he leaves the job, the foreman taps in the crew's hours on his phone. The day gets logged the day it happens, not pieced together from memory at the end of the week.",
+      },
+      {
+        title: "Foreman approves the week",
+        text: "The weekly crew board shows every guy, every day. The foreman adds incident notes where they belong and approves the week. One-person crews auto-approve past this step.",
+      },
+      {
+        title: "Office reviews",
+        text: "The office sees hours, rate and notes for each person, plus receipt photos for anything a guy paid for out of pocket. Fix what needs fixing in one place.",
+      },
+      {
+        title: "Hand off the CSVs",
+        text: "Export the weekly summary and time detail CSVs and hand them to whoever runs payroll. No sync to set up, nothing to reconnect.",
+      },
+    ],
+    fit: {
+      columns: [
+        {
+          heading: "When ClockShark is the better fit",
+          points: [
+            "You want GPS or geofenced clock-ins, crew scheduling, job costing or PTO tracking.",
+            "You want hours to flow straight into QuickBooks, ADP, Gusto or Sage without a CSV step.",
+            "You want dedicated Android and iOS apps.",
+          ],
+        },
+        {
+          heading: "When My Guys Time fits better",
+          points: [
+            "You run small crews, roughly 2 to 30 guys, and want hours entered the day they're worked.",
+            "You want a foreman sign-off, receipts on the card, and W-2 and 1099 guys on the same board.",
+            "You want one flat bill that doesn't move when you hire.",
+          ],
+        },
+      ],
+      footer: [
+        { text: "More on " },
+        { text: "construction time tracking for small crews", href: "/construction-time-tracking" },
+        { text: ", or see " },
+        { text: "$12/month flat for the whole crew", href: "/pricing" },
+        { text: "." },
+      ],
+    },
+    calloutTitle: "It started with a 2x6 behind the seat",
+    calloutText:
+      "My Guys Time was built by a mason whose first time card was a piece of 2x6 that rode around behind the seat of his pickup. When he went shopping for an app, everything he found charged by the head. Why should the app cost more because you hired another guy? So there's one price, no contract, and you can cancel anytime from the billing portal.",
+    faqHeading: "ClockShark vs My Guys Time: common questions",
+    faqs: [
+      {
+        q: "How much does ClockShark cost per month?",
+        text: "It depends on crew size. ClockShark charges a monthly base fee plus a fee for each user, on a Standard or Pro plan. For current rates, check ClockShark's current pricing. The math is base fee + (per-user fee × crew size). My Guys Time is $12/month flat for the whole company, whatever that math comes to.",
+        link: {
+          phrase: "ClockShark's current pricing",
+          href: "https://www.clockshark.com/pricing/",
+          external: true,
+        },
+      },
+      {
+        q: "Is ClockShark free?",
+        text: "ClockShark's pricing page doesn't list a free plan (as of September 2026). It offers a 14-day free trial. My Guys Time isn't free either: you get a 7-day trial with no card required, then it's $12/month flat for everybody.",
+      },
+      {
+        q: "Does ClockShark track your location?",
+        text: "Yes. ClockShark's plans list GPS tracking and geofencing. My Guys Time doesn't track location at all. The foreman logs the crew's hours and approves the week, and that sign-off is the check.",
+      },
+      {
+        q: "Is ClockShark worth the investment?",
+        text: "It depends on what you'll use. If you want GPS clock-ins, scheduling, job costing and hours flowing straight into your payroll software, ClockShark covers a lot of ground. If you mainly need daily hours, a foreman sign-off and a clean weekly CSV, a flat-price crew time card may fit better.",
+      },
+      {
+        q: "What is the ClockShark app?",
+        text: "The ClockShark app is a time tracking and scheduling app for field service and construction businesses, according to ClockShark's own site. It runs on Android and iOS or on the web. My Guys Time is narrower: a weekly crew time card that runs in the phone's browser, built around a foreman's sign-off.",
+      },
+    ],
+    closingHeading: "Paying per user? Try it free for 7 days.",
   },
 ];
 

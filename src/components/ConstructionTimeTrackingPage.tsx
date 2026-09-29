@@ -399,7 +399,8 @@ export function ConstructionTimeTrackingPage() {
             </p>
             <p>
               <strong className="text-slate-900">Per seat.</strong> A monthly base fee, plus a fee for every user. Add
-              a laborer in April and the bill goes up in May. Many crew apps work this way.
+              a laborer in April and the bill goes up in May. Many crew apps work this way. See the{" "}
+              <TextLink href="/vs/clockshark">ClockShark alternative with flat pricing</TextLink>.
             </p>
             <p>
               <strong className="text-slate-900">Capped free plans.</strong> Free up to a set number of users, then a

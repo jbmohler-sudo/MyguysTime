@@ -319,6 +319,90 @@ for (const [slug, name, title, description, h1] of vsPages) {
   ]);
 }
 
+const clocksharkRoute = "/vs/clockshark";
+const clocksharkFaqs = typeof ssr.vsPageFaqs === "function" ? ssr.vsPageFaqs("clockshark") : [];
+if (!Array.isArray(clocksharkFaqs) || clocksharkFaqs.length !== 5) {
+  console.error("[prerender] clockshark FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+
+const clocksharkFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: clocksharkFaqs.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const clocksharkSoftwareLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "My Guys Time",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: canonicalHost + clocksharkRoute,
+  offers: {
+    "@type": "Offer",
+    price: "12",
+    priceCurrency: "USD",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: "12",
+      priceCurrency: "USD",
+      billingDuration: "P1M",
+      unitText: "per company per month",
+    },
+  },
+  description:
+    "Simple time cards for contractor crews. Track crew hours, review the week, and export clean time card totals. $12/mo flat.",
+};
+
+const clocksharkBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Comparisons",
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "ClockShark",
+      item: canonicalHost + clocksharkRoute,
+    },
+  ],
+};
+
+pages.push([
+  clocksharkRoute,
+  "vs/clockshark/index.html",
+  () => ssr.renderVsHtml("clockshark"),
+  "ClockShark Pricing vs $12 Flat for Crews | My Guys Time",
+  "ClockShark bills a base fee plus every user. My Guys Time is $12/mo flat for the whole company: crew time cards, weekly review, CSV exports. 7 days free.",
+  [
+    ["ld-softwareapplication", clocksharkSoftwareLd],
+    ["ld-faqpage", clocksharkFaqLd],
+    ["ld-breadcrumb", clocksharkBreadcrumbLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    "ClockShark vs My Guys Time: Per-User Pricing or One Flat Price",
+    "My Guys Time vs ClockShark",
+    "$12",
+  ],
+]);
+
 
 const template = fs.readFileSync(templatePath, "utf8");
 const rootMarker = '<div id="root">';
