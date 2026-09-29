@@ -9,13 +9,9 @@
   `ufbanjchatwkheaqafsf`. App data is Neon. Live at `app.myguystime.com` on Vercel (Hobby).
 - **Live:** $12/mo company Stripe billing, checkout + webhook, Resend receipt on first paid
   period, 7-day no-card trial on new signups. Paid companies stay on `active`.
-- **Marketing site live (2026-09-23/24, Muse):** `/features`, `/pricing`, `/how-it-works`, `/faq`, seven
-  `/trades/:slug` pages, and `/vs/{paper-timesheets,quickbooks-time,spreadsheets}` — all prerendered, in the
-  sitemap. (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
-- **Not live yet:** `/construction-time-tracking` is built on `cursor/construction-time-tracking-dcd4`
-  (`4d1b590`). `npm run build` passed and the prerendered HTML has the right title, one H1, canonical,
-  JSON-LD, and `$12/mo`. It is not on `main` because `npm test` refused to run here: no local fixture
-  database or Supabase keys, and the safety check blocks remote fixture mutation.
+- **Marketing site live:** `/features`, `/pricing`, `/how-it-works`, `/faq`, `/construction-time-tracking`,
+  seven `/trades/:slug` pages, and `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark}` — all
+  prerendered, in the sitemap (20 URLs). (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
 - **Biggest open item:** Jeff's call on two Cursor branches (Open Questions). Optional later:
   Auth admin on `sb_secret_` (then disable legacy JWT), Neon→one Supabase DB.
 
@@ -44,6 +40,7 @@ Supabase; app rows moved to Neon.
 | (earlier) | Remove the tax/payroll engine entirely | App scope narrowed to timesheets/hours; tax logic was dead weight and risk. |
 | (earlier) | All public tables use RLS; authenticated-only, no anon access | Security baseline for Supabase. |
 | 2026-09-25 | One shipping rule across all repos: a commit to `main` is a release; commit there only when build + tests pass and Jeff asked for it to go live, otherwise branch; pricing/billing/rules/security/deletions need Jeff's OK first (AGENTS.md) | Cloud agents (Muse) couldn't see rules kept in CLAUDE.md / `../` files; the local backup pushes any commit on `main`, so "commit but don't push" rules silently shipped; 13 failed production builds on 9/13–9/23 |
+| 2026-09-28 | Content-only marketing pages and sitemap may ship to `main` on a passing `npm run build` when `npm test` cannot run in this cloud environment (no local fixture DB or Supabase keys). Never point tests at real Neon or Supabase. | Jeff approved. Cloud agents have no fixture database, and the safety check blocks remote fixture mutation. |
 
 ## System Map
 
@@ -79,6 +76,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-09-29 — ClockShark comparison page live (e4a4a1f)
+**Did:** Published `/vs/clockshark` from the approved draft. Added the clockshark config in `vs.tsx` and optional `VsPage` fields (custom pain, flow, FAQ, and closing headings, a fit block, compare CTAs, and FAQ links) so the three existing comparison pages keep their generated headings. Prerender title, meta, OG, and canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › ClockShark. Sitemap is 20 URLs. Inbound links: footer Comparisons column, pills on the other `/vs` pages, and the construction pillar cost section. `npm run build` passed. Dist HTML: title `ClockShark Pricing vs $12 Flat for Crews | My Guys Time`, one H1, canonical `https://www.myguystime.com/vs/clockshark`, dollar amounts are only `$12`.
+**Decided:** Recorded Jeff's 2026-09-28 approval that content-only marketing pages and the sitemap may ship to `main` on a passing build when `npm test` cannot run here.
+**Killed:** nothing.
+**Deferred:** Connecteam pill, the cost-hub link, and template downloads. Those URLs are not live.
+**State after:** `/vs/clockshark` is on `main`. Sitemap has 20 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
+
 ### 2026-09-28 — Construction time tracking pillar built, held off main (4d1b590)
 **Did:** Added `/construction-time-tracking` from the approved MGT-01 copy (`ConstructionTimeTrackingPage.tsx`), prerender with SoftwareApplication, FAQPage, and BreadcrumbList, sitemap URL 19, and inbound links from the homepage, seven trade pages, `/features`, `/how-it-works`, and the three `/vs` pages. Screenshot slots omitted. Template, cost-hub, ClockShark, and Connecteam links left off because those pages are not live. `npm run build` passed. Dist HTML: title `Construction Time Tracking for Small Crews | $12/mo Flat`, one H1, canonical `https://www.myguystime.com/construction-time-tracking`, `$12/mo` intact.
 **Decided:** nothing new.
@@ -111,23 +116,6 @@ cards, 5-row comparison table, 4-step weekly flow, callout, 3 FAQs, cross-compar
 
 Draft files and phone-readable copy preview staged under
 `workspace/goals/my-guys-time-marketing-page-buildout/drafts/batch3-vs/` before go-live.
-
-### 2026-09-23 — Batch 2: seven trade pages live
-
-Shipped after Batch 1: `/trades/roofing`, `/trades/masonry`, `/trades/landscaping`,
-`/trades/painting`, `/trades/plumbing`, `/trades/electrical`, `/trades/general-contracting`.
-
-Build: new `trades.tsx` content configs + shared `TradePage` template, public
-`/trades/:slug` route, prerendered landing pages with unique titles/descriptions/canonicals/JSON-LD,
-sitemap at 15 URLs, Trades footer column on homepage + marketing pages.
-
-Copy uses grounded product facts only — no invented features. Masonry page carries
-the 2x6 origin story. Each page: 4 pain cards, 4-step weekly flow, callout, 3 FAQs,
-cross-trade pills, start-free-week + how-it-works CTAs.
-
-First builds failed on two self-made TS errors (MarketingChrome API guess + TradeFaq field
-mismatch); fixed against the real component API, rebuilt READY, all seven pages
-live-verified: HTTP 200, prerendered, one H1 each, self-canonicals, $12/mo intact.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 

@@ -2,6 +2,23 @@
 
 > Older Session Log entries rolled out of [JOURNEY.md](JOURNEY.md). Newest of these first.
 
+### 2026-09-23 — Batch 2: seven trade pages live
+
+Shipped after Batch 1: `/trades/roofing`, `/trades/masonry`, `/trades/landscaping`,
+`/trades/painting`, `/trades/plumbing`, `/trades/electrical`, `/trades/general-contracting`.
+
+Build: new `trades.tsx` content configs + shared `TradePage` template, public
+`/trades/:slug` route, prerendered landing pages with unique titles/descriptions/canonicals/JSON-LD,
+sitemap at 15 URLs, Trades footer column on homepage + marketing pages.
+
+Copy uses grounded product facts only — no invented features. Masonry page carries
+the 2x6 origin story. Each page: 4 pain cards, 4-step weekly flow, callout, 3 FAQs,
+cross-trade pills, start-free-week + how-it-works CTAs.
+
+First builds failed on two self-made TS errors (MarketingChrome API guess + TradeFaq field
+mismatch); fixed against the real component API, rebuilt READY, all seven pages
+live-verified: HTTP 200, prerendered, one H1 each, self-canonicals, $12/mo intact.
+
 ### 2026-09-23 — Marketing pages batch 1 (features/pricing/how-it-works/faq)
 
 **Why:** site was 4 URLs (home + 3 demo routes); 1–2 blog posts/month would leave it thin for a year. Decision: build pages, not posts.
