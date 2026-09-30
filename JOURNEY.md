@@ -10,8 +10,9 @@
 - **Live:** $12/mo company Stripe billing, checkout + webhook, Resend receipt on first paid
   period, 7-day no-card trial on new signups. Paid companies stay on `active`.
 - **Marketing site live:** `/features`, `/pricing`, `/how-it-works`, `/faq`, `/construction-time-tracking`,
-  seven `/trades/:slug` pages, and `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark}` — all
-  prerendered, in the sitemap (20 URLs). (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
+  `/construction-time-tracking-cost`, seven `/trades/:slug` pages, and
+  `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark}` — all prerendered, in the sitemap
+  (21 URLs). (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
 - **Biggest open item:** Jeff's call on two Cursor branches (Open Questions). Optional later:
   Auth admin on `sb_secret_` (then disable legacy JWT), Neon→one Supabase DB.
 
@@ -76,6 +77,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-09-30 — Construction time tracking cost page live (60bb0fa)
+**Did:** Published `/construction-time-tracking-cost` from the approved draft. New `ConstructionTimeTrackingCostPage` with the answer block, pricing models, vendor questions, FAQ, and a bring-your-own-quote calculator (empty inputs; result only after base fee, per-user fee, and crew size). Prerender title, meta, OG, and self-canonical, plus WebPage, BreadcrumbList (Home › Construction Time Tracking Cost), FAQPage from the 5 FAQs, and SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month). Sitemap is 21 URLs. Inbound links from `/pricing`, the pillar cost section (trimmed to a snapshot), `/vs/clockshark`, `/vs/quickbooks-time`, and the FAQ "Do I pay per employee?" answer. `npm run build` passed. Dist HTML: title `Construction Time Tracking Cost: Per-Seat vs Flat Pricing`, one H1, canonical `https://www.myguystime.com/construction-time-tracking-cost`, `$12/mo` intact, formula and model table in the static HTML, no result block until input. Headless Chrome on the preview confirmed 40 + 9 × 8 = $112/month, $1344/year, with the annual toggle emphasizing the yearly figures.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no `DATABASE_URL` or Supabase fixture keys, and the safety check refuses remote fixture mutation. Connecteam and template links stay off until those pages are live.
+**State after:** `/construction-time-tracking-cost` is on `main`. Sitemap has 21 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
+
 ### 2026-09-29 — ClockShark comparison page live (e4a4a1f)
 **Did:** Published `/vs/clockshark` from the approved draft. Added the clockshark config in `vs.tsx` and optional `VsPage` fields (custom pain, flow, FAQ, and closing headings, a fit block, compare CTAs, and FAQ links) so the three existing comparison pages keep their generated headings. Prerender title, meta, OG, and canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › ClockShark. Sitemap is 20 URLs. Inbound links: footer Comparisons column, pills on the other `/vs` pages, and the construction pillar cost section. `npm run build` passed. Dist HTML: title `ClockShark Pricing vs $12 Flat for Crews | My Guys Time`, one H1, canonical `https://www.myguystime.com/vs/clockshark`, dollar amounts are only `$12`.
 **Decided:** Recorded Jeff's 2026-09-28 approval that content-only marketing pages and the sitemap may ship to `main` on a passing build when `npm test` cannot run here.
@@ -99,23 +108,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** Two Cursor branches await Jeff (see Open Questions).
 **State after:** Local checkout synced with origin; marketing pages live; rules readable by every agent.
 **Next:** Jeff decides the two Cursor branches and whether to delete `feat/landing-audit`.
-
-### 2026-09-24 — Batch 3: three comparison pages live
-
-Shipped after Jeff approved the drafts (`/vs/paper-timesheets`, `/vs/quickbooks-time`,
-`/vs/spreadsheets`). Build: new `vs.tsx` content configs + shared `VsPage` template with a
-side-by-side comparison table (old way vs My Guys Time), public `/vs/:slug` route, prerendered
-landing pages with unique titles/descriptions/canonicals/JSON-LD, sitemap now 18 URLs,
-Comparisons footer column on homepage + marketing pages.
-
-Copy uses grounded product facts only — $12/mo flat, no per-seat, 7-day trial, browser-based,
-crew-board review flow, CSV exports, receipt photos, mixed W-2/1099. Paper page carries the 2x6
-origin story; QuickBooks page positions flat pricing against per-seat billing without inventing
-competitor prices; spreadsheet page targets the Thursday-at-5pm rebuild. Each page: 4 pain
-cards, 5-row comparison table, 4-step weekly flow, callout, 3 FAQs, cross-comparison pills.
-
-Draft files and phone-readable copy preview staged under
-`workspace/goals/my-guys-time-marketing-page-buildout/drafts/batch3-vs/` before go-live.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
