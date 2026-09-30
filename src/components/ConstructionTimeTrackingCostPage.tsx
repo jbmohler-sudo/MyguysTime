@@ -13,7 +13,7 @@ export const costFaqItems: { q: string; a: string }[] = [
   },
   {
     q: "What is the best time clock with no monthly fee?",
-    a: "It depends on your crew. Free plans avoid a monthly fee until you pass their limits, and a hardware punch clock is a one-time purchase instead of a subscription. My Guys Time does charge monthly: $12 flat for the whole company, instead of a fee for every person.",
+    a: "It depends on your crew. Free plans avoid a monthly fee until you pass their limits, and a hardware punch clock is usually a one-time purchase instead of a subscription. My Guys Time does charge monthly: $12 flat for the whole company, instead of a fee for every person.",
   },
   {
     q: "How much does a time tracker cost?",
@@ -439,7 +439,7 @@ export function ConstructionTimeTrackingCostPage() {
           </p>
           <p className="text-slate-700 leading-relaxed mt-6">
             <strong className="text-slate-900">What it's not:</strong> no GPS tracking, no scheduling, and no payroll or
-            pay calculation. Hours hand off cleanly to whoever runs payroll — no payroll integration.
+            pay calculation. Hours hand off cleanly to whoever runs payroll. No payroll integration.
           </p>
         </section>
 
@@ -488,7 +488,7 @@ export function ConstructionTimeTrackingCostPage() {
           <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl px-8 py-14 text-center shadow-2xl">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Run the math, then run a real week</h2>
             <p className="text-orange-100 text-lg mb-8 max-w-2xl mx-auto">
-              Seven days, no card required. That's a full pay period before you pay a dime. After that it's $12/month
+              Seven days, no card required. That's a full work week before you pay a dime. After that it's $12/month
               flat for the whole company, and you can cancel anytime from the billing portal.
             </p>
             <StartFreeWeek className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-orange-600 font-bold rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 text-lg" />
