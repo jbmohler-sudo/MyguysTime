@@ -20,8 +20,12 @@ import {
   ConstructionTimeTrackingPage,
   constructionFaqItems,
 } from "../src/components/ConstructionTimeTrackingPage";
+import {
+  ConstructionTimeTrackingCostPage,
+  costFaqItems,
+} from "../src/components/ConstructionTimeTrackingCostPage";
 
-export { faqItems, faqPageItems, constructionFaqItems };
+export { faqItems, faqPageItems, constructionFaqItems, costFaqItems };
 
 export function vsPageFaqs(slug: string): { q: string; a: string }[] {
   const page = getVs(slug);
@@ -51,6 +55,10 @@ export function renderFaqHtml(): string {
 
 export function renderConstructionTimeTrackingHtml(): string {
   return renderToStaticMarkup(createElement(ConstructionTimeTrackingPage));
+}
+
+export function renderConstructionTimeTrackingCostHtml(): string {
+  return renderToStaticMarkup(createElement(ConstructionTimeTrackingCostPage));
 }
 
 export function renderTradeHtml(slug: string): string {

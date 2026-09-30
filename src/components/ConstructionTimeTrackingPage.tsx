@@ -390,79 +390,19 @@ export function ConstructionTimeTrackingPage() {
           </p>
         </section>
 
-        <section className="max-w-5xl mx-auto px-6 mt-16">
+        <section className="max-w-3xl mx-auto px-6 mt-16">
           <h2 className="text-3xl font-bold text-slate-900 mb-4">What does construction time tracking software cost?</h2>
-          <div className="space-y-4 text-slate-600 leading-relaxed max-w-3xl">
+          <div className="space-y-4 text-slate-600 leading-relaxed">
             <p>
-              Crew time apps are priced three ways. Knowing which one you're looking at matters more than the number on
-              the pricing page.
-            </p>
-            <p>
-              <strong className="text-slate-900">Per seat.</strong> A monthly base fee, plus a fee for every user. Add
-              a laborer in April and the bill goes up in May. Many crew apps work this way. See the{" "}
-              <TextLink href="/vs/clockshark">ClockShark alternative with flat pricing</TextLink>.
-            </p>
-            <p>
-              <strong className="text-slate-900">Capped free plans.</strong> Free up to a set number of users, then a
-              paid plan. Some apps do this well. Connecteam's pricing page says it's free for up to 10 users, busybusy
-              lists a Free tier, and Jibble's construction page is titled "Free Forever." Check the cap, check which
-              features come with it, and check what happens the month you pass it.
-            </p>
-            <p>
-              <strong className="text-slate-900">Flat company pricing.</strong> One price no matter how many guys you
-              run. That's how My Guys Time works:{" "}
+              Crew time apps are priced three ways: per seat (a base fee plus a fee for every user), free plans capped
+              at a set number of users, or one flat company price. See the{" "}
+              <TextLink href="/vs/clockshark">ClockShark alternative with flat pricing</TextLink>. My Guys Time is{" "}
               <TextLink href="/pricing">$12/month flat for the whole crew</TextLink>.
             </p>
-            <p>Here's how the per-seat model scales next to a flat price:</p>
-          </div>
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-x-auto mt-6 max-w-3xl">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="p-4 font-semibold text-slate-900" scope="col">
-                    Crew size
-                  </th>
-                  <th className="p-4 font-semibold text-slate-900" scope="col">
-                    Per-seat app
-                  </th>
-                  <th className="p-4 font-semibold text-slate-900" scope="col">
-                    My Guys Time
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  ["3 guys", "base fee + 3 seats", "$12/month"],
-                  ["8 guys", "base fee + 8 seats", "$12/month"],
-                  ["15 guys", "base fee + 15 seats", "$12/month"],
-                  ["30 guys", "base fee + 30 seats", "$12/month"],
-                ].map((row) => (
-                  <tr key={row[0]} className="border-b border-slate-100 last:border-0">
-                    <th className="p-4 font-medium text-slate-900" scope="row">
-                      {row[0]}
-                    </th>
-                    <td className="p-4 text-slate-600">{row[1]}</td>
-                    <td className="p-4 text-slate-700">{row[2]}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="space-y-4 text-slate-600 leading-relaxed max-w-3xl mt-6">
             <p>
-              Tip: plug in the per-seat quote you were given. Base fee + (seat price × crew size). Then run it again
-              with your spring headcount.
+              The calculator, the questions to ask a vendor, and how the bill changes as the crew grows are on{" "}
+              <TextLink href="/construction-time-tracking-cost">what construction time tracking really costs</TextLink>.
             </p>
-            <p>
-              A flat price won't beat every option for every crew. If you run four guys and a free plan covers
-              everything you need, that may be the better deal for you. What $12 flat buys is an app built around a
-              crew: W-2 and 1099 guys on one board, receipt photos on the card, a foreman sign-off, a clean CSV
-              handoff, and a bill that doesn't move when you hire.
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mt-8">
-            <StartFreeWeek />
-            <p className="text-sm text-slate-500">7 days, no card required</p>
           </div>
         </section>
 

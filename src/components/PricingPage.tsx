@@ -75,7 +75,14 @@ export function PricingPage() {
             </p>
             <p className="text-slate-600 leading-relaxed">
               Here it&apos;s $12 whether you run three guys or thirty. Hiring another guy never
-              raises your bill.
+              raises your bill.{" "}
+              <a
+                href="/construction-time-tracking-cost"
+                className="text-orange-600 font-semibold hover:underline"
+              >
+                Compare what per-user crew apps cost
+              </a>
+              .
             </p>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-8">

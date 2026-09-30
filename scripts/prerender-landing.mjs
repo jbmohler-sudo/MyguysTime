@@ -403,6 +403,90 @@ pages.push([
   ],
 ]);
 
+const costRoute = "/construction-time-tracking-cost";
+const costTitle = "Construction Time Tracking Cost: Per-Seat vs Flat Pricing";
+const costDescription =
+  "How construction time tracking apps are priced: per user, capped free plans, or flat. Run the math on your crew. My Guys Time is $12/mo flat for everyone.";
+
+if (!Array.isArray(ssr.costFaqItems) || ssr.costFaqItems.length !== 5) {
+  console.error("[prerender] cost FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+
+const costFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: ssr.costFaqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const costSoftwareLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "My Guys Time",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: canonicalHost + costRoute,
+  offers: {
+    "@type": "Offer",
+    price: "12",
+    priceCurrency: "USD",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: "12",
+      priceCurrency: "USD",
+      billingDuration: "P1M",
+      unitText: "per company per month",
+    },
+  },
+  description:
+    "Construction time tracking at one flat company price. $12/mo for the whole crew.",
+};
+
+const costBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Construction Time Tracking Cost",
+      item: canonicalHost + costRoute,
+    },
+  ],
+};
+
+pages.push([
+  costRoute,
+  "construction-time-tracking-cost/index.html",
+  () => ssr.renderConstructionTimeTrackingCostHtml(),
+  costTitle,
+  costDescription,
+  [
+    ["ld-softwareapplication", costSoftwareLd],
+    ["ld-faqpage", costFaqLd],
+    ["ld-breadcrumb", costBreadcrumbLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    "What Does Construction Time Tracking Cost? Per-Seat vs Flat",
+    "Per-seat monthly cost = base fee + (per-user fee × number of users)",
+    "How much does a construction clock time tracker cost?",
+    "Do I pay per employee?",
+    "$12/mo",
+  ],
+]);
+
 
 const template = fs.readFileSync(templatePath, "utf8");
 const rootMarker = '<div id="root">';
@@ -504,6 +588,15 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
   if (missing.length > 0) {
     console.error(`[prerender] ${routePath} injected markup missing required content:`, missing);
     process.exit(1);
+  }
+
+  if (routePath === "/construction-time-tracking-cost") {
+    const banned = ["$X", "$Y", "Your per-seat bill", "/vs/connecteam", "/templates/construction-timesheet-template"];
+    const hit = banned.filter((token) => finalHtml.includes(token));
+    if (hit.length > 0 || /csv/i.test(markup)) {
+      console.error("[prerender] cost page contains banned copy:", hit, /csv/i.test(markup) ? "CSV" : "");
+      process.exit(1);
+    }
   }
 
   // JSON-LD must parse — validate all injected blocks before writing.

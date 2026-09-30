@@ -45,7 +45,22 @@ export function FaqPage() {
                     +
                   </span>
                 </summary>
-                <p className="text-slate-600 leading-relaxed mt-4">{item.a}</p>
+                <p className="text-slate-600 leading-relaxed mt-4">
+                  {item.a}
+                  {item.q === "Do I pay per employee?" ? (
+                    <>
+                      {" "}
+                      See{" "}
+                      <a
+                        href="/construction-time-tracking-cost"
+                        className="text-orange-600 font-semibold hover:underline"
+                      >
+                        what construction time tracking really costs
+                      </a>
+                      .
+                    </>
+                  ) : null}
+                </p>
               </details>
             ))}
           </div>

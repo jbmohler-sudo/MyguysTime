@@ -85,6 +85,11 @@ export function VsPage({ slug }: { slug: string }) {
 
         <section className="max-w-3xl mx-auto px-6 mt-4 text-center">
           <p className="text-slate-600 leading-relaxed">{vs.intro}</p>
+          {vs.afterIntro && (
+            <p className="text-slate-600 leading-relaxed mt-4">
+              <VsLinkedText parts={vs.afterIntro} />
+            </p>
+          )}
           <p className="text-slate-600 leading-relaxed mt-4">
             For the full picture, see the{" "}
             <a href="/construction-time-tracking" className="text-orange-600 font-semibold hover:underline">

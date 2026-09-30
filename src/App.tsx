@@ -11,6 +11,7 @@ import { PricingPage } from "./components/PricingPage";
 import { HowItWorksPage } from "./components/HowItWorksPage";
 import { FaqPage } from "./components/FaqPage";
 import { ConstructionTimeTrackingPage } from "./components/ConstructionTimeTrackingPage";
+import { ConstructionTimeTrackingCostPage } from "./components/ConstructionTimeTrackingCostPage";
 import { TradePage } from "./components/TradePage";
 import { VsPage } from "./components/VsPage";
 import { TRADES } from "./components/trades";
@@ -516,6 +517,7 @@ function AppContent() {
       "/how-it-works": <HowItWorksPage />,
       "/faq": <FaqPage />,
       "/construction-time-tracking": <ConstructionTimeTrackingPage />,
+      "/construction-time-tracking-cost": <ConstructionTimeTrackingCostPage />,
     };
     const marketingPage = marketingPageMap[cleanPath];
     if (marketingPage) {

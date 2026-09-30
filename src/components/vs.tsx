@@ -35,6 +35,8 @@ export interface VsConfig {
     columns: { heading: string; points: string[] }[];
     footer?: VsTextPart[];
   };
+  /** Sentence under the intro, used to link the cost hub from live comparison pages. */
+  afterIntro?: VsTextPart[];
   calloutTitle: string;
   calloutText: string;
   faqHeading?: string;
@@ -138,6 +140,11 @@ export const VS_PAGES: VsConfig[] = [
     sub: "Every hire raises the bill. Seasonal help, subs, a new laborer — each one is another seat. There's a flatter way to track crew hours.",
     intro:
       "Per-seat pricing punishes you for growing. Hire a guy Monday, pay more next month. Bring on seasonal help, pay for seats that sit empty all winter. Add a 1099 sub to the job, pay for him too. My Guys Time was built on the opposite idea: why should the app cost more because you hired another guy? One flat price, the whole company, no seats to count.",
+    afterIntro: [
+      { text: "See " },
+      { text: "what crew time apps cost", href: "/construction-time-tracking-cost" },
+      { text: "." },
+    ],
     pains: [
       {
         title: "Every hire raises the bill",
@@ -314,6 +321,11 @@ export const VS_PAGES: VsConfig[] = [
     sub: "One bill grows every time you hire. The other stays at $12 whether you run three guys or thirty.",
     intro:
       "ClockShark charges a monthly base fee plus a fee for every user, so the bill rises each time you add a worker. My Guys Time is $12/month flat for the whole company. ClockShark does more (GPS tracking, scheduling, payroll integrations); My Guys Time is a simpler weekly crew time card with CSV exports.",
+    afterIntro: [
+      { text: "See " },
+      { text: "what crew time apps cost", href: "/construction-time-tracking-cost" },
+      { text: "." },
+    ],
     painHeading: "What per-user pricing costs a small crew every week",
     painSub: "If any of these sound like your week, the pricing model is working against you.",
     pains: [
