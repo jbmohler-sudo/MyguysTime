@@ -487,6 +487,121 @@ pages.push([
   ],
 ]);
 
+const templateRoute = "/templates/construction-timesheet-template";
+const templateTitle = "Free Construction Timesheet Template (PDF & Excel)";
+const templateDescription =
+  "Free weekly construction timesheet for crews: job, start/end, hours, foreman sign-off. Download as PDF or Excel. Hours only, no pay columns.";
+
+if (!Array.isArray(ssr.templateFaqItems) || ssr.templateFaqItems.length !== 5) {
+  console.error("[prerender] template FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+
+const templateFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: ssr.templateFaqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const templateSoftwareLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "My Guys Time",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: canonicalHost + templateRoute,
+  offers: {
+    "@type": "Offer",
+    price: "12",
+    priceCurrency: "USD",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: "12",
+      priceCurrency: "USD",
+      billingDuration: "P1M",
+      unitText: "per company per month",
+    },
+  },
+  description:
+    "Crew time cards for contractors. The foreman enters hours from his phone and approves the week. $12/mo flat for the whole company.",
+};
+
+const templateBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Templates",
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Construction Timesheet Template",
+      item: canonicalHost + templateRoute,
+    },
+  ],
+};
+
+function digitalDocumentLd(name, encodingFormat, filePath) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "DigitalDocument",
+    name,
+    encodingFormat,
+    url: canonicalHost + filePath,
+    isAccessibleForFree: true,
+  };
+}
+
+const templatePdfLd = digitalDocumentLd(
+  "Free Construction Timesheet Template (PDF)",
+  "application/pdf",
+  "/templates/construction-timesheet-template.pdf",
+);
+
+const templateXlsxLd = digitalDocumentLd(
+  "Free Construction Timesheet Template (Excel)",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "/templates/construction-timesheet-template.xlsx",
+);
+
+pages.push([
+  templateRoute,
+  "templates/construction-timesheet-template/index.html",
+  () => ssr.renderConstructionTimesheetTemplateHtml(),
+  templateTitle,
+  templateDescription,
+  [
+    ["ld-softwareapplication", templateSoftwareLd],
+    ["ld-faqpage", templateFaqLd],
+    ["ld-breadcrumb", templateBreadcrumbLd],
+    ["ld-digitaldocument-pdf", templatePdfLd],
+    ["ld-digitaldocument-xlsx", templateXlsxLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    "Free Construction Timesheet Template for Small Crews",
+    "Download PDF",
+    "/templates/construction-timesheet-template.pdf",
+    "/templates/construction-timesheet-template.xlsx",
+    "Is there a free timesheet template?",
+    "Can I track 1099 subs on the same timesheet?",
+    "$12/month",
+  ],
+]);
 
 const template = fs.readFileSync(templatePath, "utf8");
 const rootMarker = '<div id="root">';
@@ -521,7 +636,8 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     process.exit(1);
   }
 
-  let finalHtml = template.replace(rootMarker, `${hydrationFlag}${markup}</div>`);
+  // Replacement function: a string replacement would treat $12 in the markup as a capture.
+  let finalHtml = template.replace(rootMarker, () => `${hydrationFlag}${markup}</div>`);
 
   // <title>
   if (!/<title>[^<]*<\/title>/.test(finalHtml)) {
@@ -544,8 +660,14 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
   }
   finalHtml = finalHtml.replace(
     /<link rel="canonical" href="[^"]*" \/>/,
-    `<link rel="canonical" href="${canonical}" />`,
+    () => `<link rel="canonical" href="${canonical}" />`,
   );
+
+  if (routePath === "/templates/construction-timesheet-template") {
+    const ogImage = canonicalHost + "/templates/construction-timesheet-template-example.png";
+    finalHtml = replaceMeta(finalHtml, "property", "og:image", ogImage);
+    finalHtml = replaceMeta(finalHtml, "name", "twitter:image", ogImage);
+  }
 
   // JSON-LD — FAQ text is sourced from the same arrays the pages render,
   // so structured data and visible copy cannot drift.
@@ -554,22 +676,36 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
   if (routePath !== "/") {
     wanted.set("ld-webpage", webPageLd(title, routePath, description));
   }
-  for (const id of ["ld-softwareapplication", "ld-faqpage", "ld-breadcrumb", "ld-organization", "ld-website", "ld-webpage"]) {
+  const appendableJsonLd = new Set([
+    "ld-webpage",
+    "ld-breadcrumb",
+    "ld-digitaldocument-pdf",
+    "ld-digitaldocument-xlsx",
+  ]);
+  for (const id of [
+    "ld-softwareapplication",
+    "ld-faqpage",
+    "ld-breadcrumb",
+    "ld-organization",
+    "ld-website",
+    "ld-webpage",
+    "ld-digitaldocument-pdf",
+    "ld-digitaldocument-xlsx",
+  ]) {
     const openTag = `<script type="application/ld+json" id="${id}">`;
     const closeTag = "</" + "script>";
     const start = finalHtml.indexOf(openTag);
     const data = wanted.get(id);
     if (data) {
       if (start === -1) {
-        // Template only ships 4 placeholders; webpage and breadcrumb blocks are appended before </head>.
-        if (id !== "ld-webpage" && id !== "ld-breadcrumb") {
+        // Template only ships 4 placeholders; extra blocks are appended before </head>.
+        if (!appendableJsonLd.has(id)) {
           console.error(`[prerender] JSON-LD placeholder #${id} not found in template.`);
           process.exit(1);
         }
-        finalHtml = finalHtml.replace(
-          "</head>",
-          `    ${openTag}\n    ${JSON.stringify(data)}\n    ${closeTag}\n  </head>`,
-        );
+        finalHtml = finalHtml.replace("</head>", () => {
+          return `    ${openTag}\n    ${JSON.stringify(data)}\n    ${closeTag}\n  </head>`;
+        });
       } else {
         const contentStart = start + openTag.length;
         const end = finalHtml.indexOf(closeTag, contentStart);
@@ -591,10 +727,28 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
   }
 
   if (routePath === "/construction-time-tracking-cost") {
-    const banned = ["$X", "$Y", "Your per-seat bill", "/vs/connecteam", "/templates/construction-timesheet-template"];
+    const banned = ["$X", "$Y", "Your per-seat bill", "/vs/connecteam"];
     const hit = banned.filter((token) => finalHtml.includes(token));
     if (hit.length > 0 || /csv/i.test(markup)) {
       console.error("[prerender] cost page contains banned copy:", hit, /csv/i.test(markup) ? "CSV" : "");
+      process.exit(1);
+    }
+  }
+
+  if (routePath === "/templates/construction-timesheet-template") {
+    const banned = [
+      "Google Sheets",
+      "Make a copy",
+      "/vs/connecteam",
+      "Connecteam",
+      "petty cash",
+      "break tracking",
+      "calculates payroll",
+      "calculates tax",
+    ];
+    const hit = banned.filter((token) => finalHtml.toLowerCase().includes(token.toLowerCase()));
+    if (hit.length > 0 || /csv/i.test(markup)) {
+      console.error("[prerender] template page contains banned copy:", hit, /csv/i.test(markup) ? "CSV" : "");
       process.exit(1);
     }
   }

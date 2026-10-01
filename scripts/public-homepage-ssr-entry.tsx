@@ -24,8 +24,12 @@ import {
   ConstructionTimeTrackingCostPage,
   costFaqItems,
 } from "../src/components/ConstructionTimeTrackingCostPage";
+import {
+  ConstructionTimesheetTemplatePage,
+  templateFaqItems,
+} from "../src/components/ConstructionTimesheetTemplatePage";
 
-export { faqItems, faqPageItems, constructionFaqItems, costFaqItems };
+export { faqItems, faqPageItems, constructionFaqItems, costFaqItems, templateFaqItems };
 
 export function vsPageFaqs(slug: string): { q: string; a: string }[] {
   const page = getVs(slug);
@@ -59,6 +63,10 @@ export function renderConstructionTimeTrackingHtml(): string {
 
 export function renderConstructionTimeTrackingCostHtml(): string {
   return renderToStaticMarkup(createElement(ConstructionTimeTrackingCostPage));
+}
+
+export function renderConstructionTimesheetTemplateHtml(): string {
+  return renderToStaticMarkup(createElement(ConstructionTimesheetTemplatePage));
 }
 
 export function renderTradeHtml(slug: string): string {

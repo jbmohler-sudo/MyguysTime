@@ -462,7 +462,10 @@ export function ConstructionTimeTrackingCostPage() {
             </li>
           </ul>
           <p className="text-slate-600 leading-relaxed mt-6">
-            Still on paper? Read the full guide to{" "}
+            Still on paper? Start with a{" "}
+            <TextLink href="/templates/construction-timesheet-template">
+              free printable construction timesheet template
+            </TextLink>, or read the full guide to{" "}
             <TextLink href="/construction-time-tracking">construction time tracking for small crews</TextLink>.
           </p>
         </section>

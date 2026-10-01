@@ -52,6 +52,11 @@ export const VS_PAGES: VsConfig[] = [
     sub: "Crinkled notebooks, rain-soaked cards, handwriting nobody can read. There's a cheaper way to stop losing hours.",
     intro:
       "My Guys Time exists because paper time cards don't work — the guy who built it used to track hours on a chunk of 2x6 behind the truck seat. Paper is fine on Monday. By Thursday at 5pm, the whole week has to be reconstructed from memory, smudged pencil, and a card that's been through the rain twice. The hours you're paying for stop being the hours that were worked.",
+    afterIntro: [
+      { text: "Staying on paper for now? Use a " },
+      { text: "free printable construction timesheet template", href: "/templates/construction-timesheet-template" },
+      { text: " (PDF or Excel) for the weekly crew card." },
+    ],
     pains: [
       {
         title: "Thursday-night reconstruction",
@@ -233,6 +238,11 @@ export const VS_PAGES: VsConfig[] = [
     sub: "One person knows how the formulas work. The week gets rebuilt from memory every Thursday at 5pm. There's a simpler way.",
     intro:
       "Every contractor knows this spreadsheet. Somebody built it three years ago, only one person understands the formulas, and the file name has the word FINAL in it twice. Every Thursday at 5pm the week gets reconstructed from texts, memory, and a foreman's verbal report — typed cell by cell into a system that lives on one office computer while the crew is out in the field.",
+    afterIntro: [
+      { text: "Need a sheet to start from? Download the " },
+      { text: "free construction timesheet template", href: "/templates/construction-timesheet-template" },
+      { text: " as a PDF or an Excel file." },
+    ],
     pains: [
       {
         title: "Thursday at 5pm, every week",

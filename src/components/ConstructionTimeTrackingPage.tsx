@@ -384,8 +384,10 @@ export function ConstructionTimeTrackingPage() {
             </table>
           </div>
           <p className="text-slate-600 leading-relaxed mt-8 max-w-3xl">
-            If paper's working for you, make it work better with a free printable construction timesheet template. If
-            it isn't, here's <TextLink href="/vs/paper-timesheets">why paper time cards leak hours</TextLink> and{" "}
+            If paper's working for you, make it work better with a{" "}
+            <TextLink href="/templates/construction-timesheet-template">
+              free printable construction timesheet template
+            </TextLink>. If it isn't, here's <TextLink href="/vs/paper-timesheets">why paper time cards leak hours</TextLink> and{" "}
             <TextLink href="/vs/spreadsheets">the Thursday spreadsheet problem</TextLink>.
           </p>
         </section>
