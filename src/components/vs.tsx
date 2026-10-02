@@ -444,7 +444,7 @@ export const VS_PAGES: VsConfig[] = [
     faqs: [
       {
         q: "How much does ClockShark cost per month?",
-        text: "It depends on crew size. ClockShark charges a monthly base fee plus a fee for each user, on a Standard or Pro plan. For current rates, check ClockShark's current pricing. The math is base fee + (per-user fee × crew size). My Guys Time is $12/month flat for the whole company, whatever that math comes to.",
+        text: "It depends on crew size. ClockShark charges a monthly base fee plus a fee for each user, on a Standard or Pro plan. For current rates, check ClockShark's current pricing. ClockShark's pricing page also says a contract term of three (3) years applies to all pricing plans (checked October 2026). The math is base fee + (per-user fee × crew size). My Guys Time is $12/month flat for the whole company, whatever that math comes to.",
         link: {
           phrase: "ClockShark's current pricing",
           href: "https://www.clockshark.com/pricing/",
