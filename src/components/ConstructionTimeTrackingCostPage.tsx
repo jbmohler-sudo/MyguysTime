@@ -451,6 +451,10 @@ export function ConstructionTimeTrackingCostPage() {
               user, next to one flat price.
             </li>
             <li>
+              <TextLink href="/vs/connecteam">Connecteam's free plan and user-band pricing</TextLink>: free for up to
+              10 users, then paid plans per hub.
+            </li>
+            <li>
               <TextLink href="/vs/quickbooks-time">QuickBooks Time vs My Guys Time</TextLink>: keep your accounting,
               change how hours come in.
             </li>

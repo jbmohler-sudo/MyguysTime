@@ -403,6 +403,92 @@ pages.push([
   ],
 ]);
 
+const connecteamRoute = "/vs/connecteam";
+const connecteamFaqs = typeof ssr.vsPageFaqs === "function" ? ssr.vsPageFaqs("connecteam") : [];
+if (!Array.isArray(connecteamFaqs) || connecteamFaqs.length !== 5) {
+  console.error("[prerender] connecteam FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+
+const connecteamFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: connecteamFaqs.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const connecteamSoftwareLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "My Guys Time",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: canonicalHost + connecteamRoute,
+  offers: {
+    "@type": "Offer",
+    price: "12",
+    priceCurrency: "USD",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: "12",
+      priceCurrency: "USD",
+      billingDuration: "P1M",
+      unitText: "per company per month",
+    },
+  },
+  description:
+    "A weekly crew time card built by a contractor. $12/mo flat for the whole company.",
+};
+
+const connecteamBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Comparisons",
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Connecteam",
+      item: canonicalHost + connecteamRoute,
+    },
+  ],
+};
+
+pages.push([
+  connecteamRoute,
+  "vs/connecteam/index.html",
+  () => ssr.renderVsHtml("connecteam"),
+  "Connecteam Pricing & Alternative for Crews | My Guys Time",
+  "Connecteam is free for up to 10 users and built as an all-in-one employee app. My Guys Time is a crew time card built by a contractor, $12/mo flat.",
+  [
+    ["ld-softwareapplication", connecteamSoftwareLd],
+    ["ld-faqpage", connecteamFaqLd],
+    ["ld-breadcrumb", connecteamBreadcrumbLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    "Connecteam vs My Guys Time: All-in-One App or Crew Time Card",
+    "My Guys Time vs Connecteam",
+    "free for up to 10 users",
+    "https://connecteam.com/pricing/",
+    "$12",
+  ],
+]);
+
 const costRoute = "/construction-time-tracking-cost";
 const costTitle = "Construction Time Tracking Cost: Per-Seat vs Flat Pricing";
 const costDescription =
@@ -726,8 +812,20 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     process.exit(1);
   }
 
+  if (routePath === "/vs/connecteam") {
+    const lower = markup.toLowerCase();
+    const banned = ["csv", "export", "petty cash", "break"];
+    const hit = banned.filter((token) => lower.includes(token));
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    if (hit.length > 0 || badDollars.length > 0) {
+      console.error("[prerender] connecteam page contains banned copy:", hit, badDollars);
+      process.exit(1);
+    }
+  }
+
   if (routePath === "/construction-time-tracking-cost") {
-    const banned = ["$X", "$Y", "Your per-seat bill", "/vs/connecteam"];
+    const banned = ["$X", "$Y", "Your per-seat bill"];
     const hit = banned.filter((token) => finalHtml.includes(token));
     if (hit.length > 0 || /csv/i.test(markup)) {
       console.error("[prerender] cost page contains banned copy:", hit, /csv/i.test(markup) ? "CSV" : "");
@@ -739,8 +837,6 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     const banned = [
       "Google Sheets",
       "Make a copy",
-      "/vs/connecteam",
-      "Connecteam",
       "petty cash",
       "break tracking",
       "calculates payroll",

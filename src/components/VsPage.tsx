@@ -105,10 +105,10 @@ export function VsPage({ slug }: { slug: string }) {
               Start my free week <ArrowRight className="w-4 h-4 ml-2" />
             </a>
             <a
-              href="/how-it-works"
+              href={vs.heroSecondary?.href ?? "/how-it-works"}
               className="inline-flex items-center justify-center px-8 py-3 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:border-orange-400 hover:text-orange-600 transition-colors"
             >
-              See how it works
+              {vs.heroSecondary?.label ?? "See how it works"}
             </a>
           </div>
           <p className="text-sm text-slate-500 mt-4">
@@ -180,7 +180,7 @@ export function VsPage({ slug }: { slug: string }) {
                 href="/demo/foreman"
                 className="inline-flex items-center justify-center px-8 py-3 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:border-orange-400 hover:text-orange-600 transition-colors"
               >
-                Try the foreman view, no signup
+                {vs.compareSecondaryLabel ?? "Try the foreman view, no signup"}
               </a>
             </div>
           )}

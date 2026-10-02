@@ -396,8 +396,9 @@ export function ConstructionTimeTrackingPage() {
           <h2 className="text-3xl font-bold text-slate-900 mb-4">What does construction time tracking software cost?</h2>
           <div className="space-y-4 text-slate-600 leading-relaxed">
             <p>
-              Crew time apps are priced three ways: per seat (a base fee plus a fee for every user), free plans capped
-              at a set number of users, or one flat company price. See the{" "}
+              Crew time apps are priced three ways: per seat (a base fee plus a fee for every user),{" "}
+              <TextLink href="/vs/connecteam">free plans capped at a set number of users</TextLink>, or one flat
+              company price. See the{" "}
               <TextLink href="/vs/clockshark">ClockShark alternative with flat pricing</TextLink>. My Guys Time is{" "}
               <TextLink href="/pricing">$12/month flat for the whole crew</TextLink>.
             </p>

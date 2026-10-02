@@ -28,6 +28,10 @@ export interface VsConfig {
   compare: VsCompareRow[];
   /** Extra CTAs under the comparison table (free week + foreman demo). */
   compareCta?: boolean;
+  /** Label for the foreman-demo button under the comparison table. */
+  compareSecondaryLabel?: string;
+  /** Hero secondary button. Defaults to "See how it works". */
+  heroSecondary?: { label: string; href: string };
   flow: { title: string; text: string }[];
   flowHeading?: string;
   flowLink?: { label: string; href: string };
@@ -465,6 +469,150 @@ export const VS_PAGES: VsConfig[] = [
       },
     ],
     closingHeading: "Paying per user? Try it free for 7 days.",
+  },
+  {
+    slug: "connecteam",
+    name: "Connecteam",
+    h1: "Connecteam vs My Guys Time: All-in-One App or Crew Time Card",
+    sub: "One app for every kind of team, or one time card built for crews. Both are worth a look.",
+    intro:
+      "Connecteam is free for up to 10 users, and its paid plans cover a set number of users per hub, with per-user fees beyond that. It's a broad employee app: time clock, scheduling, chat, and HR tools. My Guys Time is a narrower weekly crew time card, built by a contractor, at $12/month flat for the whole company.",
+    heroSecondary: { label: "See the foreman view, no signup", href: "/demo/foreman" },
+    painHeading: "When an all-in-one app is more than a crew needs",
+    painSub: "Connecteam does a lot. Here's where that can get in the way of a crew that just needs its hours.",
+    pains: [
+      {
+        title: "Hubs and tiers to sort out.",
+        text: "Connecteam sells separate hubs (Operations, Communications, and HR & Skills), each with Basic, Advanced and Expert plans. If all you need is crew hours, you first have to work out which hub and tier covers it. My Guys Time is one plan.",
+      },
+      {
+        title: "The free plan has a ceiling.",
+        text: "Free for up to 10 users is a real deal for a small team, and it's worth saying so. Past 10 users, the all-features free plan no longer fits, and you're choosing between a limited free tier and paid plans per hub. Plan for your spring crew, not your winter one.",
+      },
+      {
+        title: "Built for every kind of team.",
+        text: "Connecteam serves construction alongside cleaning, healthcare, retail, food service and security teams, so it covers a lot of ground. My Guys Time is built around one job: a foreman's weekly crew card.",
+      },
+      {
+        title: "The week still gets rebuilt Thursday.",
+        text: "An app can't fix hours nobody entered. If the day isn't logged the day it's worked, somebody's rebuilding the week at 5pm Thursday. The fix is a foreman tapping in hours from the truck before he leaves the job.",
+      },
+    ],
+    compareCta: true,
+    compareSecondaryLabel: "See the foreman view",
+    compare: [
+      {
+        label: "Pricing model",
+        oldWay:
+          "Free Small Business Plan for up to 10 users. Paid plans are sold per hub (Basic, Advanced, Expert) at a fixed price for the first 30 users, then a fee for each additional user. Yearly or monthly billing.",
+        myGuys: "$12/month flat for the whole company. One plan, no tiers.",
+      },
+      {
+        label: "What it covers",
+        oldWay:
+          "Three hubs: Operations (time clock with GPS, scheduling, forms, tasks), Communications (chat, updates, knowledge base and more), HR & Skills (onboarding, training, documents, time off)",
+        myGuys:
+          "Crew time cards, weekly crew board, foreman approval (one-person crews auto-approve), foreman incident notes, receipt photos for expenses, W-2 and 1099 on one board",
+      },
+      {
+        label: "Getting hours to payroll",
+        oldWay: "Payroll integration listed in its Operations plans",
+        myGuys: "Office reviews the week and hands hours to whoever runs payroll. No integrations, and it doesn't calculate pay.",
+      },
+      {
+        label: "Adding the crew",
+        oldWay: "Android and iOS apps from the Google Play Store and Apple App Store",
+        myGuys: "Browser app you add to the home screen. Invite the crew with a copyable link.",
+      },
+      {
+        label: "Trying it",
+        oldWay: "14-day free trial, no credit card, plus the free plan for up to 10 users",
+        myGuys: "7-day free trial, no card. Demo roles with no signup.",
+      },
+    ],
+    flowHeading: "How a week runs in My Guys Time",
+    flowLink: { label: "See how it works", href: "/how-it-works" },
+    flow: [
+      {
+        title: "Hours go in from the truck",
+        text: "The foreman taps in the crew's hours on his phone at the end of the day, while everybody's still on site. Nothing waits until Thursday.",
+      },
+      {
+        title: "Foreman signs off on the week",
+        text: "Every guy, every day, on the weekly crew board. The foreman adds an incident note on the day something happened, then approves the week. A one-person crew auto-approves past this step.",
+      },
+      {
+        title: "Office checks it once",
+        text: "Hours, rate and notes for each person, with receipt photos attached to anything a guy paid for himself. Adjust what needs adjusting in one place.",
+      },
+      {
+        title: "Office hands hours to payroll",
+        text: "The office reviews the approved week and hands the hours to whoever runs payroll. That's the whole handoff. No payroll integration.",
+      },
+    ],
+    fit: {
+      columns: [
+        {
+          heading: "When Connecteam is the better fit",
+          points: [
+            "You have 10 or fewer people and want a free plan.",
+            "You want scheduling, GPS clock-ins, team chat, onboarding, training or HR documents in the same app.",
+            "You want a payroll integration.",
+          ],
+        },
+        {
+          heading: "When My Guys Time fits better",
+          points: [
+            "You run crews on job sites and want the time card done right, without the rest.",
+            "You want hours entered daily by the foreman, a sign-off, receipts on the card, and W-2 and 1099 guys on one board.",
+            "You want a clean weekly handoff for the office and one price with no hubs or tiers, from the first guy to the thirtieth.",
+          ],
+        },
+      ],
+      footer: [
+        { text: "Weighing the pricing models? See " },
+        { text: "free plans vs per-seat vs flat pricing", href: "/construction-time-tracking-cost" },
+        { text: ", " },
+        { text: "ClockShark's per-user model", href: "/vs/clockshark" },
+        { text: ", or " },
+        { text: "construction time tracking for small crews", href: "/construction-time-tracking" },
+        { text: ". Still writing the week down? Use a " },
+        { text: "free construction timesheet template", href: "/templates/construction-timesheet-template" },
+        { text: "." },
+      ],
+    },
+    calloutTitle: "A mason's answer to per-head pricing",
+    calloutText:
+      "The guy behind My Guys Time is a mason. Before there was an app, his crew's hours lived on a 2x6 offcut behind the driver's seat. The apps he tried later all billed by the head, which never made sense to him: why should the app cost more because you hired another guy? So the price is one number, $12 a month, for the whole company.",
+    faqHeading: "Connecteam vs My Guys Time: common questions",
+    faqs: [
+      {
+        q: "Is the Connecteam app free?",
+        text: "Yes, for up to 10 users on its Small Business Plan, according to Connecteam's pricing page (checked September 2026). Its pricing FAQ also describes a Limited plan with the essentials of each hub. Teams that want more pay per hub. My Guys Time isn't free: it's a 7-day trial with no card, then $12/month flat for everyone.",
+      },
+      {
+        q: "Is Connecteam worth it?",
+        text: "It can be, depending on your team. If you're under 10 people, or you'll actually use scheduling, chat and HR tools, it covers a lot in one app. If all you need is crew hours with a foreman sign-off and a weekly office handoff, a simpler crew time card may fit better.",
+      },
+      {
+        q: "What are the benefits of using Connecteam?",
+        text: "Per Connecteam's site: one app for time clock, scheduling, team chat and HR tools, a free plan for small teams, and a payroll integration on its Operations plans. My Guys Time does less on purpose. It's a weekly crew time card with foreman approval and receipt photos, at one flat price.",
+      },
+      {
+        q: "How does Connecteam pricing work?",
+        text: "Connecteam has a free plan for up to 10 users. Paid plans are sold per hub, in Basic, Advanced and Expert tiers. Each is a fixed price for the first 30 users, then a fee for each additional user, and paying yearly costs less than paying monthly. For current rates, see Connecteam's current plans.",
+        link: {
+          phrase: "Connecteam's current plans",
+          href: "https://connecteam.com/pricing/",
+          external: true,
+        },
+      },
+      {
+        q: "Do I pay per employee with My Guys Time?",
+        text: "No. $12 a month covers the whole company: foremen, laborers, subs and office. There are no hubs, tiers or per-user fees, and hiring another guy doesn't change the bill.",
+      },
+    ],
+    closingHeading: "Just need the time card? Try it free for 7 days.",
   },
 ];
 
