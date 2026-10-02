@@ -592,7 +592,7 @@ export const VS_PAGES: VsConfig[] = [
       },
       {
         q: "Is Connecteam worth it?",
-        text: "It can be, depending on your team. If you're under 10 people, or you'll actually use scheduling, chat and HR tools, it covers a lot in one app. If all you need is crew hours with a foreman sign-off and a weekly office handoff, a simpler crew time card may fit better.",
+        text: "It can be, depending on your team. If you have 10 or fewer people, or you'll actually use scheduling, chat and HR tools, it covers a lot in one app. If all you need is crew hours with a foreman sign-off and a weekly office handoff, a simpler crew time card may fit better.",
       },
       {
         q: "What are the benefits of using Connecteam?",
