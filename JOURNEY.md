@@ -11,8 +11,8 @@
   period, 7-day no-card trial on new signups. Paid companies stay on `active`.
 - **Marketing site live:** `/features`, `/pricing`, `/how-it-works`, `/faq`, `/construction-time-tracking`,
   `/construction-time-tracking-cost`, `/templates/construction-timesheet-template`, seven `/trades/:slug` pages, and
-  `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark}` — all prerendered, in the sitemap
-  (22 URLs). (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
+  `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam}` — all prerendered, in the sitemap
+  (23 URLs). (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
 - **Biggest open item:** Jeff's call on two Cursor branches (Open Questions). Optional later:
   Auth admin on `sb_secret_` (then disable legacy JWT), Neon→one Supabase DB.
 
@@ -77,6 +77,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-02 — Connecteam comparison page live (9234ba5)
+**Did:** Published `/vs/connecteam` from the ship-ready Friday copy. Added the connecteam config in `vs.tsx` (answer block, fit block, 5 FAQs, pain cards, comparison table, flow, callout, pills, closing CTA) and optional hero and table button labels so the other comparison pages keep their existing buttons. Prerender title, meta, OG, and self-canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Connecteam. Sitemap is 23 URLs. Inbound links: footer Comparisons column, pills on the other `/vs` pages, the cost hub compare list, and the pillar free-plans line. `npm run build` passed. Dist HTML: title `Connecteam Pricing & Alternative for Crews | My Guys Time`, one H1, canonical `https://www.myguystime.com/vs/connecteam`, dollar amounts are only `$12`. Page copy has no CSV, export, breaks, or petty cash.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no fixture database.
+**State after:** `/vs/connecteam` is on `main`. Sitemap has 23 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
+
 ### 2026-10-01 — Construction timesheet template page live (e71b582)
 **Did:** Published `/templates/construction-timesheet-template` from the approved draft. New `ConstructionTimesheetTemplatePage` with PDF and Excel downloads, the field list, how-to, format table, mistakes, softened app pitch, and 5 FAQs. Preview and OG use the example PNG. Prerender title, meta, OG, and self-canonical, plus WebPage, BreadcrumbList (Home › Templates › Construction Timesheet Template), DigitalDocument for PDF and Excel, FAQPage from the 5 FAQs, and SoftwareApplication (`price` "12", USD, P1M, per company per month). Sitemap is 22 URLs. Inbound links from the pillar, `/vs/paper-timesheets`, `/vs/spreadsheets`, and `/construction-time-tracking-cost`. `npm run build` passed. Dist HTML: title `Free Construction Timesheet Template (PDF & Excel)`, one H1, canonical `https://www.myguystime.com/templates/construction-timesheet-template`, download hrefs for the PDF and `.xlsx`, `$12/month` intact. No Google Sheets, CSV, Connecteam, petty cash, or app break-tracking claims.
 **Decided:** nothing new.
@@ -100,14 +108,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** Connecteam pill, the cost-hub link, and template downloads. Those URLs are not live.
 **State after:** `/vs/clockshark` is on `main`. Sitemap has 20 URLs.
 **Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
-
-### 2026-09-28 — Construction time tracking pillar built, held off main (4d1b590)
-**Did:** Added `/construction-time-tracking` from the approved MGT-01 copy (`ConstructionTimeTrackingPage.tsx`), prerender with SoftwareApplication, FAQPage, and BreadcrumbList, sitemap URL 19, and inbound links from the homepage, seven trade pages, `/features`, `/how-it-works`, and the three `/vs` pages. Screenshot slots omitted. Template, cost-hub, ClockShark, and Connecteam links left off because those pages are not live. `npm run build` passed. Dist HTML: title `Construction Time Tracking for Small Crews | $12/mo Flat`, one H1, canonical `https://www.myguystime.com/construction-time-tracking`, `$12/mo` intact.
-**Decided:** nothing new.
-**Killed:** nothing.
-**Deferred:** production release. `npm test` exited 1 in this environment (`assertSafeFixtureMutationContext`: no local `DATABASE_URL`, no Supabase fixture keys). Did not point tests at production Neon or Supabase, and did not push `main`.
-**State after:** page is on `cursor/construction-time-tracking-dcd4` only. Live site unchanged.
-**Next:** run `npm test` against a local fixture database, then commit to `main` and confirm the Vercel deploy.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 

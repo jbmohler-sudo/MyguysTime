@@ -2,6 +2,14 @@
 
 > Older Session Log entries rolled out of [JOURNEY.md](JOURNEY.md). Newest of these first.
 
+### 2026-09-28 — Construction time tracking pillar built, held off main (4d1b590)
+**Did:** Added `/construction-time-tracking` from the approved MGT-01 copy (`ConstructionTimeTrackingPage.tsx`), prerender with SoftwareApplication, FAQPage, and BreadcrumbList, sitemap URL 19, and inbound links from the homepage, seven trade pages, `/features`, `/how-it-works`, and the three `/vs` pages. Screenshot slots omitted. Template, cost-hub, ClockShark, and Connecteam links left off because those pages are not live. `npm run build` passed. Dist HTML: title `Construction Time Tracking for Small Crews | $12/mo Flat`, one H1, canonical `https://www.myguystime.com/construction-time-tracking`, `$12/mo` intact.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** production release. `npm test` exited 1 in this environment (`assertSafeFixtureMutationContext`: no local `DATABASE_URL`, no Supabase fixture keys). Did not point tests at production Neon or Supabase, and did not push `main`.
+**State after:** page is on `cursor/construction-time-tracking-dcd4` only. Live site unchanged.
+**Next:** run `npm test` against a local fixture database, then commit to `main` and confirm the Vercel deploy.
+
 ### 2026-09-25 — Agent rules in-repo (new AGENTS.md); journal repaired; stale guidance fixed (Claude)
 **Did:** Cross-repo audit. Found: Muse (cloud, `jbmohler-sudo`) built the marketing site 9/23–9/24 by pushing each change straight to `main` with no local build, per the old "commit and push without being asked" rule — **13 Vercel production builds failed** (11 in a row on 9/23: 7aada9f…ccc139b) before a green one; the live site stayed on the last good build. The three batch entries had been appended at the end of this file and the Session Log held 5 entries. Fix: new AGENTS.md (shared rules: sync first, shipping, **build + test before every commit**, JOURNEY format) and CLAUDE.md now imports it, with its stale "payroll app on Supabase" description corrected (payroll removed; app data on Neon). Journal: header points at AGENTS.md instead of `../` files; strays folded in newest-first (headings demoted only); cap applied; Current State and Hard Rules brought current.
 **Decided:** One shipping rule in every repo: a commit to `main` is a release, so commit there only when `npm run build` and `npm test` pass and Jeff asked for the work to go live; everything else on a branch. Pricing, billing, rules, security/migrations, and deletions always need Jeff's OK first. Replaces "commit and push without being asked."
