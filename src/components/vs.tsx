@@ -483,7 +483,7 @@ export const VS_PAGES: VsConfig[] = [
     pains: [
       {
         title: "Hubs and tiers to sort out.",
-        text: "Connecteam sells separate hubs (Operations, Communications, and HR & Skills), each with Basic, Advanced and Expert plans. If all you need is crew hours, you first have to work out which hub and tier covers it. My Guys Time is one plan.",
+        text: "Connecteam sells separate hubs (Operations, Communications, and HR & Skills), each with Basic, Advanced, Expert and Enterprise plans. If all you need is crew hours, you first have to work out which hub and tier covers it. My Guys Time is one plan.",
       },
       {
         title: "The free plan has a ceiling.",
@@ -504,7 +504,7 @@ export const VS_PAGES: VsConfig[] = [
       {
         label: "Pricing model",
         oldWay:
-          "Free Small Business Plan for up to 10 users. Paid plans are sold per hub (Basic, Advanced, Expert) at a fixed price for the first 30 users, then a fee for each additional user. Yearly or monthly billing.",
+          "Free Small Business Plan for up to 10 users. Paid plans are sold per hub (Basic, Advanced, Expert, Enterprise) at a fixed price for the first 30 users, then a fee for each additional user. Yearly or monthly billing.",
         myGuys: "$12/month flat for the whole company. One plan, no tiers.",
       },
       {
@@ -555,7 +555,7 @@ export const VS_PAGES: VsConfig[] = [
         {
           heading: "When Connecteam is the better fit",
           points: [
-            "You have 10 or fewer people and want a free plan.",
+            "You have up to 10 users and want a free plan.",
             "You want scheduling, GPS clock-ins, team chat, onboarding, training or HR documents in the same app.",
             "You want a payroll integration.",
           ],
@@ -565,7 +565,7 @@ export const VS_PAGES: VsConfig[] = [
           points: [
             "You run crews on job sites and want the time card done right, without the rest.",
             "You want hours entered daily by the foreman, a sign-off, receipts on the card, and W-2 and 1099 guys on one board.",
-            "You want a clean weekly handoff for the office and one price with no hubs or tiers, from the first guy to the thirtieth.",
+            "You want a clean weekly handoff for the office and one price with no hubs or tiers, no matter how big the crew gets.",
           ],
         },
       ],
@@ -581,9 +581,9 @@ export const VS_PAGES: VsConfig[] = [
         { text: "." },
       ],
     },
-    calloutTitle: "A mason's answer to per-head pricing",
+    calloutTitle: "A mason's answer to per-user pricing",
     calloutText:
-      "The guy behind My Guys Time is a mason. Before there was an app, his crew's hours lived on a 2x6 offcut behind the driver's seat. The apps he tried later all billed by the head, which never made sense to him: why should the app cost more because you hired another guy? So the price is one number, $12 a month, for the whole company.",
+      "The guy behind My Guys Time is a mason. Before there was an app, his crew's hours lived on a 2x6 offcut behind the driver's seat. Most of the apps he tried later charged per user, which never made sense to him: why should the app cost more because you hired another guy? So the price is one number, $12 a month, for the whole company.",
     faqHeading: "Connecteam vs My Guys Time: common questions",
     faqs: [
       {
@@ -592,7 +592,7 @@ export const VS_PAGES: VsConfig[] = [
       },
       {
         q: "Is Connecteam worth it?",
-        text: "It can be, depending on your team. If you have 10 or fewer people, or you'll actually use scheduling, chat and HR tools, it covers a lot in one app. If all you need is crew hours with a foreman sign-off and a weekly office handoff, a simpler crew time card may fit better.",
+        text: "It can be, depending on your team. If you have up to 10 users, or you'll actually use scheduling, chat and HR tools, it covers a lot in one app. If all you need is crew hours with a foreman sign-off and a weekly office handoff, a simpler crew time card may fit better.",
       },
       {
         q: "What are the benefits of using Connecteam?",
@@ -600,7 +600,7 @@ export const VS_PAGES: VsConfig[] = [
       },
       {
         q: "How does Connecteam pricing work?",
-        text: "Connecteam has a free plan for up to 10 users. Paid plans are sold per hub, in Basic, Advanced and Expert tiers. Each is a fixed price for the first 30 users, then a fee for each additional user, and paying yearly costs less than paying monthly. For current rates, see Connecteam's current plans.",
+        text: "Connecteam has a free plan for up to 10 users. Paid plans are sold per hub, in Basic, Advanced, Expert and Enterprise tiers. Each is a fixed price for the first 30 users, then a fee for each additional user, and paying yearly costs less than paying monthly. For current rates, see Connecteam's current plans.",
         link: {
           phrase: "Connecteam's current plans",
           href: "https://connecteam.com/pricing/",
