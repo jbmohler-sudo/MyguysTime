@@ -489,6 +489,91 @@ pages.push([
   ],
 ]);
 
+const busybusyRoute = "/vs/busybusy";
+const busybusyFaqs = typeof ssr.vsPageFaqs === "function" ? ssr.vsPageFaqs("busybusy") : [];
+if (!Array.isArray(busybusyFaqs) || busybusyFaqs.length !== 5) {
+  console.error("[prerender] busybusy FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+
+const busybusyFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: busybusyFaqs.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const busybusySoftwareLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "My Guys Time",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: canonicalHost + busybusyRoute,
+  offers: {
+    "@type": "Offer",
+    price: "12",
+    priceCurrency: "USD",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: "12",
+      priceCurrency: "USD",
+      billingDuration: "P1M",
+      unitText: "per company per month",
+    },
+  },
+  description:
+    "A weekly crew time card built by a contractor. $12/mo flat for the whole company.",
+};
+
+const busybusyBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Comparisons",
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "BusyBusy",
+      item: canonicalHost + busybusyRoute,
+    },
+  ],
+};
+
+pages.push([
+  busybusyRoute,
+  "vs/busybusy/index.html",
+  () => ssr.renderVsHtml("busybusy"),
+  "BusyBusy Pricing vs $12 Flat for Crews | My Guys Time",
+  "BusyBusy has a Free plan, and its paid plans bill per user plus an admin license. My Guys Time is $12/mo flat for the whole company. Built by a mason.",
+  [
+    ["ld-softwareapplication", busybusySoftwareLd],
+    ["ld-faqpage", busybusyFaqLd],
+    ["ld-breadcrumb", busybusyBreadcrumbLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    "BusyBusy vs My Guys Time: Per-User Pricing or One Flat Price",
+    "My Guys Time vs BusyBusy",
+    "https://busybusy.com/price/",
+    "$12/mo",
+  ],
+]);
+
 const costRoute = "/construction-time-tracking-cost";
 const costTitle = "Construction Time Tracking Cost: Per-Seat vs Flat Pricing";
 const costDescription =
@@ -820,6 +905,19 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
     if (hit.length > 0 || badDollars.length > 0) {
       console.error("[prerender] connecteam page contains banned copy:", hit, badDollars);
+      process.exit(1);
+    }
+  }
+
+  if (routePath === "/vs/busybusy") {
+    const withoutBreadcrumb = markup.toLowerCase().replace(/breadcrumb/g, "");
+    const banned = ["csv", "export", "petty cash"];
+    const hit = banned.filter((token) => withoutBreadcrumb.includes(token));
+    if (/\bbreaks?\b/.test(withoutBreadcrumb)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    if (hit.length > 0 || badDollars.length > 0) {
+      console.error("[prerender] busybusy page contains banned copy:", hit, badDollars);
       process.exit(1);
     }
   }

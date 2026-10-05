@@ -98,6 +98,7 @@ export function MarketingFooter() {
               <li><a href="/vs/spreadsheets" className="hover:text-orange-500 transition-colors">vs Spreadsheets</a></li>
               <li><a href="/vs/clockshark" className="hover:text-orange-500 transition-colors">vs ClockShark</a></li>
               <li><a href="/vs/connecteam" className="hover:text-orange-500 transition-colors">vs Connecteam</a></li>
+              <li><a href="/vs/busybusy" className="hover:text-orange-500 transition-colors">vs BusyBusy</a></li>
             </ul>
           </div>
           <div>

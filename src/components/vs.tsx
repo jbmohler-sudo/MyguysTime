@@ -614,6 +614,153 @@ export const VS_PAGES: VsConfig[] = [
     ],
     closingHeading: "Just need the time card? Try it free for 7 days.",
   },
+  {
+    slug: "busybusy",
+    name: "BusyBusy",
+    h1: "BusyBusy vs My Guys Time: Per-User Pricing or One Flat Price",
+    sub: "One is a construction platform that bills per user once you go paid. The other is a crew time card that costs the same with three guys or thirty.",
+    intro:
+      "BusyBusy is a construction time tracking app with Free, Pro, and Premium plans. Its paid plans charge per user plus a monthly admin license. My Guys Time is a narrower weekly crew time card at $12/month flat for the whole company. BusyBusy does more (GPS time tracking, job costing, equipment tracking). My Guys Time keeps the week simple: the foreman logs it, signs it, and the office hands the hours to whoever runs payroll.",
+    painHeading: "What per-user construction apps cost a growing crew",
+    painSub:
+      "BusyBusy is a solid construction app. Here's where the pricing model and the size of the platform can work against a small crew.",
+    pains: [
+      {
+        title: "Every active guy is on the bill.",
+        text: "BusyBusy's paid plans charge for each user, plus an admin license on top. To its credit, it bills for active users, so a guy who sits out the winter drops off. But every guy who clocks in that month counts, and the spring crew you add in April shows up on the invoice.",
+      },
+      {
+        title: "The Free plan is real. The paid tools cost per head.",
+        text: "BusyBusy's Free plan includes GPS time tracking, job costing and equipment tracking, and it's worth saying so. Breadcrumb GPS, supervisor tools, scheduling, the kiosk and daily sign-offs sit on the paid plans. Once you need one of those, the per-user math starts.",
+      },
+      {
+        title: "Built to run the whole operation.",
+        text: "Job costing, equipment, safety forms, daily project reports, progress tracking. Real tools, worth it for outfits that use them. A five-guy crew that just needs a weekly time card is buying into a wider platform the day it leaves Free.",
+      },
+      {
+        title: "The Thursday rebuild still happens.",
+        text: "No app fixes hours nobody entered. If the day doesn't get logged the day it's worked, somebody's rebuilding the week at 5pm Thursday. The fix is a foreman who taps in the crew's hours from the truck before he leaves the job.",
+      },
+    ],
+    compareCta: true,
+    compareSecondaryLabel: "See the foreman view, no signup",
+    compare: [
+      {
+        label: "Pricing model",
+        oldWay:
+          "Free plan, plus paid Pro and Premium plans. Paid plans charge per user per month plus an admin license (first user included). Monthly or annual billing. Bills for active users.",
+        myGuys: "$12/month flat for the whole company. One plan, no tiers.",
+      },
+      {
+        label: "What's included",
+        oldWay:
+          "Free: GPS time tracking, job costing, equipment tracking. Pro adds breadcrumb GPS, supervisor tools, daily sign-offs, photos and notes, scheduling and a kiosk. Premium adds documents, daily project reports, progress tracking and team messaging.",
+        myGuys:
+          "Crew time cards, weekly crew board, foreman approval (one-person crews auto-approve), foreman incident notes, receipt photos for expenses, W-2 and 1099 guys on one board",
+      },
+      {
+        label: "Getting hours to payroll",
+        oldWay: "Integrations with other software, plus a BusyPayroll add-on that runs payroll with Gusto",
+        myGuys:
+          "The office reviews the week and hands the hours to whoever runs payroll. No integrations, and it doesn't calculate pay.",
+      },
+      {
+        label: "How the crew uses it",
+        oldWay: "BusyBusy mobile time clock app",
+        myGuys: "Runs in the phone's browser; add it to the home screen. Invite the crew with a copyable link.",
+      },
+      {
+        label: "Trying it",
+        oldWay: "14-day free trial of Pro, no credit card, plus the Free plan",
+        myGuys: "7-day free trial, no card. Demo roles with no signup.",
+      },
+    ],
+    flowHeading: "How a week runs in My Guys Time",
+    flowLink: { label: "See how it works", href: "/how-it-works" },
+    flow: [
+      {
+        title: "Hours go in from the truck",
+        text: "At the end of the day, before anybody leaves the job, the foreman taps in the crew's hours on his phone. The day gets logged the day it happens.",
+      },
+      {
+        title: "Foreman signs off",
+        text: "The weekly crew board shows every guy, every day. The foreman adds an incident note on the day something happened, then approves the week. A one-person crew auto-approves past this step.",
+      },
+      {
+        title: "Office checks it once",
+        text: "Hours, rate and notes for each person, with receipt photos on anything a guy paid for out of his own pocket. Fix what needs fixing in one place.",
+      },
+      {
+        title: "Hours go to whoever runs payroll",
+        text: "The office takes the approved week and hands the hours off to whoever does payroll. That's the handoff. Nothing to sync, nothing to reconnect.",
+      },
+    ],
+    fit: {
+      columns: [
+        {
+          heading: "When BusyBusy is the better fit",
+          points: [
+            "You want GPS-verified clock-ins, breadcrumbs, a kiosk or scheduling.",
+            "You track job costs, cost codes or equipment hours and want it all in the time app.",
+            "You want to start on a Free plan, or you want payroll run from inside the app.",
+          ],
+        },
+        {
+          heading: "When My Guys Time fits better",
+          points: [
+            "You run a small crew, roughly 2 to 30 guys, and want hours entered by the foreman the day they're worked.",
+            "You want a foreman sign-off, receipts on the card, and W-2 and 1099 guys on the same board.",
+            "You want one flat bill that doesn't move when you hire.",
+          ],
+        },
+      ],
+      footer: [
+        { text: "Weighing the pricing models? See " },
+        { text: "free plans vs per-seat vs flat pricing", href: "/construction-time-tracking-cost" },
+        { text: ", or read the guide to " },
+        { text: "construction time tracking for small crews", href: "/construction-time-tracking" },
+        { text: ". Here's " },
+        { text: "$12/month flat for the whole crew", href: "/pricing" },
+        { text: "." },
+      ],
+    },
+    calloutTitle: "Priced by a guy who used to write hours on lumber",
+    calloutText:
+      "My Guys Time comes from a mason who kept his crew's hours penciled on a scrap of 2x6 behind the truck seat. When that quit working and he went looking for an app, nearly everything he found was built for office people and priced per guy. Why should the app cost more because you hired another guy? So it's one price for the whole company, and you can cancel anytime.",
+    faqHeading: "BusyBusy vs My Guys Time: common questions",
+    faqs: [
+      {
+        q: "How much does BusyBusy cost?",
+        text: "It depends on your plan and how many guys are active. BusyBusy has a Free plan. Its Pro and Premium plans charge per user per month plus a monthly admin license, billed monthly or annually, and it bills for active users each month. For current rates, check BusyBusy's current pricing. My Guys Time is $12/month flat for the whole company, no matter how many guys clock in.",
+        link: {
+          phrase: "BusyBusy's current pricing",
+          href: "https://busybusy.com/price/",
+          external: true,
+        },
+      },
+      {
+        q: "What exactly does BusyBusy do?",
+        text: "According to its site, BusyBusy is construction time tracking with GPS, job costing and equipment tracking, plus paid tools like scheduling, safety, daily project reports and payroll. The BusyBusy app is the time clock your crew carries. My Guys Time does less on purpose: a weekly crew time card with a foreman sign-off.",
+      },
+      {
+        q: "Is BusyBusy free?",
+        text: "Yes, it lists a Free plan (checked October 2026), and its paid plans unlock more tools. My Guys Time isn't free: you get a 7-day trial with no card, then it's $12/month flat for everybody.",
+      },
+      {
+        q: "How much does a time tracker cost?",
+        text: "Most crew time apps use one of three models: a per-user fee (often with a base fee or admin license on top), a free plan capped by users or features, or one flat price for the company. We lay out the math in what construction time tracking costs.",
+        link: {
+          phrase: "what construction time tracking costs",
+          href: "/construction-time-tracking-cost",
+        },
+      },
+      {
+        q: "Do I pay per employee with My Guys Time?",
+        text: "No. $12 a month covers the whole company: foremen, laborers, subs and the office. No admin license, no per-user fee, and hiring another guy doesn't change the bill.",
+      },
+    ],
+    closingHeading: "Just need the time card? Try it free for 7 days.",
+  },
 ];
 
 export function getVs(slug: string): VsConfig | undefined {
