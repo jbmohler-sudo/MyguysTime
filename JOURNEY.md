@@ -11,10 +11,10 @@
   period, 7-day no-card trial on new signups. Paid companies stay on `active`.
 - **Marketing site live:** `/features`, `/pricing`, `/how-it-works`, `/faq`, `/construction-time-tracking`,
   `/construction-time-tracking-cost`, `/templates/construction-timesheet-template`, seven `/trades/:slug` pages, and
-  `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam}` — all prerendered, in the sitemap
-  (23 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
-  construction timesheet template, and Connecteam vs. Week two (2026-10-05–10-09) is briefed, drafts pending,
-  not live: `/vs/busybusy`, `/vs/workyard`, `/guides/crew-hours-quickbooks`,
+  `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy}` — all prerendered, in the sitemap
+  (24 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
+  construction timesheet template, and Connecteam vs. Week two started 2026-10-05 with `/vs/busybusy` live.
+  Still not live: `/vs/workyard`, `/guides/crew-hours-quickbooks`,
   `/best-construction-time-tracking-apps`, `/guides/how-contractors-track-crew-hours`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
 - **Biggest open item:** Jeff's call on two Cursor branches (Open Questions). Optional later:
@@ -81,6 +81,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-05 — BusyBusy comparison page live (fc9cdd3)
+**Did:** Published `/vs/busybusy` from the approved 2026-10-05 draft. Added the busybusy config in `vs.tsx` (answer block, fit block, 5 FAQs, pain cards, comparison table, flow, callout, pills, closing CTA). Prerender title, meta, OG, and self-canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › BusyBusy. Sitemap is 24 URLs. Inbound links: footer Comparisons column, pills on the other `/vs` pages, the cost hub per-user mention and compare list, and the pillar pricing line. No competitor dollar figures, CSV, breaks, or petty cash. `npm run build` passed. Dist HTML: title `BusyBusy Pricing vs $12 Flat for Crews | My Guys Time`, one H1, canonical `https://www.myguystime.com/vs/busybusy`, `$12/mo` intact.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database. Workyard and the best-apps page stay unlinked until they are live.
+**State after:** `/vs/busybusy` is on `main`. Sitemap has 24 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
+
 ### 2026-10-02 — Week one content live (23 URLs); week two five briefs ready (86a5555)
 **Did:** Week one (Mon–Fri) marketing pages are live and in the sitemap: construction time tracking pillar, ClockShark vs, cost hub, construction timesheet template (PDF+Excel), Connecteam vs. Live sitemap count **23** (matched repo). Friday SEO planning re-pulled keyword/SERP data, wrote five writer briefs for week two (busybusy vs, Workyard vs, QuickBooks CSV guide, best-apps listicle, how-contractors-track-hours guide), and updated the seo-desk publishing schedule. No code changes in this commit.
 **Decided:** nothing new in-repo. Week two slug for the QuickBooks guide is `/guides/crew-hours-quickbooks` (no -payroll in the URL).
@@ -104,14 +112,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no fixture database. Connecteam stays off until that page is live.
 **State after:** `/templates/construction-timesheet-template` is on `main`. Sitemap has 22 URLs.
 **Next:** Confirm the Vercel deploy is READY and the live page and both downloads return.
-
-### 2026-09-30 — Construction time tracking cost page live (60bb0fa)
-**Did:** Published `/construction-time-tracking-cost` from the approved draft. New `ConstructionTimeTrackingCostPage` with the answer block, pricing models, vendor questions, FAQ, and a bring-your-own-quote calculator (empty inputs; result only after base fee, per-user fee, and crew size). Prerender title, meta, OG, and self-canonical, plus WebPage, BreadcrumbList (Home › Construction Time Tracking Cost), FAQPage from the 5 FAQs, and SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month). Sitemap is 21 URLs. Inbound links from `/pricing`, the pillar cost section (trimmed to a snapshot), `/vs/clockshark`, `/vs/quickbooks-time`, and the FAQ "Do I pay per employee?" answer. `npm run build` passed. Dist HTML: title `Construction Time Tracking Cost: Per-Seat vs Flat Pricing`, one H1, canonical `https://www.myguystime.com/construction-time-tracking-cost`, `$12/mo` intact, formula and model table in the static HTML, no result block until input. Headless Chrome on the preview confirmed 40 + 9 × 8 = $112/month, $1344/year, with the annual toggle emphasizing the yearly figures.
-**Decided:** nothing new.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no `DATABASE_URL` or Supabase fixture keys, and the safety check refuses remote fixture mutation. Connecteam and template links stay off until those pages are live.
-**State after:** `/construction-time-tracking-cost` is on `main`. Sitemap has 21 URLs.
-**Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
