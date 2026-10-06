@@ -11,10 +11,10 @@
   period, 7-day no-card trial on new signups. Paid companies stay on `active`.
 - **Marketing site live:** `/features`, `/pricing`, `/how-it-works`, `/faq`, `/construction-time-tracking`,
   `/construction-time-tracking-cost`, `/templates/construction-timesheet-template`, seven `/trades/:slug` pages, and
-  `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy}` — all prerendered, in the sitemap
-  (24 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
-  construction timesheet template, and Connecteam vs. Week two started 2026-10-05 with `/vs/busybusy` live.
-  Still not live: `/vs/workyard`, `/guides/crew-hours-quickbooks`,
+  `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy,workyard}` — all prerendered, in the sitemap
+  (25 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
+  construction timesheet template, and Connecteam vs. Week two started 2026-10-05 with `/vs/busybusy`, and `/vs/workyard` went live 2026-10-06.
+  Still not live: `/guides/crew-hours-quickbooks`,
   `/best-construction-time-tracking-apps`, `/guides/how-contractors-track-crew-hours`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
 - **Biggest open item:** Jeff's call on two Cursor branches (Open Questions). Optional later:
@@ -81,13 +81,13 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
-### 2026-10-05 — BusyBusy comparison page live (fc9cdd3)
-**Did:** Published `/vs/busybusy` from the approved 2026-10-05 draft. Added the busybusy config in `vs.tsx` (answer block, fit block, 5 FAQs, pain cards, comparison table, flow, callout, pills, closing CTA). Prerender title, meta, OG, and self-canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › BusyBusy. Sitemap is 24 URLs. Inbound links: footer Comparisons column, pills on the other `/vs` pages, the cost hub per-user mention and compare list, and the pillar pricing line. No competitor dollar figures, CSV, breaks, or petty cash. `npm run build` passed. Dist HTML: title `BusyBusy Pricing vs $12 Flat for Crews | My Guys Time`, one H1, canonical `https://www.myguystime.com/vs/busybusy`, `$12/mo` intact.
+### 2026-10-06 — Workyard comparison page live (8ed149f, fc9cdd3)
+**Did:** Published `/vs/workyard` from the approved 2026-10-02 draft (Jeff's go-live OK, including the "No GPS, by choice" callout). Added the workyard config in `vs.tsx` (answer block, fit block, 5 FAQs, pain cards, comparison table, flow, callout, pills, closing CTA). Prerender title, meta, OG, and self-canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Workyard. Sitemap is 25 URLs. Inbound links: footer Comparisons column, pills on the other `/vs` pages (including `/vs/busybusy`), and the cost hub per-user mention plus compare list. Re-checked workyard.com/pricing on 2026-10-06: Starter, Pro, Autopilot, Enterprise, per user per month, and the table's feature claims still match. No base fee on their page, so none added. No competitor dollar figures. No CSV, breaks, petty cash, or multi-crew claims for My Guys Time. FAQ 3 keeps the interim sentence and does not link `/best-construction-time-tracking-apps`. `npm run build` passed. Dist HTML: title `Workyard Pricing vs $12 Flat for Crews | My Guys Time`, one H1, canonical `https://www.myguystime.com/vs/workyard`. Earlier this week, `/vs/busybusy` shipped in fc9cdd3 (sitemap was 24; dist title `BusyBusy Pricing vs $12 Flat for Crews | My Guys Time`).
 **Decided:** nothing new.
 **Killed:** nothing.
-**Deferred:** `npm test`. This environment has no local fixture database. Workyard and the best-apps page stay unlinked until they are live.
-**State after:** `/vs/busybusy` is on `main`. Sitemap has 24 URLs.
-**Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
+**Deferred:** `npm test`. This environment has no local fixture database. The best-apps page stays unlinked until it is live.
+**State after:** `/vs/workyard` and `/vs/busybusy` are on `main`. Sitemap has 25 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live Workyard page returns the prerendered HTML.
 
 ### 2026-10-02 — Week one content live (23 URLs); week two five briefs ready (86a5555)
 **Did:** Week one (Mon–Fri) marketing pages are live and in the sitemap: construction time tracking pillar, ClockShark vs, cost hub, construction timesheet template (PDF+Excel), Connecteam vs. Live sitemap count **23** (matched repo). Friday SEO planning re-pulled keyword/SERP data, wrote five writer briefs for week two (busybusy vs, Workyard vs, QuickBooks CSV guide, best-apps listicle, how-contractors-track-hours guide), and updated the seo-desk publishing schedule. No code changes in this commit.
