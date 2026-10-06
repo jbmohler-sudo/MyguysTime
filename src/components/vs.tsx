@@ -761,6 +761,154 @@ export const VS_PAGES: VsConfig[] = [
     ],
     closingHeading: "Just need the time card? Try it free for 7 days.",
   },
+  {
+    slug: "workyard",
+    name: "Workyard",
+    h1: "Workyard vs My Guys Time: Per-User GPS Ops or Flat Crew Card",
+    sub: "One tracks where every guy was, down to the minute. The other is a weekly time card the foreman fills in and signs. Pick the one your crew needs.",
+    intro:
+      "Workyard is a construction operations platform priced per user per month, with Starter, Pro, Autopilot and Enterprise plans. It leans on GPS-verified time, geofencing, mileage tracking and payroll integrations. My Guys Time is a simpler weekly crew time card at $12/month flat for the whole company. The foreman logs and signs off on the hours, and the office hands them to whoever runs payroll.",
+    painHeading: "When per-user GPS platforms outgrow a small crew",
+    painSub:
+      "Workyard is built to verify time and run field operations. Here's where that can be more than a small crew needs.",
+    pains: [
+      {
+        title: "The bill follows headcount.",
+        text: "Workyard prices every plan per user per month. That's a fair model for a big outfit, but it means every guy you hire adds a seat. Your software bill grows with the crew instead of staying put.",
+      },
+      {
+        title: "An ops platform, not just a time card.",
+        text: "Scheduling, task management, geofence clock-in rules, labor cost reports, an AI time assistant, ERP sync. Those are real tools for companies that run on them. A crew that just needs hours in and a signed week out may never touch most of it.",
+      },
+      {
+        title: "GPS and mileage are the product.",
+        text: "If you need proof of who was on which site, for how long, and how many miles they drove between jobs, Workyard is built for exactly that. My Guys Time isn't. There's no GPS, no geofence and no mileage tracking. The foreman's sign-off is the check.",
+      },
+      {
+        title: "The Thursday rebuild still happens.",
+        text: "No app fixes hours nobody entered. If the day doesn't get logged the day it's worked, somebody's rebuilding the week at 5pm Thursday. The fix is a foreman who taps in the crew's hours from the truck before he leaves the job.",
+      },
+    ],
+    compareCta: true,
+    compareSecondaryLabel: "See the foreman view, no signup",
+    compare: [
+      {
+        label: "Pricing model",
+        oldWay:
+          "Per user per month, billed annually or monthly. Starter, Pro, Autopilot and Enterprise plans.",
+        myGuys: "$12/month flat for the whole company. One plan, no tiers.",
+      },
+      {
+        label: "What's included",
+        oldWay:
+          "Starter: GPS-verified time, supervisor-led crew clock-in, mileage and travel time reports, timesheet audit trail, notes, receipts and photos on time cards. Pro adds scheduling, geofence clock-in rules, a kiosk, facial photo verification and project labor cost reports. Autopilot adds an AI time assistant and automatic clock-in.",
+        myGuys:
+          "Crew time cards, weekly crew board, foreman approval (one-person crews auto-approve), foreman incident notes, receipt photos for expenses, W-2 and 1099 guys on one board",
+      },
+      {
+        label: "Getting hours to payroll",
+        oldWay:
+          "One-click export to QuickBooks Online, QuickBooks Desktop, ADP, Gusto and more, on every plan",
+        myGuys:
+          "The office reviews the week and hands the hours to whoever runs payroll. No integrations, and it doesn't calculate pay.",
+      },
+      {
+        label: "Location",
+        oldWay: "Precise GPS and a live crew map on every plan; geofence clock-in rules on Pro and up",
+        myGuys: "No GPS, no geofencing, no location tracking",
+      },
+      {
+        label: "Trying it",
+        oldWay: "Free for 14 days, no credit card",
+        myGuys: "7-day free trial, no card. Demo roles with no signup.",
+      },
+    ],
+    flowHeading: "How a week runs in My Guys Time",
+    flowLink: { label: "See how it works", href: "/how-it-works" },
+    flow: [
+      {
+        title: "Foreman logs from the truck",
+        text: "Before the crew leaves the job, the foreman taps in everybody's hours on his phone. No map, no geofence. Just the guy who was there writing down what happened, the day it happened.",
+      },
+      {
+        title: "Foreman approves the week",
+        text: "Every guy, every day, on the weekly crew board. The foreman drops an incident note on the day something went sideways, then signs off. A one-person crew auto-approves past this step.",
+      },
+      {
+        title: "Office reviews once",
+        text: "Hours, rate and notes for each person, with receipt photos on anything a guy paid for himself. Fix what needs fixing in one place.",
+      },
+      {
+        title: "Hours go to whoever runs payroll",
+        text: "The office takes the approved week and hands the hours off to whoever does payroll. That's the whole handoff, with no integration to set up or keep connected.",
+      },
+    ],
+    fit: {
+      columns: [
+        {
+          heading: "When Workyard is the better fit",
+          points: [
+            "You need GPS-verified time across several job sites, or mileage and travel time reports.",
+            "You want geofenced or automatic clock-ins, a kiosk, or AI help reviewing timecards.",
+            "You want hours to go straight into QuickBooks, ADP or Gusto through an integration.",
+          ],
+        },
+        {
+          heading: "When My Guys Time fits better",
+          points: [
+            "You run a small crew, roughly 2 to 30 guys, and trust your foreman to log the day.",
+            "You want a foreman sign-off, receipts on the card, and W-2 and 1099 guys on one board.",
+            "You want one flat bill that stays the same when you hire.",
+          ],
+        },
+      ],
+      footer: [
+        { text: "Weighing the pricing models? See " },
+        { text: "free plans vs per-seat vs flat pricing", href: "/construction-time-tracking-cost" },
+        { text: ", " },
+        { text: "how BusyBusy prices per user", href: "/vs/busybusy" },
+        { text: ", or the guide to " },
+        { text: "construction time tracking for small crews", href: "/construction-time-tracking" },
+        { text: "." },
+      ],
+    },
+    calloutTitle: "No GPS, by choice",
+    calloutText:
+      "My Guys Time was built by a mason whose crew's hours used to ride around on a piece of 2x6 behind his truck seat. What he wanted from an app was simple: hours in from the job, a foreman who stands behind them, and a price that didn't climb with every hire. Why should the app cost more because you hired another guy? So it's $12 a month for the whole company, and the foreman's name on the week is the check.",
+    faqHeading: "Workyard vs My Guys Time: common questions",
+    faqs: [
+      {
+        q: "How much does Workyard cost?",
+        text: "Workyard prices per user per month, billed annually or monthly, across Starter, Pro, Autopilot and Enterprise plans. For current rates, check Workyard's current pricing. The math is the per-user rate times your crew size, at whatever plan you need. My Guys Time is $12/month flat for the whole company.",
+        link: {
+          phrase: "Workyard's current pricing",
+          href: "https://www.workyard.com/pricing",
+          external: true,
+        },
+      },
+      {
+        q: "Does Workyard track mileage?",
+        text: "Yes. Workyard's Starter plan lists mileage and travel time reporting, with GPS that detects driving between sites, according to its pricing page. My Guys Time doesn't track mileage or location at all.",
+      },
+      {
+        q: "What is the best timesheet app for construction?",
+        text: "It depends on the crew. If you need GPS proof and mileage, a platform like Workyard is built for it. If you mainly need daily hours, a foreman sign-off and a clean week for the office, a simpler crew time card may fit better. We'll have a fit-by-fit rundown of the main options soon.",
+      },
+      {
+        q: "How much does a time tracker cost?",
+        text: "Most crew time apps use one of three models: a per-user fee (sometimes with a base fee on top), a free plan capped by users or features, or one flat price for the company. We lay out the math in what construction time tracking costs.",
+        link: {
+          phrase: "what construction time tracking costs",
+          href: "/construction-time-tracking-cost",
+        },
+      },
+      {
+        q: "Do I pay per employee with My Guys Time?",
+        text: "No. $12 a month covers the whole company: foremen, laborers, subs and the office. There's no per-user fee, and hiring another guy doesn't change the bill.",
+      },
+    ],
+    closingHeading: "Don't need the map? Try it free for 7 days.",
+  },
 ];
 
 export function getVs(slug: string): VsConfig | undefined {

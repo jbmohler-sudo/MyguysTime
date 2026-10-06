@@ -285,7 +285,7 @@ export function ConstructionTimeTrackingCostPage() {
             </p>
             <p>
               This is the most familiar model among crew apps. ClockShark lists its plans as a base price plus a
-              per-user fee. <TextLink href="/vs/busybusy">BusyBusy</TextLink> prices its paid plans per user, with an admin license on top. Workyard's plans are
+              per-user fee. <TextLink href="/vs/busybusy">BusyBusy</TextLink> prices its paid plans per user, with an admin license on top. <TextLink href="/vs/workyard">Workyard</TextLink>'s plans are
               priced per user per month. Supercrew says you pay per crew member. For current rates, go to each vendor's
               pricing page. Prices change, and the quote you get is the number that counts.
             </p>
@@ -457,6 +457,10 @@ export function ConstructionTimeTrackingCostPage() {
             <li>
               <TextLink href="/vs/busybusy">BusyBusy's per-user pricing and Free plan</TextLink>: paid plans charge per
               user plus an admin license.
+            </li>
+            <li>
+              <TextLink href="/vs/workyard">Workyard's per-user pricing</TextLink>: a per-user fee each month, next to
+              one flat price.
             </li>
             <li>
               <TextLink href="/vs/quickbooks-time">QuickBooks Time vs My Guys Time</TextLink>: keep your accounting,
