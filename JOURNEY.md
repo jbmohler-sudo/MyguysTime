@@ -10,12 +10,13 @@
 - **Live:** $12/mo company Stripe billing, checkout + webhook, Resend receipt on first paid
   period, 7-day no-card trial on new signups. Paid companies stay on `active`.
 - **Marketing site live:** `/features`, `/pricing`, `/how-it-works`, `/faq`, `/construction-time-tracking`,
-  `/construction-time-tracking-cost`, `/templates/construction-timesheet-template`, seven `/trades/:slug` pages, and
+  `/construction-time-tracking-cost`, `/best-construction-time-tracking-apps`,
+  `/templates/construction-timesheet-template`, seven `/trades/:slug` pages, and
   `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy,workyard}` — all prerendered, in the sitemap
-  (25 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
-  construction timesheet template, and Connecteam vs. Week two started 2026-10-05 with `/vs/busybusy`, and `/vs/workyard` went live 2026-10-06.
-  Still not live: `/guides/crew-hours-quickbooks`,
-  `/best-construction-time-tracking-apps`, `/guides/how-contractors-track-crew-hours`.
+  (26 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
+  construction timesheet template, and Connecteam vs. Week two: `/vs/busybusy` (2026-10-05), `/vs/workyard` (2026-10-06),
+  and `/best-construction-time-tracking-apps` (2026-10-08).
+  Still not live: `/guides/crew-hours-quickbooks`, `/guides/how-contractors-track-crew-hours`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
 - **Biggest open item:** Jeff's call on two Cursor branches (Open Questions). Optional later:
   Auth admin on `sb_secret_` (then disable legacy JWT), Neon→one Supabase DB.
@@ -81,6 +82,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-08 — Best construction time tracking apps listicle live (5d9b028)
+**Did:** Published `/best-construction-time-tracking-apps` from the approved 2026-10-08 draft (Jeff's go-live OK). New `BestConstructionTimeTrackingAppsPage` with intro, answer block, quick picks, seven app cards, also-worth mentions, 5-question chooser, FAQ, and closing CTA. Prerender title, meta, OG, and self-canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), ItemList of the seven cards (no ratings), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Best Time Tracking Apps for Small Construction Crews. Sitemap is 26 URLs. Inbound links from the pillar cost section, the cost hub compare list, the homepage product column, the footer Comparisons column, a pill on every `/vs` page, and the Workyard "best timesheet app" FAQ (the interim "soon" sentence now points here). Dropped the unpublished guide notes. Clockify FAQ says the free plan caps it at a small number of users, with the "up to 5" parenthetical removed from the FAQ and the also-worth line. No competitor dollar figures. No CSV, breaks, or petty cash claims for My Guys Time. `npm run build` passed. Dist HTML: title `Best Time Tracking Apps for Small Construction Crews`, one H1, canonical `https://www.myguystime.com/best-construction-time-tracking-apps`, `$12/month` intact.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). `/guides/crew-hours-quickbooks` and `/guides/how-contractors-track-crew-hours` stay unlinked.
+**State after:** `/best-construction-time-tracking-apps` is on `main`. Sitemap has 26 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
+
 ### 2026-10-06 — Workyard comparison page live (8ed149f, fc9cdd3)
 **Did:** Published `/vs/workyard` from the approved 2026-10-02 draft (Jeff's go-live OK, including the "No GPS, by choice" callout). Added the workyard config in `vs.tsx` (answer block, fit block, 5 FAQs, pain cards, comparison table, flow, callout, pills, closing CTA). Prerender title, meta, OG, and self-canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Workyard. Sitemap is 25 URLs. Inbound links: footer Comparisons column, pills on the other `/vs` pages (including `/vs/busybusy`), and the cost hub per-user mention plus compare list. Re-checked workyard.com/pricing on 2026-10-06: Starter, Pro, Autopilot, Enterprise, per user per month, and the table's feature claims still match. No base fee on their page, so none added. No competitor dollar figures. No CSV, breaks, petty cash, or multi-crew claims for My Guys Time. FAQ 3 keeps the interim sentence and does not link `/best-construction-time-tracking-apps`. `npm run build` passed. Dist HTML: title `Workyard Pricing vs $12 Flat for Crews | My Guys Time`, one H1, canonical `https://www.myguystime.com/vs/workyard`. Earlier this week, `/vs/busybusy` shipped in fc9cdd3 (sitemap was 24; dist title `BusyBusy Pricing vs $12 Flat for Crews | My Guys Time`).
 **Decided:** nothing new.
@@ -104,14 +113,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no fixture database.
 **State after:** `/vs/connecteam` is on `main`. Sitemap has 23 URLs.
 **Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
-
-### 2026-10-01 — Construction timesheet template page live (e71b582)
-**Did:** Published `/templates/construction-timesheet-template` from the approved draft. New `ConstructionTimesheetTemplatePage` with PDF and Excel downloads, the field list, how-to, format table, mistakes, softened app pitch, and 5 FAQs. Preview and OG use the example PNG. Prerender title, meta, OG, and self-canonical, plus WebPage, BreadcrumbList (Home › Templates › Construction Timesheet Template), DigitalDocument for PDF and Excel, FAQPage from the 5 FAQs, and SoftwareApplication (`price` "12", USD, P1M, per company per month). Sitemap is 22 URLs. Inbound links from the pillar, `/vs/paper-timesheets`, `/vs/spreadsheets`, and `/construction-time-tracking-cost`. `npm run build` passed. Dist HTML: title `Free Construction Timesheet Template (PDF & Excel)`, one H1, canonical `https://www.myguystime.com/templates/construction-timesheet-template`, download hrefs for the PDF and `.xlsx`, `$12/month` intact. No Google Sheets, CSV, Connecteam, petty cash, or app break-tracking claims.
-**Decided:** nothing new.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no fixture database. Connecteam stays off until that page is live.
-**State after:** `/templates/construction-timesheet-template` is on `main`. Sitemap has 22 URLs.
-**Next:** Confirm the Vercel deploy is READY and the live page and both downloads return.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 

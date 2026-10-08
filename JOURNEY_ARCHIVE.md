@@ -2,6 +2,14 @@
 
 > Older Session Log entries rolled out of [JOURNEY.md](JOURNEY.md). Newest of these first.
 
+### 2026-10-01 — Construction timesheet template page live (e71b582)
+**Did:** Published `/templates/construction-timesheet-template` from the approved draft. New `ConstructionTimesheetTemplatePage` with PDF and Excel downloads, the field list, how-to, format table, mistakes, softened app pitch, and 5 FAQs. Preview and OG use the example PNG. Prerender title, meta, OG, and self-canonical, plus WebPage, BreadcrumbList (Home › Templates › Construction Timesheet Template), DigitalDocument for PDF and Excel, FAQPage from the 5 FAQs, and SoftwareApplication (`price` "12", USD, P1M, per company per month). Sitemap is 22 URLs. Inbound links from the pillar, `/vs/paper-timesheets`, `/vs/spreadsheets`, and `/construction-time-tracking-cost`. `npm run build` passed. Dist HTML: title `Free Construction Timesheet Template (PDF & Excel)`, one H1, canonical `https://www.myguystime.com/templates/construction-timesheet-template`, download hrefs for the PDF and `.xlsx`, `$12/month` intact. No Google Sheets, CSV, Connecteam, petty cash, or app break-tracking claims.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no fixture database. Connecteam stays off until that page is live.
+**State after:** `/templates/construction-timesheet-template` is on `main`. Sitemap has 22 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live page and both downloads return.
+
 ### 2026-09-30 — Construction time tracking cost page live (60bb0fa)
 **Did:** Published `/construction-time-tracking-cost` from the approved draft. New `ConstructionTimeTrackingCostPage` with the answer block, pricing models, vendor questions, FAQ, and a bring-your-own-quote calculator (empty inputs; result only after base fee, per-user fee, and crew size). Prerender title, meta, OG, and self-canonical, plus WebPage, BreadcrumbList (Home › Construction Time Tracking Cost), FAQPage from the 5 FAQs, and SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month). Sitemap is 21 URLs. Inbound links from `/pricing`, the pillar cost section (trimmed to a snapshot), `/vs/clockshark`, `/vs/quickbooks-time`, and the FAQ "Do I pay per employee?" answer. `npm run build` passed. Dist HTML: title `Construction Time Tracking Cost: Per-Seat vs Flat Pricing`, one H1, canonical `https://www.myguystime.com/construction-time-tracking-cost`, `$12/mo` intact, formula and model table in the static HTML, no result block until input. Headless Chrome on the preview confirmed 40 + 9 × 8 = $112/month, $1344/year, with the annual toggle emphasizing the yearly figures.
 **Decided:** nothing new.
