@@ -892,7 +892,11 @@ export const VS_PAGES: VsConfig[] = [
       },
       {
         q: "What is the best timesheet app for construction?",
-        text: "It depends on the crew. If you need GPS proof and mileage, a platform like Workyard is built for it. If you mainly need daily hours, a foreman sign-off and a clean week for the office, a simpler crew time card may fit better. We'll have a fit-by-fit rundown of the main options soon.",
+        text: "It depends on the crew. If you need GPS proof and mileage, a platform like Workyard is built for it. If you mainly need daily hours, a foreman sign-off and a clean week for the office, a simpler crew time card may fit better. See the best time tracking apps for small construction crews.",
+        link: {
+          phrase: "best time tracking apps for small construction crews",
+          href: "/best-construction-time-tracking-apps",
+        },
       },
       {
         q: "How much does a time tracker cost?",

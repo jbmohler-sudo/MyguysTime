@@ -286,6 +286,12 @@ export function VsPage({ slug }: { slug: string }) {
                 vs {v.name}
               </a>
             ))}
+            <a
+              href="/best-construction-time-tracking-apps"
+              className="px-4 py-2 border border-slate-200 rounded-full text-sm text-slate-700 hover:border-orange-400 hover:text-orange-600 transition-colors bg-white"
+            >
+              Best apps for small crews
+            </a>
           </div>
         </section>
 

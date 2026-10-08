@@ -407,6 +407,13 @@ export function ConstructionTimeTrackingPage() {
               The calculator, the questions to ask a vendor, and how the bill changes as the crew grows are on{" "}
               <TextLink href="/construction-time-tracking-cost">what construction time tracking really costs</TextLink>.
             </p>
+            <p>
+              For a shortlist sorted by fit, see{" "}
+              <TextLink href="/best-construction-time-tracking-apps">
+                best time tracking apps for small construction crews
+              </TextLink>
+              .
+            </p>
           </div>
         </section>
 

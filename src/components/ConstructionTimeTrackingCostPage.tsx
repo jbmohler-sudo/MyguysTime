@@ -474,6 +474,13 @@ export function ConstructionTimeTrackingCostPage() {
             </li>
           </ul>
           <p className="text-slate-600 leading-relaxed mt-6">
+            For the full shortlist by fit, see{" "}
+            <TextLink href="/best-construction-time-tracking-apps">
+              best time tracking apps for small construction crews
+            </TextLink>
+            .
+          </p>
+          <p className="text-slate-600 leading-relaxed mt-6">
             Still on paper? Start with a{" "}
             <TextLink href="/templates/construction-timesheet-template">
               free printable construction timesheet template

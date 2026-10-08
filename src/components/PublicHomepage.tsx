@@ -735,6 +735,11 @@ export function PublicHomepage() {
                     Construction Time Tracking
                   </a>
                 </li>
+                <li>
+                  <a href="/best-construction-time-tracking-apps" className="hover:text-orange-500 transition-colors">
+                    Best apps for small crews
+                  </a>
+                </li>
               </ul>
             </div>
 

@@ -656,7 +656,7 @@ pages.push([
     "My Guys Time vs Workyard",
     "https://www.workyard.com/pricing",
     "No GPS, by choice",
-    "We'll have a fit-by-fit rundown of the main options soon.",
+    "best time tracking apps for small construction crews",
     "$12/mo",
   ],
 ]);
@@ -861,6 +861,115 @@ pages.push([
   ],
 ]);
 
+const bestAppsRoute = "/best-construction-time-tracking-apps";
+const bestAppsTitle = "Best Time Tracking Apps for Small Construction Crews";
+const bestAppsDescription =
+  "Honest picks by fit: GPS platforms, free plans, and a flat $12 crew time card. Compare ClockShark, BusyBusy, Workyard, Connecteam, and My Guys Time.";
+
+if (!Array.isArray(ssr.bestAppsFaqItems) || ssr.bestAppsFaqItems.length !== 5) {
+  console.error("[prerender] best-apps FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+
+const bestAppsFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: ssr.bestAppsFaqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const bestAppsSoftwareLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "My Guys Time",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: canonicalHost + bestAppsRoute,
+  offers: {
+    "@type": "Offer",
+    price: "12",
+    priceCurrency: "USD",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: "12",
+      priceCurrency: "USD",
+      billingDuration: "P1M",
+      unitText: "per company per month",
+    },
+  },
+  description:
+    "Flat-price crew time cards. The foreman logs hours and signs the week. $12/month for the whole company.",
+};
+
+const bestAppsBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Comparisons",
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Best Time Tracking Apps for Small Construction Crews",
+      item: canonicalHost + bestAppsRoute,
+    },
+  ],
+};
+
+const bestAppsItemListLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: bestAppsTitle,
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "ClockShark", url: canonicalHost + "/vs/clockshark" },
+    { "@type": "ListItem", position: 2, name: "BusyBusy", url: canonicalHost + "/vs/busybusy" },
+    { "@type": "ListItem", position: 3, name: "Workyard", url: canonicalHost + "/vs/workyard" },
+    { "@type": "ListItem", position: 4, name: "Connecteam", url: canonicalHost + "/vs/connecteam" },
+    { "@type": "ListItem", position: 5, name: "QuickBooks Time", url: canonicalHost + "/vs/quickbooks-time" },
+    { "@type": "ListItem", position: 6, name: "My Guys Time", url: canonicalHost + "/pricing" },
+    { "@type": "ListItem", position: 7, name: "Paper and spreadsheets", url: canonicalHost + "/vs/paper-timesheets" },
+  ],
+};
+
+pages.push([
+  bestAppsRoute,
+  "best-construction-time-tracking-apps/index.html",
+  () => ssr.renderBestConstructionTimeTrackingAppsHtml(),
+  bestAppsTitle,
+  bestAppsDescription,
+  [
+    ["ld-softwareapplication", bestAppsSoftwareLd],
+    ["ld-faqpage", bestAppsFaqLd],
+    ["ld-breadcrumb", bestAppsBreadcrumbLd],
+    ["ld-itemlist", bestAppsItemListLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    "Best Time Tracking Apps for Small Construction Crews",
+    "The best time tracking app for a small construction crew depends on fit.",
+    "free for up to 10 users",
+    "caps it at a small number of users",
+    "calculate pay or taxes",
+    "construction time tracking for small crews",
+    "https://www.clockshark.com/pricing/",
+    "https://www.myguystime.com/best-construction-time-tracking-apps",
+    "$12/month",
+  ],
+]);
+
 const template = fs.readFileSync(templatePath, "utf8");
 const rootMarker = '<div id="root">';
 const hydrationFlag = '<div id="root" data-prerendered="true">';
@@ -937,6 +1046,7 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
   const appendableJsonLd = new Set([
     "ld-webpage",
     "ld-breadcrumb",
+    "ld-itemlist",
     "ld-digitaldocument-pdf",
     "ld-digitaldocument-xlsx",
   ]);
@@ -944,6 +1054,7 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     "ld-softwareapplication",
     "ld-faqpage",
     "ld-breadcrumb",
+    "ld-itemlist",
     "ld-organization",
     "ld-website",
     "ld-webpage",
@@ -1027,6 +1138,27 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     const hit = banned.filter((token) => finalHtml.includes(token));
     if (hit.length > 0 || /csv/i.test(markup)) {
       console.error("[prerender] cost page contains banned copy:", hit, /csv/i.test(markup) ? "CSV" : "");
+      process.exit(1);
+    }
+  }
+
+  if (routePath === "/best-construction-time-tracking-apps") {
+    const lower = markup.toLowerCase();
+    const banned = [
+      "csv",
+      "petty cash",
+      "up to 5",
+      "/guides/crew-hours-quickbooks",
+      "/guides/how-contractors-track-crew-hours",
+      "best overall",
+      "aggregaterating",
+    ];
+    const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    if (hit.length > 0 || badDollars.length > 0) {
+      console.error("[prerender] best-apps page contains banned copy:", hit, badDollars);
       process.exit(1);
     }
   }

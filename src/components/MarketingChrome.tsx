@@ -100,6 +100,7 @@ export function MarketingFooter() {
               <li><a href="/vs/connecteam" className="hover:text-orange-500 transition-colors">vs Connecteam</a></li>
               <li><a href="/vs/busybusy" className="hover:text-orange-500 transition-colors">vs BusyBusy</a></li>
               <li><a href="/vs/workyard" className="hover:text-orange-500 transition-colors">vs Workyard</a></li>
+              <li><a href="/best-construction-time-tracking-apps" className="hover:text-orange-500 transition-colors">Best apps for small crews</a></li>
             </ul>
           </div>
           <div>

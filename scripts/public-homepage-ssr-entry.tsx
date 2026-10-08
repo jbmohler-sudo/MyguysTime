@@ -28,8 +28,12 @@ import {
   ConstructionTimesheetTemplatePage,
   templateFaqItems,
 } from "../src/components/ConstructionTimesheetTemplatePage";
+import {
+  BestConstructionTimeTrackingAppsPage,
+  bestAppsFaqItems,
+} from "../src/components/BestConstructionTimeTrackingAppsPage";
 
-export { faqItems, faqPageItems, constructionFaqItems, costFaqItems, templateFaqItems };
+export { faqItems, faqPageItems, constructionFaqItems, costFaqItems, templateFaqItems, bestAppsFaqItems };
 
 export function vsPageFaqs(slug: string): { q: string; a: string }[] {
   const page = getVs(slug);
@@ -67,6 +71,10 @@ export function renderConstructionTimeTrackingCostHtml(): string {
 
 export function renderConstructionTimesheetTemplateHtml(): string {
   return renderToStaticMarkup(createElement(ConstructionTimesheetTemplatePage));
+}
+
+export function renderBestConstructionTimeTrackingAppsHtml(): string {
+  return renderToStaticMarkup(createElement(BestConstructionTimeTrackingAppsPage));
 }
 
 export function renderTradeHtml(slug: string): string {
