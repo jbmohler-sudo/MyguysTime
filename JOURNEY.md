@@ -17,10 +17,16 @@
   (27 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
   construction timesheet template, and Connecteam vs. Week two: `/vs/busybusy` (2026-10-05), `/vs/workyard` (2026-10-06),
   `/best-construction-time-tracking-apps` (2026-10-08), and `/guides/how-contractors-track-crew-hours` (2026-10-09).
-  Still not live: `/guides/crew-hours-quickbooks`.
+  Still not live and on hold pending Jeff's CSV confirmation: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
-- **Biggest open item:** Jeff's call on two Cursor branches (Open Questions). Optional later:
-  Auth admin on `sb_secret_` (then disable legacy JWT), Neon→one Supabase DB.
+- **In progress:** PR #6 structure fixes is open, awaiting Jeff (drops `/demo/*` from sitemap -> 24;
+  `/privacy` and `/terms` 404 after merge).
+- **Next:** Week three five posts planned 10/12-10/16: `/vs/supercrew`, refresh of
+  `/vs/quickbooks-time` (no new URL), `/templates/time-to-decimal-chart`,
+  `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
+- **Biggest open item:** Jeff's call on PR #6 merge, CSV-export confirmation for the QuickBooks
+  guide, and two Cursor branches (Open Questions). Optional later: Auth admin on `sb_secret_`
+  (then disable legacy JWT), Neon→one Supabase DB.
 
 ## The Story So Far
 
@@ -83,6 +89,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-09 — Week two wrap: 4 of 5 posts live, sitemap 27; week three briefed (fc9cdd3, 8ed149f, 5d9b028, 552541b)
+**Did:** Week two (2026-10-05 to 10-09) shipped 4 of 5 planned posts, each from a Jeff-approved draft with `npm run build` passing: `/vs/busybusy` (10/5, fc9cdd3 + a1fe22d JOURNEY), `/vs/workyard` (10/6, 8ed149f + 67f56b9), `/best-construction-time-tracking-apps` (10/8, 5d9b028 + f97e2ae), `/guides/how-contractors-track-crew-hours` (10/9, 552541b + 979753e, with the real route, breadcrumb and 4 inbound links). Live https://www.myguystime.com/sitemap.xml fetched 2026-10-09 09:36 ET: 27 URLs, matches repo `public/sitemap.xml` (27); every published post is listed. Friday planning (seo-desk, off-repo) wrote five week-three briefs from the 2026-10-09 OpenSEO pull (GSC: first non-branded queries, "clockshark pricing" pos ~38-43, "quickbooks time alternative" pos 37; `/vs/quickbooks-time` avg pos 11.5). No code changes in this commit.
+**Decided:** nothing new in-repo.
+**Killed:** nothing.
+**Deferred:** Wed 10/7 `/guides/crew-hours-quickbooks` (MGT-08) stays on HOLD until Jeff confirms CSV export; not live, not linked. `npm test` (no fixture DB in cloud; docs-only change). Search Console sitemap resubmit still manual.
+**State after:** 27 sitemap URLs (3 are `/demo/*`). PR #6 (https://github.com/jbmohler-sudo/MyguysTime/pull/6, branch `structure-fixes-2026-10`: real 404s for unknown public paths, breadcrumbs sitewide, homepage shared footer + hub links, trade-page links, FAQPage JSON-LD, `/demo/*` removed from sitemap -> 24 URLs) is open, build passing, waiting on Jeff's merge OK. After merge `/privacy` and `/terms` will 404 (no pages exist). Week three planned (briefed, drafts not started): Mon 10/12 `/vs/supercrew` (Supercrew, ex-ConstructionClock); Tue 10/13 refresh of existing `/vs/quickbooks-time` (no new URL); Wed 10/14 `/templates/time-to-decimal-chart`; Thu 10/15 `/guides/do-1099-subs-get-overtime`; Fri 10/16 `/templates/construction-daily-report-template`.
+**Next:** Jeff decides on PR #6 (merge early in the week so new pages build on it) and on CSV export for the QuickBooks guide; Blogs drafts week three for Jeff review; each post ships only on Jeff's yes, adds its URL to `public/sitemap.xml` (27 -> 31 on current main, or 24 -> 28 if PR #6 merges first), Vercel READY check, sitemap resubmit.
+
 ### 2026-10-09 — How contractors track crew hours guide live (552541b)
 **Did:** Published `/guides/how-contractors-track-crew-hours` from the approved 2026-10-09 draft (Jeff's go-live OK). New `GuidePage` in the marketing chrome, wired in `marketingPageMap`, with the founder section, checklist, FAQ, and closing CTA. Visible breadcrumb is Home / Construction Time Tracking (`/construction-time-tracking`) / How Contractors Track Crew Hours (no Guides crumb). Prerender title `How Contractors Track Crew Hours: Paper, Sheet, or App`, the draft meta and OG description, self-canonical, plus Article (Jeff Mohler, Founder, datePublished 2026-10-09), FAQPage from the 5 FAQs, and BreadcrumbList. Sitemap is 27 URLs. Inbound links: pillar ("how contractors track crew hours"), `/vs/paper-timesheets` ("how contractors track crew hours: paper vs sheet vs app"), `/vs/spreadsheets` ("how other contractors track crew hours"), and best-apps FAQ 1 ("how contractors track crew hours"). Outbound links only to live pages, including the pillar with exact anchor "construction time tracking", paper, spreadsheets, the timesheet template (PDF or Excel), and the best-apps page. No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll-calculation claims. `npm run build` passed. Dist HTML: one H1, canonical `https://www.myguystime.com/guides/how-contractors-track-crew-hours`, `$12/month` intact.
 **Decided:** nothing new.
@@ -106,14 +120,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no local fixture database. The best-apps page stays unlinked until it is live.
 **State after:** `/vs/workyard` and `/vs/busybusy` are on `main`. Sitemap has 25 URLs.
 **Next:** Confirm the Vercel deploy is READY and the live Workyard page returns the prerendered HTML.
-
-### 2026-10-02 — Week one content live (23 URLs); week two five briefs ready (86a5555)
-**Did:** Week one (Mon–Fri) marketing pages are live and in the sitemap: construction time tracking pillar, ClockShark vs, cost hub, construction timesheet template (PDF+Excel), Connecteam vs. Live sitemap count **23** (matched repo). Friday SEO planning re-pulled keyword/SERP data, wrote five writer briefs for week two (busybusy vs, Workyard vs, QuickBooks CSV guide, best-apps listicle, how-contractors-track-hours guide), and updated the seo-desk publishing schedule. No code changes in this commit.
-**Decided:** nothing new in-repo. Week two slug for the QuickBooks guide is `/guides/crew-hours-quickbooks` (no -payroll in the URL).
-**Killed:** nothing.
-**Deferred:** Search Console sitemap resubmit (write scope not enabled on the connector). `npm test` still deferred in cloud when no fixture DB.
-**State after:** Marketing site at 23 sitemap URLs. Week two posts briefed for 2026-10-05–10-09; drafts not started in this repo.
-**Next:** Blogs drafts week two for Jeff review; enable GSC write or manually resubmit https://www.myguystime.com/sitemap.xml; ship week two only after Jeff's yes per post (content-only may use build-only when tests cannot run).
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
