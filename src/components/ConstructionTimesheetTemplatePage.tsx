@@ -1,5 +1,5 @@
 import { ArrowRight, Download } from "lucide-react";
-import { APP_LOGIN_URL, MarketingFooter, MarketingHeader } from "./MarketingChrome";
+import { APP_LOGIN_URL, MarketingBreadcrumb, MarketingFooter, MarketingHeader } from "./MarketingChrome";
 
 export const PDF_HREF = "/templates/construction-timesheet-template.pdf";
 export const XLSX_HREF = "/templates/construction-timesheet-template.xlsx";
@@ -114,19 +114,14 @@ export function ConstructionTimesheetTemplatePage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <MarketingHeader />
       <main>
-        <nav aria-label="Breadcrumb" className="max-w-6xl mx-auto px-6 pt-8 text-sm text-slate-500">
-          <a href="/" className="hover:text-orange-600">
-            Home
-          </a>
-          <span className="mx-2" aria-hidden="true">
-            /
-          </span>
-          <span>Templates</span>
-          <span className="mx-2" aria-hidden="true">
-            /
-          </span>
-          <span className="text-slate-700">Construction Timesheet Template</span>
-        </nav>
+        <MarketingBreadcrumb
+          widthClass="max-w-6xl"
+          items={[
+            { name: "Home", href: "/" },
+            { name: "Construction Time Tracking", href: "/construction-time-tracking" },
+            { name: "Construction Timesheet Template" },
+          ]}
+        />
 
         <article className="max-w-6xl mx-auto px-6 pt-8 pb-4">
           <p className="text-orange-600 font-semibold text-sm uppercase tracking-widest mb-4">Free template</p>

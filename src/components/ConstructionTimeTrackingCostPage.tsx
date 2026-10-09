@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { APP_LOGIN_URL, MarketingFooter, MarketingHeader } from "./MarketingChrome";
+import { APP_LOGIN_URL, MarketingBreadcrumb, MarketingFooter, MarketingHeader } from "./MarketingChrome";
 
 export const costFaqItems: { q: string; a: string }[] = [
   {
@@ -240,15 +240,13 @@ export function ConstructionTimeTrackingCostPage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <MarketingHeader />
       <main>
-        <nav aria-label="Breadcrumb" className="max-w-3xl mx-auto px-6 pt-8 text-sm text-slate-500">
-          <a href="/" className="hover:text-orange-600">
-            Home
-          </a>
-          <span className="mx-2" aria-hidden="true">
-            /
-          </span>
-          <span className="text-slate-700">Construction Time Tracking Cost</span>
-        </nav>
+        <MarketingBreadcrumb
+          items={[
+            { name: "Home", href: "/" },
+            { name: "Construction Time Tracking", href: "/construction-time-tracking" },
+            { name: "Construction Time Tracking Cost" },
+          ]}
+        />
 
         <article className="max-w-3xl mx-auto px-6 pt-8 pb-4">
           <p className="text-orange-600 font-semibold text-sm uppercase tracking-widest mb-4">Pricing, explained</p>

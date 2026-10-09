@@ -400,8 +400,9 @@ export function ConstructionTimeTrackingPage() {
               Crew time apps are priced three ways: per seat (a base fee plus a fee for every user),{" "}
               <TextLink href="/vs/connecteam">free plans capped at a set number of users</TextLink>, or one flat
               company price. See the{" "}
-              <TextLink href="/vs/clockshark">ClockShark alternative with flat pricing</TextLink> and{" "}
-              <TextLink href="/vs/busybusy">BusyBusy's per-user pricing</TextLink>. My Guys Time is{" "}
+              <TextLink href="/vs/clockshark">ClockShark alternative with flat pricing</TextLink>,{" "}
+              <TextLink href="/vs/busybusy">BusyBusy's per-user pricing</TextLink>, and{" "}
+              <TextLink href="/vs/workyard">Workyard's per-user GPS pricing</TextLink>. My Guys Time is{" "}
               <TextLink href="/pricing">$12/month flat for the whole crew</TextLink>.
             </p>
             <p>

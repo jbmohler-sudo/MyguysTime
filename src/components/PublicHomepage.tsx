@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Truck, Eye, BarChart3, FileText, ArrowRight, Check } from 'lucide-react';
+import { MarketingFooter } from './MarketingChrome';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -328,6 +329,20 @@ export function PublicHomepage() {
               </a>
               {" "}— log hours from the truck, review the week in the office.
             </p>
+            <p className="text-lg text-slate-600 leading-relaxed">
+              <a href="/best-construction-time-tracking-apps" className="text-orange-600 font-semibold hover:underline">
+                compare crew time tracking apps
+              </a>
+              , see{" "}
+              <a href="/construction-time-tracking-cost" className="text-orange-600 font-semibold hover:underline">
+                what crew time tracking apps cost
+              </a>
+              , or start from a{" "}
+              <a href="/templates/construction-timesheet-template" className="text-orange-600 font-semibold hover:underline">
+                free construction timesheet template
+              </a>
+              .
+            </p>
             <p className="text-lg font-semibold text-orange-600 leading-relaxed">
               Stop using crinkled notebooks or scraps of wood from the job site to track hours.
             </p>
@@ -619,6 +634,11 @@ export function PublicHomepage() {
           <div className="max-w-2xl mx-auto bg-white rounded-2xl border-2 border-orange-500 shadow-xl p-8 md:p-12">
             <div className="text-center mb-8">
               <p className="text-5xl font-bold text-slate-900">$12<span className="text-xl font-semibold text-slate-600">/month</span></p>
+              <p className="mt-3">
+                <a href="/pricing" className="text-orange-600 font-semibold hover:underline">
+                  $12/month flat for the whole crew
+                </a>
+              </p>
               <p className="text-slate-600 mt-2">Flat. No per-seat fees, no tiers, no surprises.</p>
             </div>
             <ul className="space-y-4 mb-8">
@@ -691,117 +711,8 @@ export function PublicHomepage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 bg-slate-50 mt-20">
-        <div className="max-w-6xl mx-auto px-6 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-12 mb-12">
-            <div>
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
-                  <CheckCircle2 className="w-5 h-5 text-white" />
-                </div>
-                <h4 className="font-bold text-slate-900">My Guys Time</h4>
-              </div>
-              <p className="text-sm text-slate-600">
-                Simple contractor hour tracking for small and multiple crews.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
-                <li>
-                  <a href="/features" className="hover:text-orange-500 transition-colors">
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a href="/how-it-works" className="hover:text-orange-500 transition-colors">
-                    How It Works
-                  </a>
-                </li>
-                <li>
-                  <a href="/pricing" className="hover:text-orange-500 transition-colors">
-                    Pricing
-                  </a>
-                </li>
-                <li>
-                  <a href="/faq" className="hover:text-orange-500 transition-colors">
-                    FAQ
-                  </a>
-                </li>
-                <li>
-                  <a href="/construction-time-tracking" className="hover:text-orange-500 transition-colors">
-                    Construction Time Tracking
-                  </a>
-                </li>
-                <li>
-                  <a href="/best-construction-time-tracking-apps" className="hover:text-orange-500 transition-colors">
-                    Best apps for small crews
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* TODO: Privacy + Terms pages don't exist in this app yet. Do not invent legal copy — add real static pages here when written. */}
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Trades</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
-                <li>
-                  <a href="/trades/roofing" className="hover:text-orange-500 transition-colors">
-                    Roofing
-                  </a>
-                </li>
-                <li>
-                  <a href="/trades/masonry" className="hover:text-orange-500 transition-colors">
-                    Masonry
-                  </a>
-                </li>
-                <li>
-                  <a href="/trades/landscaping" className="hover:text-orange-500 transition-colors">
-                    Landscaping
-                  </a>
-                </li>
-                <li>
-                  <a href="/trades/painting" className="hover:text-orange-500 transition-colors">
-                    Painting
-                  </a>
-                </li>
-                <li>
-                  <a href="/trades/plumbing" className="hover:text-orange-500 transition-colors">
-                    Plumbing
-                  </a>
-                </li>
-                <li>
-                  <a href="/trades/electrical" className="hover:text-orange-500 transition-colors">
-                    Electrical
-                  </a>
-                </li>
-                <li>
-                  <a href="/trades/general-contracting" className="hover:text-orange-500 transition-colors">
-                    General Contracting
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
-                <li>
-                  <a href="mailto:jeff@myguystime.com" className="hover:text-orange-500 transition-colors">
-                    Contact
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="pt-12 border-t border-slate-200 text-center text-sm text-slate-600">
-            <p>&copy; 2026 My Guys Time. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      {/* Privacy and terms pages are not written yet. Do not link them until real pages exist. */}
+      <MarketingFooter />
     </div>
   );
 }
