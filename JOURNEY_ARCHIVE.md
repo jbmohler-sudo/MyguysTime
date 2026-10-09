@@ -2,6 +2,14 @@
 
 > Older Session Log entries rolled out of [JOURNEY.md](JOURNEY.md). Newest of these first.
 
+### 2026-10-02 — Connecteam comparison page live (9234ba5)
+**Did:** Published `/vs/connecteam` from the ship-ready Friday copy. Added the connecteam config in `vs.tsx` (answer block, fit block, 5 FAQs, pain cards, comparison table, flow, callout, pills, closing CTA) and optional hero and table button labels so the other comparison pages keep their existing buttons. Prerender title, meta, OG, and self-canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Connecteam. Sitemap is 23 URLs. Inbound links: footer Comparisons column, pills on the other `/vs` pages, the cost hub compare list, and the pillar free-plans line. `npm run build` passed. Dist HTML: title `Connecteam Pricing & Alternative for Crews | My Guys Time`, one H1, canonical `https://www.myguystime.com/vs/connecteam`, dollar amounts are only `$12`. Page copy has no CSV, export, breaks, or petty cash. Same day, the "Is Connecteam worth it?" answer now reads "If you have 10 or fewer people," matching Connecteam's "free for up to 10 users" in the visible FAQ and the FAQPage JSON-LD (68f29df). `npm run build` passed; dist HTML contains that sentence in both places.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no fixture database.
+**State after:** `/vs/connecteam` is on `main`. Sitemap has 23 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
+
 ### 2026-10-01 — Construction timesheet template page live (e71b582)
 **Did:** Published `/templates/construction-timesheet-template` from the approved draft. New `ConstructionTimesheetTemplatePage` with PDF and Excel downloads, the field list, how-to, format table, mistakes, softened app pitch, and 5 FAQs. Preview and OG use the example PNG. Prerender title, meta, OG, and self-canonical, plus WebPage, BreadcrumbList (Home › Templates › Construction Timesheet Template), DigitalDocument for PDF and Excel, FAQPage from the 5 FAQs, and SoftwareApplication (`price` "12", USD, P1M, per company per month). Sitemap is 22 URLs. Inbound links from the pillar, `/vs/paper-timesheets`, `/vs/spreadsheets`, and `/construction-time-tracking-cost`. `npm run build` passed. Dist HTML: title `Free Construction Timesheet Template (PDF & Excel)`, one H1, canonical `https://www.myguystime.com/templates/construction-timesheet-template`, download hrefs for the PDF and `.xlsx`, `$12/month` intact. No Google Sheets, CSV, Connecteam, petty cash, or app break-tracking claims.
 **Decided:** nothing new.

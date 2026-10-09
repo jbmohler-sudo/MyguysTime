@@ -11,12 +11,13 @@
   period, 7-day no-card trial on new signups. Paid companies stay on `active`.
 - **Marketing site live:** `/features`, `/pricing`, `/how-it-works`, `/faq`, `/construction-time-tracking`,
   `/construction-time-tracking-cost`, `/best-construction-time-tracking-apps`,
+  `/guides/how-contractors-track-crew-hours`,
   `/templates/construction-timesheet-template`, seven `/trades/:slug` pages, and
   `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy,workyard}` — all prerendered, in the sitemap
-  (26 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
+  (27 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
   construction timesheet template, and Connecteam vs. Week two: `/vs/busybusy` (2026-10-05), `/vs/workyard` (2026-10-06),
-  and `/best-construction-time-tracking-apps` (2026-10-08).
-  Still not live: `/guides/crew-hours-quickbooks`, `/guides/how-contractors-track-crew-hours`.
+  `/best-construction-time-tracking-apps` (2026-10-08), and `/guides/how-contractors-track-crew-hours` (2026-10-09).
+  Still not live: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
 - **Biggest open item:** Jeff's call on two Cursor branches (Open Questions). Optional later:
   Auth admin on `sb_secret_` (then disable legacy JWT), Neon→one Supabase DB.
@@ -82,6 +83,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-09 — How contractors track crew hours guide live (552541b)
+**Did:** Published `/guides/how-contractors-track-crew-hours` from the approved 2026-10-09 draft (Jeff's go-live OK). New `GuidePage` in the marketing chrome, wired in `marketingPageMap`, with the founder section, checklist, FAQ, and closing CTA. Visible breadcrumb is Home / Construction Time Tracking (`/construction-time-tracking`) / How Contractors Track Crew Hours (no Guides crumb). Prerender title `How Contractors Track Crew Hours: Paper, Sheet, or App`, the draft meta and OG description, self-canonical, plus Article (Jeff Mohler, Founder, datePublished 2026-10-09), FAQPage from the 5 FAQs, and BreadcrumbList. Sitemap is 27 URLs. Inbound links: pillar ("how contractors track crew hours"), `/vs/paper-timesheets` ("how contractors track crew hours: paper vs sheet vs app"), `/vs/spreadsheets` ("how other contractors track crew hours"), and best-apps FAQ 1 ("how contractors track crew hours"). Outbound links only to live pages, including the pillar with exact anchor "construction time tracking", paper, spreadsheets, the timesheet template (PDF or Excel), and the best-apps page. No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll-calculation claims. `npm run build` passed. Dist HTML: one H1, canonical `https://www.myguystime.com/guides/how-contractors-track-crew-hours`, `$12/month` intact.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). `/guides/crew-hours-quickbooks` stays unlinked.
+**State after:** `/guides/how-contractors-track-crew-hours` is on `main`. Sitemap has 27 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
+
 ### 2026-10-08 — Best construction time tracking apps listicle live (5d9b028)
 **Did:** Published `/best-construction-time-tracking-apps` from the approved 2026-10-08 draft (Jeff's go-live OK). New `BestConstructionTimeTrackingAppsPage` with intro, answer block, quick picks, seven app cards, also-worth mentions, 5-question chooser, FAQ, and closing CTA. Prerender title, meta, OG, and self-canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), ItemList of the seven cards (no ratings), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Best Time Tracking Apps for Small Construction Crews. Sitemap is 26 URLs. Inbound links from the pillar cost section, the cost hub compare list, the homepage product column, the footer Comparisons column, a pill on every `/vs` page, and the Workyard "best timesheet app" FAQ (the interim "soon" sentence now points here). Dropped the unpublished guide notes. Clockify FAQ says the free plan caps it at a small number of users, with the "up to 5" parenthetical removed from the FAQ and the also-worth line. No competitor dollar figures. No CSV, breaks, or petty cash claims for My Guys Time. `npm run build` passed. Dist HTML: title `Best Time Tracking Apps for Small Construction Crews`, one H1, canonical `https://www.myguystime.com/best-construction-time-tracking-apps`, `$12/month` intact.
 **Decided:** nothing new.
@@ -105,14 +114,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** Search Console sitemap resubmit (write scope not enabled on the connector). `npm test` still deferred in cloud when no fixture DB.
 **State after:** Marketing site at 23 sitemap URLs. Week two posts briefed for 2026-10-05–10-09; drafts not started in this repo.
 **Next:** Blogs drafts week two for Jeff review; enable GSC write or manually resubmit https://www.myguystime.com/sitemap.xml; ship week two only after Jeff's yes per post (content-only may use build-only when tests cannot run).
-
-### 2026-10-02 — Connecteam comparison page live (9234ba5)
-**Did:** Published `/vs/connecteam` from the ship-ready Friday copy. Added the connecteam config in `vs.tsx` (answer block, fit block, 5 FAQs, pain cards, comparison table, flow, callout, pills, closing CTA) and optional hero and table button labels so the other comparison pages keep their existing buttons. Prerender title, meta, OG, and self-canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Connecteam. Sitemap is 23 URLs. Inbound links: footer Comparisons column, pills on the other `/vs` pages, the cost hub compare list, and the pillar free-plans line. `npm run build` passed. Dist HTML: title `Connecteam Pricing & Alternative for Crews | My Guys Time`, one H1, canonical `https://www.myguystime.com/vs/connecteam`, dollar amounts are only `$12`. Page copy has no CSV, export, breaks, or petty cash. Same day, the "Is Connecteam worth it?" answer now reads "If you have 10 or fewer people," matching Connecteam's "free for up to 10 users" in the visible FAQ and the FAQPage JSON-LD (68f29df). `npm run build` passed; dist HTML contains that sentence in both places.
-**Decided:** nothing new.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no fixture database.
-**State after:** `/vs/connecteam` is on `main`. Sitemap has 23 URLs.
-**Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
