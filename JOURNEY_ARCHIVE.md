@@ -2,6 +2,14 @@
 
 > Older Session Log entries rolled out of [JOURNEY.md](JOURNEY.md). Newest of these first.
 
+### 2026-10-09 — How contractors track crew hours guide live (552541b)
+**Did:** Published `/guides/how-contractors-track-crew-hours` from the approved 2026-10-09 draft (Jeff's go-live OK). New `GuidePage` in the marketing chrome, wired in `marketingPageMap`, with the founder section, checklist, FAQ, and closing CTA. Visible breadcrumb is Home / Construction Time Tracking (`/construction-time-tracking`) / How Contractors Track Crew Hours (no Guides crumb). Prerender title `How Contractors Track Crew Hours: Paper, Sheet, or App`, the draft meta and OG description, self-canonical, plus Article (Jeff Mohler, Founder, datePublished 2026-10-09), FAQPage from the 5 FAQs, and BreadcrumbList. Sitemap is 27 URLs. Inbound links: pillar ("how contractors track crew hours"), `/vs/paper-timesheets` ("how contractors track crew hours: paper vs sheet vs app"), `/vs/spreadsheets` ("how other contractors track crew hours"), and best-apps FAQ 1 ("how contractors track crew hours"). Outbound links only to live pages, including the pillar with exact anchor "construction time tracking", paper, spreadsheets, the timesheet template (PDF or Excel), and the best-apps page. No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll-calculation claims. `npm run build` passed. Dist HTML: one H1, canonical `https://www.myguystime.com/guides/how-contractors-track-crew-hours`, `$12/month` intact.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). `/guides/crew-hours-quickbooks` stays unlinked.
+**State after:** `/guides/how-contractors-track-crew-hours` is on `main`. Sitemap has 27 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
+
 ### 2026-10-08 — Best construction time tracking apps listicle live (5d9b028)
 **Did:** Published `/best-construction-time-tracking-apps` from the approved 2026-10-08 draft (Jeff's go-live OK). New `BestConstructionTimeTrackingAppsPage` with intro, answer block, quick picks, seven app cards, also-worth mentions, 5-question chooser, FAQ, and closing CTA. Prerender title, meta, OG, and self-canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), ItemList of the seven cards (no ratings), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Best Time Tracking Apps for Small Construction Crews. Sitemap is 26 URLs. Inbound links from the pillar cost section, the cost hub compare list, the homepage product column, the footer Comparisons column, a pill on every `/vs` page, and the Workyard "best timesheet app" FAQ (the interim "soon" sentence now points here). Dropped the unpublished guide notes. Clockify FAQ says the free plan caps it at a small number of users, with the "up to 5" parenthetical removed from the FAQ and the also-worth line. No competitor dollar figures. No CSV, breaks, or petty cash claims for My Guys Time. `npm run build` passed. Dist HTML: title `Best Time Tracking Apps for Small Construction Crews`, one H1, canonical `https://www.myguystime.com/best-construction-time-tracking-apps`, `$12/month` intact.
 **Decided:** nothing new.
@@ -17,7 +25,6 @@
 **Deferred:** `npm test`. This environment has no local fixture database. The best-apps page stays unlinked until it is live.
 **State after:** `/vs/workyard` and `/vs/busybusy` are on `main`. Sitemap has 25 URLs.
 **Next:** Confirm the Vercel deploy is READY and the live Workyard page returns the prerendered HTML.
-
 ### 2026-10-02 — Week one content live (23 URLs); week two five briefs ready (86a5555)
 **Did:** Week one (Mon–Fri) marketing pages are live and in the sitemap: construction time tracking pillar, ClockShark vs, cost hub, construction timesheet template (PDF+Excel), Connecteam vs. Live sitemap count **23** (matched repo). Friday SEO planning re-pulled keyword/SERP data, wrote five writer briefs for week two (busybusy vs, Workyard vs, QuickBooks CSV guide, best-apps listicle, how-contractors-track-hours guide), and updated the seo-desk publishing schedule. No code changes in this commit.
 **Decided:** nothing new in-repo. Week two slug for the QuickBooks guide is `/guides/crew-hours-quickbooks` (no -payroll in the URL).

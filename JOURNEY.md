@@ -20,10 +20,12 @@
   Week three started: `/vs/supercrew` (2026-10-12).
   Still not live and on hold pending Jeff's CSV confirmation: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
-- **In progress:** PR #6 structure fixes is open, awaiting Jeff (drops `/demo/*` from sitemap -> 24;
-  `/privacy` and `/terms` 404 after merge). Branch `feat/crew-management` (47ee53d, 282499c, 7839a13)
-  is pushed, awaiting Jeff's review: office crew management (add/rename/remove crews, crew chiefs, move
-  workers) plus a security fix that fences timesheets to their own company. Not on `main`.
+- **In progress:** PR #6 (`structure-fixes-2026-10`) is rebased onto current `main` and awaiting Jeff.
+  It keeps `/vs/supercrew` and the structure fixes. The branch sitemap is 25 URLs (the live 28 minus
+  the three `/demo/*` URLs). `/privacy` and `/terms` still have no page, so they 404 after merge.
+  Branch `feat/crew-management` (47ee53d, 282499c, 7839a13) is pushed, awaiting Jeff's review: office
+  crew management (add/rename/remove crews, crew chiefs, move workers) plus a security fix that fences
+  timesheets to their own company. Not on `main`.
 - **Next:** Remaining week-three posts (10/13-10/16): refresh of `/vs/quickbooks-time` (no new URL),
   `/templates/time-to-decimal-chart`, `/guides/do-1099-subs-get-overtime`,
   `/templates/construction-daily-report-template`.
@@ -59,6 +61,7 @@ Supabase; app rows moved to Neon.
 | 2026-10-11 | Crew chief = foreman login. Picking a chief makes his login FOREMAN and puts him on that crew; leading no crew puts it back to EMPLOYEE; office logins never change. A worker's crew is `Employee.defaultCrewId` (CrewAssignment is seed-only). | Before this nothing in the app set `Crew.foremanId`, so invited foremen saw an empty board. One source of truth for membership. (On `feat/crew-management`, not yet merged.) |
 | 2026-10-11 | Moving a worker carries his open weeks (this week and later, not approved or locked) to the new crew; past weeks stay. A crew chief submits his own week and the office approves it. | The new chief should review current hours; old hours were worked under the old chief. Old tests showed a foreman approving his own week. (On `feat/crew-management`.) |
 | 2026-09-28 | Content-only marketing pages and sitemap may ship to `main` on a passing `npm run build` when `npm test` cannot run in this cloud environment (no local fixture DB or Supabase keys). Never point tests at real Neon or Supabase. | Jeff approved. Cloud agents have no fixture database, and the safety check blocks remote fixture mutation. |
+| 2026-10-09 | Unknown public URLs return HTTP 404 with a noindex page, not the homepage. Breadcrumbs use real hubs: trades, the template, best-apps, the cost page, and guides sit under `/construction-time-tracking`; all `/vs` pages sit under `/best-construction-time-tracking-apps`. Demo URLs stay linked and leave the sitemap. | Jeff approved the 2026-10-08 structure audit P0/P1. Folder URLs are not pages. | Approved; on `structure-fixes-2026-10`, not live until merge |
 
 ## System Map
 
@@ -102,6 +105,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-12 — Structure fixes rebased onto main; Supercrew kept (44a8f58)
+**Did:** Rebased `structure-fixes-2026-10` onto current `main` (through the `/vs/supercrew` publish). Kept the Supercrew page and the structure fixes from 44a8f58: unknown public URLs return a noindex 404, breadcrumbs use real hubs, the homepage uses `MarketingFooter` with a Guides & tools column and body links to best-apps, the cost page, and the template, the pillar links Workyard, trade pages link the template, `/pricing`, and best-apps, `/vs` pages that lacked a body `/pricing` link get one, FAQPage JSON-LD matches the visible FAQs on the trades and the three older `/vs` pages, and `/demo/*` left the sitemap. Branch sitemap is 25 URLs (live 28 minus the three demo URLs). `/privacy` and `/terms` still have no page, so they 404.
+**Decided:** nothing new. The 2026-10-09 structure decision still stands.
+**Killed:** nothing.
+**Deferred:** Supercrew's prerender BreadcrumbList still named Comparisons with no URL in the rebased structure commit; the follow-up points that crumb at Best Construction Time Tracking Apps. Claim-copy strings stay until Jeff confirms them. Topic H1 rewrites and the rest of the interlink matrix were not in this pass.
+**State after:** Structure fixes plus Supercrew are on `structure-fixes-2026-10`. Not merged. Live `main` is still the 28-URL site.
+**Next:** Align the Supercrew JSON-LD crumb, re-run `npm run build`, and leave the PR for Jeff. Do not merge until he says to ship.
+
 ### 2026-10-12 — Supercrew comparison page live (3a5b900)
 **Did:** Published `/vs/supercrew` from the approved 2026-10-12 draft (Jeff's go-live OK for the week's drafts). Added the supercrew config in `vs.tsx` (hero, answer block, pain cards, comparison table, flow, fit, callout, 5 FAQs, pills, closing CTA). Each person joins the crew on his own phone; he or the foreman logs the hours. Prerender title `Supercrew (ConstructionClock) vs $12 Flat | My Guys Time`, the draft meta and OG description, self-canonical `https://www.myguystime.com/vs/supercrew`, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Supercrew. Sitemap is 28 URLs. Inbound links: Supercrew pill on the other `/vs` pages, footer Comparisons column, cost hub compare list ("Supercrew pricing", per-member model), and a one-line link in best-apps "Also worth a look". No link to `/guides/crew-hours-quickbooks` or other unpublished week-three paths. No Supercrew dollar figures. The callout says `$12 a month flat for the whole company`. Re-checked https://supercrew.com/pricing on 2026-10-12: Timesheet approval is still labeled Soon on the Pro plan, so the table row stays. `npm run build` passed. Dist HTML: one H1, canonical as above, dollar amounts are only `$12`.
 **Decided:** nothing new.
@@ -125,14 +136,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** Wed 10/7 `/guides/crew-hours-quickbooks` (MGT-08) stays on HOLD until Jeff confirms CSV export; not live, not linked. `npm test` (no fixture DB in cloud; docs-only change). Search Console sitemap resubmit still manual.
 **State after:** 27 sitemap URLs (3 are `/demo/*`). PR #6 (https://github.com/jbmohler-sudo/MyguysTime/pull/6, branch `structure-fixes-2026-10`: real 404s for unknown public paths, breadcrumbs sitewide, homepage shared footer + hub links, trade-page links, FAQPage JSON-LD, `/demo/*` removed from sitemap -> 24 URLs) is open, build passing, waiting on Jeff's merge OK. After merge `/privacy` and `/terms` will 404 (no pages exist). Week three planned (briefed, drafts not started): Mon 10/12 `/vs/supercrew` (Supercrew, ex-ConstructionClock); Tue 10/13 refresh of existing `/vs/quickbooks-time` (no new URL); Wed 10/14 `/templates/time-to-decimal-chart`; Thu 10/15 `/guides/do-1099-subs-get-overtime`; Fri 10/16 `/templates/construction-daily-report-template`.
 **Next:** Jeff decides on PR #6 (merge early in the week so new pages build on it) and on CSV export for the QuickBooks guide; Blogs drafts week three for Jeff review; each post ships only on Jeff's yes, adds its URL to `public/sitemap.xml` (27 -> 31 on current main, or 24 -> 28 if PR #6 merges first), Vercel READY check, sitemap resubmit.
-
-### 2026-10-09 — How contractors track crew hours guide live (552541b)
-**Did:** Published `/guides/how-contractors-track-crew-hours` from the approved 2026-10-09 draft (Jeff's go-live OK). New `GuidePage` in the marketing chrome, wired in `marketingPageMap`, with the founder section, checklist, FAQ, and closing CTA. Visible breadcrumb is Home / Construction Time Tracking (`/construction-time-tracking`) / How Contractors Track Crew Hours (no Guides crumb). Prerender title `How Contractors Track Crew Hours: Paper, Sheet, or App`, the draft meta and OG description, self-canonical, plus Article (Jeff Mohler, Founder, datePublished 2026-10-09), FAQPage from the 5 FAQs, and BreadcrumbList. Sitemap is 27 URLs. Inbound links: pillar ("how contractors track crew hours"), `/vs/paper-timesheets` ("how contractors track crew hours: paper vs sheet vs app"), `/vs/spreadsheets` ("how other contractors track crew hours"), and best-apps FAQ 1 ("how contractors track crew hours"). Outbound links only to live pages, including the pillar with exact anchor "construction time tracking", paper, spreadsheets, the timesheet template (PDF or Excel), and the best-apps page. No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll-calculation claims. `npm run build` passed. Dist HTML: one H1, canonical `https://www.myguystime.com/guides/how-contractors-track-crew-hours`, `$12/month` intact.
-**Decided:** nothing new.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). `/guides/crew-hours-quickbooks` stays unlinked.
-**State after:** `/guides/how-contractors-track-crew-hours` is on `main`. Sitemap has 27 URLs.
-**Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
