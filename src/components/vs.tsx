@@ -59,7 +59,12 @@ export const VS_PAGES: VsConfig[] = [
     afterIntro: [
       { text: "Staying on paper for now? Use a " },
       { text: "free printable construction timesheet template", href: "/templates/construction-timesheet-template" },
-      { text: " (PDF or Excel) for the weekly crew card." },
+      { text: " (PDF or Excel) for the weekly crew card. For the full tradeoff, see " },
+      {
+        text: "how contractors track crew hours: paper vs sheet vs app",
+        href: "/guides/how-contractors-track-crew-hours",
+      },
+      { text: "." },
     ],
     pains: [
       {
@@ -245,7 +250,9 @@ export const VS_PAGES: VsConfig[] = [
     afterIntro: [
       { text: "Need a sheet to start from? Download the " },
       { text: "free construction timesheet template", href: "/templates/construction-timesheet-template" },
-      { text: " as a PDF or an Excel file." },
+      { text: " as a PDF or an Excel file. See " },
+      { text: "how other contractors track crew hours", href: "/guides/how-contractors-track-crew-hours" },
+      { text: "." },
     ],
     pains: [
       {

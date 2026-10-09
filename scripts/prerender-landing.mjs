@@ -246,6 +246,8 @@ const pages = [
       "The simplest way to track construction crew hours",
       "How much does a construction clock time tracker cost?",
       "$12/mo",
+      "how contractors track crew hours",
+      "/guides/how-contractors-track-crew-hours",
     ],
   ],
 ];
@@ -315,7 +317,12 @@ for (const [slug, name, title, description, h1] of vsPages) {
       ["ld-organization", organizationLd],
       ["ld-website", websiteLd],
     ],
-    [h1, `My Guys Time vs ${name}`],
+    [
+      h1,
+      `My Guys Time vs ${name}`,
+      ...(slug === "paper-timesheets" ? ["how contractors track crew hours: paper vs sheet vs app"] : []),
+      ...(slug === "spreadsheets" ? ["how other contractors track crew hours"] : []),
+    ],
   ]);
 }
 
@@ -967,6 +974,132 @@ pages.push([
     "https://www.clockshark.com/pricing/",
     "https://www.myguystime.com/best-construction-time-tracking-apps",
     "$12/month",
+    "/guides/how-contractors-track-crew-hours",
+    "how contractors track crew hours",
+  ],
+]);
+
+const guideRoute = "/guides/how-contractors-track-crew-hours";
+const guideTitle = "How Contractors Track Crew Hours: Paper, Sheet, or App";
+const guideDescription =
+  "Paper time cards, spreadsheets, or a crew app: what each does well and where it falls short. From a contractor who kept crew hours on a 2x6.";
+const guideHeadline = "How Contractors Track Crew Hours: Paper vs Spreadsheet vs App";
+
+if (!Array.isArray(ssr.guideFaqItems) || ssr.guideFaqItems.length !== 5) {
+  console.error("[prerender] guide FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+
+const guideFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: ssr.guideFaqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const guideArticleLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: guideHeadline,
+  description: guideDescription,
+  datePublished: "2026-10-09",
+  author: {
+    "@type": "Person",
+    name: "Jeff Mohler",
+    jobTitle: "Founder",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "My Guys Time",
+    url: canonicalHost + "/",
+    logo: {
+      "@type": "ImageObject",
+      url: canonicalHost + "/images/og-myguystime.png",
+    },
+  },
+  mainEntityOfPage: canonicalHost + guideRoute,
+};
+
+const guideBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Construction Time Tracking",
+      item: canonicalHost + constructionRoute,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "How Contractors Track Crew Hours",
+      item: canonicalHost + guideRoute,
+    },
+  ],
+};
+
+const guideSoftwareLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "My Guys Time",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: canonicalHost + "/",
+  offers: {
+    "@type": "Offer",
+    price: "12",
+    priceCurrency: "USD",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: "12",
+      priceCurrency: "USD",
+      billingDuration: "P1M",
+      unitText: "per company per month",
+    },
+  },
+  description:
+    "Flat-price crew time cards. The foreman logs hours and signs the week. $12/month for the whole company.",
+};
+
+pages.push([
+  guideRoute,
+  "guides/how-contractors-track-crew-hours/index.html",
+  () => ssr.renderGuideHtml(),
+  guideTitle,
+  guideDescription,
+  [
+    ["ld-article", guideArticleLd],
+    ["ld-softwareapplication", guideSoftwareLd],
+    ["ld-faqpage", guideFaqLd],
+    ["ld-breadcrumb", guideBreadcrumbLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    guideHeadline,
+    "By Jeff Mohler, founder of My Guys Time",
+    "https://www.myguystime.com/guides/how-contractors-track-crew-hours",
+    ">construction time tracking<",
+    "$12/month",
+    "PDF or Excel",
+    "/vs/paper-timesheets",
+    "/vs/spreadsheets",
+    "/templates/construction-timesheet-template",
+    "/best-construction-time-tracking-apps",
+    "/construction-time-tracking-cost",
+    "/how-it-works",
+    "/trades/masonry",
+    "/demo/foreman",
   ],
 ]);
 
@@ -1047,6 +1180,7 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     "ld-webpage",
     "ld-breadcrumb",
     "ld-itemlist",
+    "ld-article",
     "ld-digitaldocument-pdf",
     "ld-digitaldocument-xlsx",
   ]);
@@ -1055,6 +1189,7 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     "ld-faqpage",
     "ld-breadcrumb",
     "ld-itemlist",
+    "ld-article",
     "ld-organization",
     "ld-website",
     "ld-webpage",
@@ -1142,6 +1277,35 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     }
   }
 
+  if (routePath === "/guides/how-contractors-track-crew-hours") {
+    const lower = markup.toLowerCase();
+    const banned = [
+      "csv",
+      "petty cash",
+      "google sheets",
+      "/guides/crew-hours-quickbooks",
+      "calculates payroll",
+      "calculates tax",
+      "break tracking",
+    ];
+    const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    if (hit.length > 0 || badDollars.length > 0) {
+      console.error("[prerender] crew-hours guide contains banned copy:", hit, badDollars);
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"@type":"Article"') || !finalHtml.includes('"@type":"FAQPage"') || !finalHtml.includes('"@type":"BreadcrumbList"')) {
+      console.error("[prerender] crew-hours guide missing Article, FAQPage, or BreadcrumbList JSON-LD.");
+      process.exit(1);
+    }
+    if (finalHtml.includes('"name":"Guides"')) {
+      console.error("[prerender] crew-hours guide breadcrumb includes a Guides crumb.");
+      process.exit(1);
+    }
+  }
+
   if (routePath === "/best-construction-time-tracking-apps") {
     const lower = markup.toLowerCase();
     const banned = [
@@ -1149,7 +1313,6 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
       "petty cash",
       "up to 5",
       "/guides/crew-hours-quickbooks",
-      "/guides/how-contractors-track-crew-hours",
       "best overall",
       "aggregaterating",
     ];

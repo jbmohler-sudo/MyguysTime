@@ -32,8 +32,9 @@ import {
   BestConstructionTimeTrackingAppsPage,
   bestAppsFaqItems,
 } from "../src/components/BestConstructionTimeTrackingAppsPage";
+import { GuidePage, guideFaqItems } from "../src/components/GuidePage";
 
-export { faqItems, faqPageItems, constructionFaqItems, costFaqItems, templateFaqItems, bestAppsFaqItems };
+export { faqItems, faqPageItems, constructionFaqItems, costFaqItems, templateFaqItems, bestAppsFaqItems, guideFaqItems };
 
 export function vsPageFaqs(slug: string): { q: string; a: string }[] {
   const page = getVs(slug);
@@ -75,6 +76,10 @@ export function renderConstructionTimesheetTemplateHtml(): string {
 
 export function renderBestConstructionTimeTrackingAppsHtml(): string {
   return renderToStaticMarkup(createElement(BestConstructionTimeTrackingAppsPage));
+}
+
+export function renderGuideHtml(): string {
+  return renderToStaticMarkup(createElement(GuidePage));
 }
 
 export function renderTradeHtml(slug: string): string {

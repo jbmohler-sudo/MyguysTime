@@ -5,7 +5,7 @@ import { APP_LOGIN_URL, MarketingFooter, MarketingHeader } from "./MarketingChro
 export const bestAppsFaqItems: { q: string; a: string }[] = [
   {
     q: "How do I track my time as a contractor?",
-    a: "Write it down the day you work it. Hours rebuilt at the end of the week are always a little off. A paper card, a spreadsheet or an app all work if somebody fills them in daily. With a crew, the easiest version is the foreman logging everyone's hours from the truck before he leaves the job.",
+    a: "Write it down the day you work it. Hours rebuilt at the end of the week are always a little off. A paper card, a spreadsheet or an app all work if somebody fills them in daily. With a crew, the easiest version is the foreman logging everyone's hours from the truck before he leaves the job. For the paper, spreadsheet, and app tradeoffs, see how contractors track crew hours.",
   },
   {
     q: "Is Clockify really free?",
@@ -26,6 +26,10 @@ export const bestAppsFaqItems: { q: string; a: string }[] = [
 ];
 
 const FAQ_LINKS: Record<string, { phrase: string; href: string }> = {
+  "How do I track my time as a contractor?": {
+    phrase: "how contractors track crew hours",
+    href: "/guides/how-contractors-track-crew-hours",
+  },
   "Which option costs the least?": {
     phrase: "what construction time tracking costs",
     href: "/construction-time-tracking-cost",

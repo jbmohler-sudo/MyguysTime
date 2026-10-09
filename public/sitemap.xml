@@ -64,6 +64,12 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <!-- Guide spoke under the construction time tracking pillar. -->
+  <url>
+    <loc>https://www.myguystime.com/guides/how-contractors-track-crew-hours</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <!-- Trade pages — prerendered static HTML. -->
   <url>
     <loc>https://www.myguystime.com/trades/roofing</loc>

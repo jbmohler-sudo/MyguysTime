@@ -388,7 +388,8 @@ export function ConstructionTimeTrackingPage() {
             <TextLink href="/templates/construction-timesheet-template">
               free printable construction timesheet template
             </TextLink>. If it isn't, here's <TextLink href="/vs/paper-timesheets">why paper time cards leak hours</TextLink> and{" "}
-            <TextLink href="/vs/spreadsheets">the Thursday spreadsheet problem</TextLink>.
+            <TextLink href="/vs/spreadsheets">the Thursday spreadsheet problem</TextLink>. For the longer look at the
+            tradeoffs, see <TextLink href="/guides/how-contractors-track-crew-hours">how contractors track crew hours</TextLink>.
           </p>
         </section>
 

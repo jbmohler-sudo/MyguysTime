@@ -14,6 +14,7 @@ import { ConstructionTimeTrackingPage } from "./components/ConstructionTimeTrack
 import { ConstructionTimeTrackingCostPage } from "./components/ConstructionTimeTrackingCostPage";
 import { ConstructionTimesheetTemplatePage } from "./components/ConstructionTimesheetTemplatePage";
 import { BestConstructionTimeTrackingAppsPage } from "./components/BestConstructionTimeTrackingAppsPage";
+import { GuidePage } from "./components/GuidePage";
 import { TradePage } from "./components/TradePage";
 import { VsPage } from "./components/VsPage";
 import { TRADES } from "./components/trades";
@@ -522,6 +523,7 @@ function AppContent() {
       "/construction-time-tracking-cost": <ConstructionTimeTrackingCostPage />,
       "/templates/construction-timesheet-template": <ConstructionTimesheetTemplatePage />,
       "/best-construction-time-tracking-apps": <BestConstructionTimeTrackingAppsPage />,
+      "/guides/how-contractors-track-crew-hours": <GuidePage />,
     };
     const marketingPage = marketingPageMap[cleanPath];
     if (marketingPage) {
