@@ -19,7 +19,12 @@
   `/best-construction-time-tracking-apps` (2026-10-08), and `/guides/how-contractors-track-crew-hours` (2026-10-09).
   Still not live: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
-- **Biggest open item:** Jeff's call on two Cursor branches (Open Questions). Optional later:
+- **In review (not on main):** `structure-fixes-2026-10` (44a8f58) has the 2026-10-08 structure
+  audit P0/P1 fixes. Unknown public URLs 404, breadcrumbs use real hubs, and the sitemap on that
+  branch is 24 URLs (demo routes removed). `/privacy` and `/terms` still have no page, so they 404
+  on that branch. Live `main` is unchanged until Jeff merges.
+- **Biggest open item:** Jeff's review of `structure-fixes-2026-10`, then the two older Cursor branches
+  (Open Questions). Optional later:
   Auth admin on `sb_secret_` (then disable legacy JWT), Neon→one Supabase DB.
 
 ## The Story So Far
@@ -48,6 +53,7 @@ Supabase; app rows moved to Neon.
 | (earlier) | All public tables use RLS; authenticated-only, no anon access | Security baseline for Supabase. |
 | 2026-09-25 | One shipping rule across all repos: a commit to `main` is a release; commit there only when build + tests pass and Jeff asked for it to go live, otherwise branch; pricing/billing/rules/security/deletions need Jeff's OK first (AGENTS.md) | Cloud agents (Muse) couldn't see rules kept in CLAUDE.md / `../` files; the local backup pushes any commit on `main`, so "commit but don't push" rules silently shipped; 13 failed production builds on 9/13–9/23 |
 | 2026-09-28 | Content-only marketing pages and sitemap may ship to `main` on a passing `npm run build` when `npm test` cannot run in this cloud environment (no local fixture DB or Supabase keys). Never point tests at real Neon or Supabase. | Jeff approved. Cloud agents have no fixture database, and the safety check blocks remote fixture mutation. |
+| 2026-10-09 | Unknown public URLs return HTTP 404 with a noindex page, not the homepage. Breadcrumbs use real hubs: trades, the template, best-apps, the cost page, and guides sit under `/construction-time-tracking`; all `/vs` pages sit under `/best-construction-time-tracking-apps`. Demo URLs stay linked and leave the sitemap. | Jeff approved the 2026-10-08 structure audit P0/P1. Folder URLs are not pages. | Approved; on `structure-fixes-2026-10`, not live until merge |
 
 ## System Map
 
@@ -83,6 +89,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-09 — Structure audit P0/P1 on a review branch (44a8f58)
+**Did:** On `structure-fixes-2026-10`, not `main`. Unknown public paths (`/vs`, `/trades`, `/guides`, `/templates`, `/privacy`, `/terms`, made-up URLs) are rewritten to a noindex 404; known marketing routes, `/trades/*`, `/vs/*`, the crew-hours guide, `/demo/*`, `/api/*`, and static files stay. App routes (`/login`, `/signup`, `/dashboard`, and the password and invite paths) still load the SPA on the app host. Breadcrumbs now have a URL on every crumb: trades, the template, best-apps, the cost page, and the guide sit under Construction Time Tracking; all seven `/vs` pages sit under Best Construction Time Tracking Apps, with visible crumbs plus BreadcrumbList on the trades and the three older `/vs` pages. Homepage uses `MarketingFooter`, which adds a Guides & tools column (cost page, template, best-apps, crew-hours guide). Homepage body links those three resources. The pillar links Workyard. Trade pages link the template, `/pricing`, and best-apps. `/vs` pages that had no body `/pricing` link get one. FAQPage JSON-LD on trades and the three older `/vs` pages matches the visible FAQs. Demo URLs left the sitemap (27 on `main` → 24 on this branch). `npm run build` passed. `npm test` did not run (`DATABASE_URL` unset; the fixture guard refused).
+**Decided:** Unknown public URLs 404. Breadcrumb parents are the real hubs, not folder names. Demo URLs stay out of the sitemap. (Decisions Log row.)
+**Killed:** nothing.
+**Deferred:** Claim-copy strings (multiple crews, export/CSV, payroll) stay until Jeff confirms them. Topic H1 rewrites, the homepage keyword retune, and the rest of the interlink matrix (P2 and the unlisted rows) were not in this pass. `/privacy` and `/terms` are still unwritten, so they 404.
+**State after:** Fixes are on `structure-fixes-2026-10` for review. Live `main` is still the 27-URL site.
+**Next:** Jeff reviews the PR. Do not merge until he says to ship.
+
 ### 2026-10-09 — How contractors track crew hours guide live (552541b)
 **Did:** Published `/guides/how-contractors-track-crew-hours` from the approved 2026-10-09 draft (Jeff's go-live OK). New `GuidePage` in the marketing chrome, wired in `marketingPageMap`, with the founder section, checklist, FAQ, and closing CTA. Visible breadcrumb is Home / Construction Time Tracking (`/construction-time-tracking`) / How Contractors Track Crew Hours (no Guides crumb). Prerender title `How Contractors Track Crew Hours: Paper, Sheet, or App`, the draft meta and OG description, self-canonical, plus Article (Jeff Mohler, Founder, datePublished 2026-10-09), FAQPage from the 5 FAQs, and BreadcrumbList. Sitemap is 27 URLs. Inbound links: pillar ("how contractors track crew hours"), `/vs/paper-timesheets` ("how contractors track crew hours: paper vs sheet vs app"), `/vs/spreadsheets` ("how other contractors track crew hours"), and best-apps FAQ 1 ("how contractors track crew hours"). Outbound links only to live pages, including the pillar with exact anchor "construction time tracking", paper, spreadsheets, the timesheet template (PDF or Excel), and the best-apps page. No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll-calculation claims. `npm run build` passed. Dist HTML: one H1, canonical `https://www.myguystime.com/guides/how-contractors-track-crew-hours`, `$12/month` intact.
 **Decided:** nothing new.
@@ -106,14 +120,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no local fixture database. The best-apps page stays unlinked until it is live.
 **State after:** `/vs/workyard` and `/vs/busybusy` are on `main`. Sitemap has 25 URLs.
 **Next:** Confirm the Vercel deploy is READY and the live Workyard page returns the prerendered HTML.
-
-### 2026-10-02 — Week one content live (23 URLs); week two five briefs ready (86a5555)
-**Did:** Week one (Mon–Fri) marketing pages are live and in the sitemap: construction time tracking pillar, ClockShark vs, cost hub, construction timesheet template (PDF+Excel), Connecteam vs. Live sitemap count **23** (matched repo). Friday SEO planning re-pulled keyword/SERP data, wrote five writer briefs for week two (busybusy vs, Workyard vs, QuickBooks CSV guide, best-apps listicle, how-contractors-track-hours guide), and updated the seo-desk publishing schedule. No code changes in this commit.
-**Decided:** nothing new in-repo. Week two slug for the QuickBooks guide is `/guides/crew-hours-quickbooks` (no -payroll in the URL).
-**Killed:** nothing.
-**Deferred:** Search Console sitemap resubmit (write scope not enabled on the connector). `npm test` still deferred in cloud when no fixture DB.
-**State after:** Marketing site at 23 sitemap URLs. Week two posts briefed for 2026-10-05–10-09; drafts not started in this repo.
-**Next:** Blogs drafts week two for Jeff review; enable GSC write or manually resubmit https://www.myguystime.com/sitemap.xml; ship week two only after Jeff's yes per post (content-only may use build-only when tests cannot run).
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
