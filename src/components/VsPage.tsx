@@ -2,11 +2,22 @@ import { AlertCircle, ArrowRight, CheckCircle2, ClipboardList, XCircle } from "l
 import {
   APP_LOGIN_URL,
   CtaBand,
+  MarketingBreadcrumb,
   MarketingFooter,
   MarketingHeader,
   PageHero,
 } from "./MarketingChrome";
 import { VS_PAGES, getVs, type VsConfig, type VsFaq, type VsTextPart } from "./vs";
+
+const LEGACY_VS = new Set(["paper-timesheets", "quickbooks-time", "spreadsheets"]);
+
+function vsConfigHasHref(value: unknown, href: string): boolean {
+  if (!value || typeof value !== "object") return false;
+  if (Array.isArray(value)) return value.some((item) => vsConfigHasHref(item, href));
+  return Object.values(value as Record<string, unknown>).some(
+    (item) => item === href || vsConfigHasHref(item, href),
+  );
+}
 
 function VsLinkedText({ parts }: { parts: VsTextPart[] }) {
   return (
@@ -72,11 +83,19 @@ export function VsPage({ slug }: { slug: string }) {
     );
   }
   const others = VS_PAGES.filter((v) => v.slug !== vs.slug);
+  const currentCrumb = LEGACY_VS.has(vs.slug) ? `${vs.name} vs My Guys Time` : vs.name;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <MarketingHeader />
       <main>
+        <MarketingBreadcrumb
+          items={[
+            { name: "Home", href: "/" },
+            { name: "Best Construction Time Tracking Apps", href: "/best-construction-time-tracking-apps" },
+            { name: currentCrumb },
+          ]}
+        />
         <PageHero
           eyebrow={`My Guys Time vs ${vs.name}`}
           title={vs.h1}
@@ -168,6 +187,13 @@ export function VsPage({ slug }: { slug: string }) {
               </div>
             ))}
           </div>
+          {!vsConfigHasHref(vs, "/pricing") && (
+            <p className="text-center text-slate-600 mt-8">
+              <a href="/pricing" className="text-orange-600 font-semibold hover:underline">
+                $12/month flat for the whole crew
+              </a>
+            </p>
+          )}
           {vs.compareCta && (
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
               <a

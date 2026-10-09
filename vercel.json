@@ -1,6 +1,24 @@
 {
   "rewrites": [
     { "source": "/api/stripe/webhook", "destination": "/api/billing/webhook" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/demo/admin", "destination": "/index.html" },
+    { "source": "/demo/foreman", "destination": "/index.html" },
+    { "source": "/demo/employee", "destination": "/index.html" },
+    {
+      "source": "/:appRoute(login|signup|forgot-password|reset-password|invite-signup|dashboard)",
+      "has": [{ "type": "host", "value": "app.myguystime.com" }],
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:appRoute(login|signup|forgot-password|reset-password|invite-signup|dashboard)",
+      "has": [{ "type": "host", "value": "myguystime.vercel.app" }],
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:appRoute(login|signup|forgot-password|reset-password|invite-signup|dashboard)",
+      "has": [{ "type": "host", "value": { "re": "\\.vercel\\.app$" } }],
+      "destination": "/index.html"
+    },
+    { "source": "/((?!api/).*)", "destination": "/api/not-found" }
   ]
 }

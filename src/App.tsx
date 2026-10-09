@@ -6,6 +6,7 @@ import { ViewProvider } from "./context/ViewContext";
 import { CompanySetupScreen } from "./components/CompanySetupScreen";
 import { BillingGate } from "./components/BillingGate";
 import { PublicHomepage } from "./components/PublicHomepage";
+import { NotFoundPage } from "./components/NotFoundPage";
 import { FeaturesPage } from "./components/FeaturesPage";
 import { PricingPage } from "./components/PricingPage";
 import { HowItWorksPage } from "./components/HowItWorksPage";
@@ -544,7 +545,11 @@ function AppContent() {
   }
 
   if (showPublicHomepage) {
-    return <PublicHomepage />;
+    const cleanPath = path.length > 1 ? path.replace(/\/+$/, "") : path;
+    if (cleanPath === "/") {
+      return <PublicHomepage />;
+    }
+    return <NotFoundPage />;
   }
 
   if (isInviteSignup) {

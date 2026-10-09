@@ -2,6 +2,14 @@
 
 > Older Session Log entries rolled out of [JOURNEY.md](JOURNEY.md). Newest of these first.
 
+### 2026-10-02 — Week one content live (23 URLs); week two five briefs ready (86a5555)
+**Did:** Week one (Mon–Fri) marketing pages are live and in the sitemap: construction time tracking pillar, ClockShark vs, cost hub, construction timesheet template (PDF+Excel), Connecteam vs. Live sitemap count **23** (matched repo). Friday SEO planning re-pulled keyword/SERP data, wrote five writer briefs for week two (busybusy vs, Workyard vs, QuickBooks CSV guide, best-apps listicle, how-contractors-track-hours guide), and updated the seo-desk publishing schedule. No code changes in this commit.
+**Decided:** nothing new in-repo. Week two slug for the QuickBooks guide is `/guides/crew-hours-quickbooks` (no -payroll in the URL).
+**Killed:** nothing.
+**Deferred:** Search Console sitemap resubmit (write scope not enabled on the connector). `npm test` still deferred in cloud when no fixture DB.
+**State after:** Marketing site at 23 sitemap URLs. Week two posts briefed for 2026-10-05–10-09; drafts not started in this repo.
+**Next:** Blogs drafts week two for Jeff review; enable GSC write or manually resubmit https://www.myguystime.com/sitemap.xml; ship week two only after Jeff's yes per post (content-only may use build-only when tests cannot run).
+
 ### 2026-10-02 — Connecteam comparison page live (9234ba5)
 **Did:** Published `/vs/connecteam` from the ship-ready Friday copy. Added the connecteam config in `vs.tsx` (answer block, fit block, 5 FAQs, pain cards, comparison table, flow, callout, pills, closing CTA) and optional hero and table button labels so the other comparison pages keep their existing buttons. Prerender title, meta, OG, and self-canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Connecteam. Sitemap is 23 URLs. Inbound links: footer Comparisons column, pills on the other `/vs` pages, the cost hub compare list, and the pillar free-plans line. `npm run build` passed. Dist HTML: title `Connecteam Pricing & Alternative for Crews | My Guys Time`, one H1, canonical `https://www.myguystime.com/vs/connecteam`, dollar amounts are only `$12`. Page copy has no CSV, export, breaks, or petty cash. Same day, the "Is Connecteam worth it?" answer now reads "If you have 10 or fewer people," matching Connecteam's "free for up to 10 users" in the visible FAQ and the FAQPage JSON-LD (68f29df). `npm run build` passed; dist HTML contains that sentence in both places.
 **Decided:** nothing new.

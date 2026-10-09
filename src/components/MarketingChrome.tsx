@@ -45,11 +45,40 @@ export function MarketingHeader() {
   );
 }
 
+export function MarketingBreadcrumb({
+  items,
+  widthClass = "max-w-3xl",
+}: {
+  items: { name: string; href?: string }[];
+  widthClass?: string;
+}) {
+  return (
+    <nav aria-label="Breadcrumb" className={`${widthClass} mx-auto px-6 pt-8 text-sm text-slate-500`}>
+      {items.map((item, index) => (
+        <span key={`${item.name}-${index}`}>
+          {index > 0 ? (
+            <span className="mx-2" aria-hidden="true">
+              /
+            </span>
+          ) : null}
+          {item.href ? (
+            <a href={item.href} className="hover:text-orange-600">
+              {item.name}
+            </a>
+          ) : (
+            <span className="text-slate-700">{item.name}</span>
+          )}
+        </span>
+      ))}
+    </nav>
+  );
+}
+
 export function MarketingFooter() {
   return (
     <footer className="border-t border-slate-200 bg-slate-50 mt-20">
       <div className="max-w-6xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-12 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-12 mb-12">
           <div>
             <div className="flex items-center gap-2 mb-6">
               <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
@@ -101,6 +130,15 @@ export function MarketingFooter() {
               <li><a href="/vs/busybusy" className="hover:text-orange-500 transition-colors">vs BusyBusy</a></li>
               <li><a href="/vs/workyard" className="hover:text-orange-500 transition-colors">vs Workyard</a></li>
               <li><a href="/best-construction-time-tracking-apps" className="hover:text-orange-500 transition-colors">Best apps for small crews</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-4">Guides & tools</h4>
+            <ul className="space-y-2 text-sm text-slate-600">
+              <li><a href="/construction-time-tracking-cost" className="hover:text-orange-500 transition-colors">What crew time apps cost</a></li>
+              <li><a href="/templates/construction-timesheet-template" className="hover:text-orange-500 transition-colors">Free timesheet template</a></li>
+              <li><a href="/best-construction-time-tracking-apps" className="hover:text-orange-500 transition-colors">Best apps for small crews</a></li>
+              <li><a href="/guides/how-contractors-track-crew-hours" className="hover:text-orange-500 transition-colors">How contractors track crew hours</a></li>
             </ul>
           </div>
           <div>

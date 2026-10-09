@@ -33,6 +33,31 @@ if (!fs.existsSync(ssrEntryPath)) {
 
 const canonicalHost = "https://www.myguystime.com";
 
+function breadcrumbLd(crumbs) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: crumbs.map((crumb, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: crumb.name,
+      item: canonicalHost + crumb.path,
+    })),
+  };
+}
+
+function faqPageLdFrom(items) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  };
+}
+
 let ssr;
 try {
   ssr = await import(url.pathToFileURL(ssrEntryPath).href);
@@ -175,6 +200,13 @@ const pages = [
       "One price. The whole crew.",
       "Asked by contractors, answered straight",
       "Do I pay per employee?",
+      "compare crew time tracking apps",
+      "what crew time tracking apps cost",
+      "free construction timesheet template",
+      'href="/pricing"',
+      "What crew time apps cost",
+      "How contractors track crew hours",
+      "vs Workyard",
     ],
   ],
   [
@@ -248,6 +280,8 @@ const pages = [
       "$12/mo",
       "how contractors track crew hours",
       "/guides/how-contractors-track-crew-hours",
+      "per-user GPS pricing",
+      "/vs/workyard",
     ],
   ],
 ];
@@ -278,18 +312,39 @@ const tradePages = [
 ];
 
 for (const [slug, trade, title, description, h1] of tradePages) {
+  const tradeFaqs = typeof ssr.tradePageFaqs === "function" ? ssr.tradePageFaqs(slug) : [];
+  if (!Array.isArray(tradeFaqs) || tradeFaqs.length !== 3) {
+    console.error(`[prerender] ${slug} trade FAQ array missing or not 3 items — refusing to ship drifted JSON-LD.`);
+    process.exit(1);
+  }
+  const tradeRoute = `/trades/${slug}`;
   pages.push([
-    `/trades/${slug}`,
+    tradeRoute,
     `trades/${slug}/index.html`,
     () => ssr.renderTradeHtml(slug),
     title,
     description,
     [
       ["ld-softwareapplication", softwareApplicationLd],
+      ["ld-faqpage", faqPageLdFrom(tradeFaqs)],
+      ["ld-breadcrumb", breadcrumbLd([
+        { name: "Home", path: "/" },
+        { name: "Construction Time Tracking", path: constructionRoute },
+        { name: `${trade} Time Tracking`, path: tradeRoute },
+      ])],
       ["ld-organization", organizationLd],
       ["ld-website", websiteLd],
     ],
-    [h1, `For ${trade === "General Contracting" ? "GC crews" : trade.toLowerCase() + " crews"}`],
+    [
+      h1,
+      `For ${trade === "General Contracting" ? "GC crews" : trade.toLowerCase() + " crews"}`,
+      `${trade} Time Tracking`,
+      "free printable construction timesheet template",
+      "$12/month flat for the whole crew",
+      "compare crew time tracking apps",
+      tradeFaqs[0].q,
+      tradeFaqs[0].a,
+    ],
   ]);
 }
 // Comparison pages — [slug, name, page title, meta description, H1 snippet]
@@ -306,20 +361,38 @@ const vsPages = [
 ];
 
 for (const [slug, name, title, description, h1] of vsPages) {
+  const legacyFaqs = typeof ssr.vsPageFaqs === "function" ? ssr.vsPageFaqs(slug) : [];
+  if (!Array.isArray(legacyFaqs) || legacyFaqs.length !== 3) {
+    console.error(`[prerender] ${slug} FAQ array missing or not 3 items — refusing to ship drifted JSON-LD.`);
+    process.exit(1);
+  }
+  const vsRoute = `/vs/${slug}`;
+  const currentCrumb = `${name} vs My Guys Time`;
   pages.push([
-    `/vs/${slug}`,
+    vsRoute,
     `vs/${slug}/index.html`,
     () => ssr.renderVsHtml(slug),
     title,
     description,
     [
       ["ld-softwareapplication", softwareApplicationLd],
+      ["ld-faqpage", faqPageLdFrom(legacyFaqs)],
+      ["ld-breadcrumb", breadcrumbLd([
+        { name: "Home", path: "/" },
+        { name: "Best Construction Time Tracking Apps", path: "/best-construction-time-tracking-apps" },
+        { name: currentCrumb, path: vsRoute },
+      ])],
       ["ld-organization", organizationLd],
       ["ld-website", websiteLd],
     ],
     [
       h1,
       `My Guys Time vs ${name}`,
+      currentCrumb,
+      "Best Construction Time Tracking Apps",
+      "$12/month flat for the whole crew",
+      legacyFaqs[0].q,
+      legacyFaqs[0].a,
       ...(slug === "paper-timesheets" ? ["how contractors track crew hours: paper vs sheet vs app"] : []),
       ...(slug === "spreadsheets" ? ["how other contractors track crew hours"] : []),
     ],
@@ -379,7 +452,8 @@ const clocksharkBreadcrumbLd = {
     {
       "@type": "ListItem",
       position: 2,
-      name: "Comparisons",
+      name: "Best Construction Time Tracking Apps",
+      item: canonicalHost + "/best-construction-time-tracking-apps",
     },
     {
       "@type": "ListItem",
@@ -463,7 +537,8 @@ const connecteamBreadcrumbLd = {
     {
       "@type": "ListItem",
       position: 2,
-      name: "Comparisons",
+      name: "Best Construction Time Tracking Apps",
+      item: canonicalHost + "/best-construction-time-tracking-apps",
     },
     {
       "@type": "ListItem",
@@ -493,6 +568,8 @@ pages.push([
     "free for up to 10 users",
     "https://connecteam.com/pricing/",
     "$12",
+    "Best Construction Time Tracking Apps",
+    "$12/month flat for the whole crew",
   ],
 ]);
 
@@ -549,7 +626,8 @@ const busybusyBreadcrumbLd = {
     {
       "@type": "ListItem",
       position: 2,
-      name: "Comparisons",
+      name: "Best Construction Time Tracking Apps",
+      item: canonicalHost + "/best-construction-time-tracking-apps",
     },
     {
       "@type": "ListItem",
@@ -634,7 +712,8 @@ const workyardBreadcrumbLd = {
     {
       "@type": "ListItem",
       position: 2,
-      name: "Comparisons",
+      name: "Best Construction Time Tracking Apps",
+      item: canonicalHost + "/best-construction-time-tracking-apps",
     },
     {
       "@type": "ListItem",
@@ -665,6 +744,8 @@ pages.push([
     "No GPS, by choice",
     "best time tracking apps for small construction crews",
     "$12/mo",
+    "Best Construction Time Tracking Apps",
+    "$12/month flat for the whole crew",
   ],
 ]);
 
@@ -724,6 +805,12 @@ const costBreadcrumbLd = {
     {
       "@type": "ListItem",
       position: 2,
+      name: "Construction Time Tracking",
+      item: canonicalHost + constructionRoute,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
       name: "Construction Time Tracking Cost",
       item: canonicalHost + costRoute,
     },
@@ -808,7 +895,8 @@ const templateBreadcrumbLd = {
     {
       "@type": "ListItem",
       position: 2,
-      name: "Templates",
+      name: "Construction Time Tracking",
+      item: canonicalHost + constructionRoute,
     },
     {
       "@type": "ListItem",
@@ -924,7 +1012,8 @@ const bestAppsBreadcrumbLd = {
     {
       "@type": "ListItem",
       position: 2,
-      name: "Comparisons",
+      name: "Construction Time Tracking",
+      item: canonicalHost + constructionRoute,
     },
     {
       "@type": "ListItem",
@@ -1349,11 +1438,45 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
       console.error(`[prerender] JSON-LD block #${id} missing from ${routePath} output.`);
       process.exit(1);
     }
+    let parsed;
     try {
-      JSON.parse(match[1]);
+      parsed = JSON.parse(match[1]);
     } catch (error) {
       console.error(`[prerender] JSON-LD block #${id} does not parse on ${routePath}:`, error.message);
       process.exit(1);
+    }
+    if (id === "ld-breadcrumb") {
+      const crumbs = parsed.itemListElement || [];
+      for (const crumb of crumbs) {
+        if (!crumb.item || !crumb.name) {
+          console.error(`[prerender] ${routePath} breadcrumb crumb is missing a name or URL.`, crumb);
+          process.exit(1);
+        }
+        if (crumb.name === "Comparisons" || crumb.name === "Templates" || crumb.name === "Guides") {
+          console.error(`[prerender] ${routePath} breadcrumb still uses a folder name with no page: ${crumb.name}`);
+          process.exit(1);
+        }
+      }
+    }
+    if (id === "ld-faqpage") {
+      const questions = parsed.mainEntity || [];
+      if (questions.length === 0) {
+        console.error(`[prerender] ${routePath} FAQPage has no questions.`);
+        process.exit(1);
+      }
+      const visible = finalHtml
+        .replace(/&#x27;|&#39;|&apos;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&amp;/g, "&");
+      for (const question of questions) {
+        const answer = question.acceptedAnswer && question.acceptedAnswer.text;
+        if (!question.name || !answer || !visible.includes(question.name) || !visible.includes(answer)) {
+          console.error(`[prerender] ${routePath} FAQPage does not match visible FAQ text:`, question.name);
+          process.exit(1);
+        }
+      }
     }
   }
 
@@ -1362,3 +1485,28 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
   fs.writeFileSync(outPath, finalHtml);
   console.log(`[prerender] ${routePath} -> dist/${outFile} (${finalHtml.length} chars).`);
 }
+
+const notFoundHtml = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Page not found | My Guys Time</title>
+  </head>
+  <body>
+    <main>
+      <p>404</p>
+      <h1>Page not found</h1>
+      <p>That page is not on this site.</p>
+      <p><a href="/">Back to the homepage</a></p>
+    </main>
+  </body>
+</html>
+`;
+if (!notFoundHtml.includes('content="noindex"') || notFoundHtml.includes("Thursday-at-5pm") || notFoundHtml.includes('rel="canonical"')) {
+  console.error("[prerender] 404.html failed the noindex / not-the-homepage check.");
+  process.exit(1);
+}
+fs.writeFileSync(path.join(distDir, "404.html"), notFoundHtml);
+console.log("[prerender] 404 -> dist/404.html");
