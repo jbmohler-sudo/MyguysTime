@@ -2,6 +2,7 @@ import { AlertCircle, ArrowRight, CheckCircle2, ClipboardList } from "lucide-rea
 import {
   APP_LOGIN_URL,
   CtaBand,
+  MarketingBreadcrumb,
   MarketingFooter,
   MarketingHeader,
   PageHero,
@@ -36,6 +37,13 @@ export function TradePage({ slug }: { slug: string }) {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <MarketingHeader />
       <main>
+        <MarketingBreadcrumb
+          items={[
+            { name: "Home", href: "/" },
+            { name: "Construction Time Tracking", href: "/construction-time-tracking" },
+            { name: `${trade.trade} Time Tracking` },
+          ]}
+        />
         <PageHero
           eyebrow={`For ${trade.plural}`}
           title={trade.h1}
@@ -76,7 +84,14 @@ export function TradePage({ slug }: { slug: string }) {
             Where {trade.trade.toLowerCase()} hours go missing
           </h2>
           <p className="text-slate-600 text-center mb-10 max-w-2xl mx-auto">
-            If any of these sound like your week, your time cards are leaking.
+            If any of these sound like your week, your time cards are leaking. See the{" "}
+            <a
+              href="/templates/construction-timesheet-template"
+              className="text-orange-600 font-semibold hover:underline"
+            >
+              free printable construction timesheet template
+            </a>
+            .
           </p>
           <div className="grid md:grid-cols-2 gap-6">
             {trade.pains.map((p) => (
@@ -143,6 +158,14 @@ export function TradePage({ slug }: { slug: string }) {
             ))}
           </div>
           <div className="text-center mt-8">
+            <a
+              href="/best-construction-time-tracking-apps"
+              className="text-orange-600 font-semibold hover:underline"
+            >
+              compare crew time tracking apps
+            </a>
+          </div>
+          <div className="text-center mt-8">
             <a href="/faq" className="text-orange-600 hover:underline font-medium inline-flex items-center gap-1">
               <ClipboardList className="w-4 h-4" /> All frequently asked questions <ArrowRight className="w-4 h-4" />
             </a>
@@ -165,6 +188,11 @@ export function TradePage({ slug }: { slug: string }) {
           </div>
         </section>
 
+        <p className="text-center mt-16">
+          <a href="/pricing" className="text-orange-600 font-semibold hover:underline">
+            $12/month flat for the whole crew
+          </a>
+        </p>
         <CtaBand
           heading={`Run a ${trade.trade.toLowerCase()} crew? Try it free for 7 days.`}
           sub="One flat price. The whole crew. Cancel anytime."
