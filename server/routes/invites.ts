@@ -72,6 +72,18 @@ router.post("/company/invites", authenticate, asyncHandler(async (req: Authentic
     return;
   }
 
+  const requestedCrewId = typeof crewId === "string" && crewId.trim() ? crewId.trim() : null;
+  if (requestedCrewId) {
+    const crewInCompany = await prisma.crew.findFirst({
+      where: { id: requestedCrewId, companyId: req.auth!.companyId },
+      select: { id: true },
+    });
+    if (!crewInCompany) {
+      res.status(400).json({ error: "Select a valid crew for this company." });
+      return;
+    }
+  }
+
   let employee:
     | (Awaited<ReturnType<typeof prisma.employee.findFirst>> & { user: { id: string } | null })
     | null = null;
@@ -165,7 +177,7 @@ router.post("/company/invites", authenticate, asyncHandler(async (req: Authentic
   if (!finalEmployeeId) {
     const emailLocalPart = normalizedEmail.split("@")[0] || "Worker";
     const hourlyRateCents = hourlyRate && Number.isFinite(hourlyRate) && hourlyRate > 0 ? Math.round(hourlyRate * 100) : 2500;
-    const cleanCrewId = crewId?.trim() || null;
+    const cleanCrewId = requestedCrewId;
 
     const companySettings = await prisma.companyPayrollSettings.findUnique({
       where: { companyId: req.auth!.companyId }

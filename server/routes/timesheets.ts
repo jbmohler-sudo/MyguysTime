@@ -138,7 +138,11 @@ router.post("/crews/:crewId/defaults", authenticate, asyncHandler(async (req: Au
   const weekDate = parseWeekStart(weekStart);
   const accessibleCrewIds = await getAccessibleCrewIds(req.auth!.userId, req.auth!.role, req.auth!.companyId);
   const crewId = getParam(req.params.crewId);
-  if (req.auth!.role === "FOREMAN" && !accessibleCrewIds?.includes(crewId)) {
+  const crewInCompany = await prisma.crew.findFirst({
+    where: { id: crewId, companyId: req.auth!.companyId },
+    select: { id: true },
+  });
+  if (!crewInCompany || (req.auth!.role === "FOREMAN" && !accessibleCrewIds?.includes(crewId))) {
     res.status(403).json({ error: "You cannot manage this crew." });
     return;
   }

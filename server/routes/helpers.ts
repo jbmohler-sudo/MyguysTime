@@ -390,8 +390,14 @@ export async function getAccessibleCrewIds(userId: string, role: UserRole, compa
   }
 
   if (role === "FOREMAN") {
+    const employeeId = await getEmployeeIdForUser(userId);
+    // Without a linked worker record this login leads no crew. Querying with
+    // foremanId: null would match every crew that has no chief.
+    if (!employeeId) {
+      return [];
+    }
     const crews = await prisma.crew.findMany({
-      where: { companyId: companyId, foremanId: await getEmployeeIdForUser(userId) },
+      where: { companyId: companyId, foremanId: employeeId },
       select: { id: true },
     });
 
@@ -520,6 +526,11 @@ export async function getAuthorizedTimesheet(req: AuthenticatedRequest, timeshee
   });
 
   if (!timesheet) {
+    return null;
+  }
+
+  // Tenant fence: a timesheet is only ever visible inside its own company.
+  if (timesheet.employee.companyId !== auth.companyId) {
     return null;
   }
 
