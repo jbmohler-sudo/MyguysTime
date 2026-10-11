@@ -105,7 +105,7 @@ await runCase("employee cannot view private reports", async () => {
   }
 });
 
-await runCase("employee cannot export payroll", async () => {
+await runCase("payroll export route stays removed", async () => {
   const app = await bootApp();
   try {
     const token = await app.login("marco@crewtime.local", "employee123");
@@ -113,7 +113,8 @@ await runCase("employee cannot export payroll", async () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    assert.equal(response.status, 403);
+    // The payroll engine and its exports were removed; nobody can reach this route.
+    assert.equal(response.status, 404);
   } finally {
     await app.shutdown();
   }
