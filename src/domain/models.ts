@@ -31,9 +31,41 @@ export interface CrewDayDefault {
 export interface CrewSummary {
   id: string;
   name: string;
+  foremanEmployeeId?: string | null;
   foremanName: string;
   dayDefaults: CrewDayDefault[];
 }
+
+// Office Crews screen (GET/POST/PATCH/DELETE /api/crews).
+export interface CrewRosterWorker {
+  employeeId: string;
+  displayName: string;
+  workerType: "employee" | "1099";
+  crewId: string | null;
+  hasLogin: boolean;
+  loginRole: "admin" | "foreman" | "employee" | null;
+}
+
+export interface CrewRosterCrew {
+  id: string;
+  name: string;
+  chiefEmployeeId: string | null;
+  chiefName: string | null;
+  memberIds: string[];
+}
+
+export interface CrewRoster {
+  crews: CrewRosterCrew[];
+  workers: CrewRosterWorker[];
+}
+
+export type CrewOperation =
+  | { type: "list" }
+  | { type: "create"; name: string; chiefEmployeeId?: string | null }
+  | { type: "update"; crewId: string; name?: string; chiefEmployeeId?: string | null }
+  | { type: "remove"; crewId: string }
+  | { type: "moveMember"; crewId: string; employeeId: string }
+  | { type: "unassignMember"; crewId: string; employeeId: string };
 
 export interface DayEntry {
   id: string;

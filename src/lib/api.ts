@@ -3,6 +3,8 @@ import type {
   BootstrapPayload,
   CompanyOnboardingInput,
   CompanySettingsSummary,
+  CrewOperation,
+  CrewRoster,
   EmployeeInput,
   ExpenseSubmissionInput,
   InviteInput,
@@ -339,4 +341,45 @@ export async function syncBillingSubscription(token: string) {
     { method: "POST" },
     token,
   );
+}
+
+// Office crew management. Every call returns the full crew roster.
+export async function manageCrews(token: string, operation: CrewOperation) {
+  switch (operation.type) {
+    case "list":
+      return request<CrewRoster>("/crews", {}, token);
+    case "create":
+      return request<CrewRoster>(
+        "/crews",
+        {
+          method: "POST",
+          body: JSON.stringify({ name: operation.name, chiefEmployeeId: operation.chiefEmployeeId ?? null }),
+        },
+        token,
+      );
+    case "update": {
+      const body: Record<string, unknown> = {};
+      if (operation.name !== undefined) body.name = operation.name;
+      if (operation.chiefEmployeeId !== undefined) body.chiefEmployeeId = operation.chiefEmployeeId;
+      return request<CrewRoster>(
+        `/crews/${encodeURIComponent(operation.crewId)}`,
+        { method: "PATCH", body: JSON.stringify(body) },
+        token,
+      );
+    }
+    case "remove":
+      return request<CrewRoster>(`/crews/${encodeURIComponent(operation.crewId)}`, { method: "DELETE" }, token);
+    case "moveMember":
+      return request<CrewRoster>(
+        `/crews/${encodeURIComponent(operation.crewId)}/members/${encodeURIComponent(operation.employeeId)}`,
+        { method: "PUT" },
+        token,
+      );
+    case "unassignMember":
+      return request<CrewRoster>(
+        `/crews/${encodeURIComponent(operation.crewId)}/members/${encodeURIComponent(operation.employeeId)}`,
+        { method: "DELETE" },
+        token,
+      );
+  }
 }

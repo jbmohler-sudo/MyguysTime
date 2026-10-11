@@ -359,6 +359,32 @@ router.post("/auth/accept-invite", asyncHandler(async (req, res) => {
       },
     });
 
+    // Invited as foreman: he becomes chief of his crew if that crew has none yet.
+    // The office can change crew chiefs any time from the Crews screen.
+    if (invite.role === "FOREMAN" && invite.employeeId) {
+      const invitedEmployee = await prisma.employee.findUnique({
+        where: { id: invite.employeeId },
+        select: { defaultCrewId: true },
+      });
+      if (invitedEmployee?.defaultCrewId) {
+        await prisma.crew.updateMany({
+          where: { id: invitedEmployee.defaultCrewId, companyId: invite.companyId, foremanId: null },
+          data: { foremanId: invite.employeeId },
+        });
+      }
+    }
+
+    // Already picked as a crew chief before he had a login: he gets foreman access
+    // whatever role the invite carried. (Admin logins are left alone.)
+    if (invite.employeeId && user.role === "EMPLOYEE") {
+      const crewsLed = await prisma.crew.count({
+        where: { companyId: invite.companyId, foremanId: invite.employeeId },
+      });
+      if (crewsLed > 0) {
+        user = await prisma.user.update({ where: { id: user.id }, data: { role: "FOREMAN" } });
+      }
+    }
+
     posthog?.capture({
       distinctId: user.id,
       event: "invite_accepted",

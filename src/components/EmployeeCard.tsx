@@ -398,7 +398,8 @@ export function EmployeeCard({
   }
   const canFlagRevision =
     uiMode === "office" &&
-    (effectiveViewer.role === "admin" || effectiveViewer.role === "foreman") &&
+    (effectiveViewer.role === "admin" ||
+      (effectiveViewer.role === "foreman" && effectiveViewer.employeeId !== employeeWeek.employeeId)) &&
     employeeWeek.status !== "office_locked" &&
     employeeWeek.status !== "needs_revision";
   const canCaptureExpense =
@@ -407,13 +408,17 @@ export function EmployeeCard({
     employeeWeek.status !== "office_locked";
 
   let workflowMessage = "Review each day, then move the week forward when everything looks right.";
-  if (effectiveViewer.role === "employee") {
+  const viewingOwnWeekAsChief =
+    effectiveViewer.role === "foreman" && effectiveViewer.employeeId === employeeWeek.employeeId;
+  if (effectiveViewer.role === "employee" || viewingOwnWeekAsChief) {
     workflowMessage =
       employeeWeek.status === "office_locked"
         ? "This week is office locked and read-only."
         : employeeWeek.status === "needs_revision"
           ? "This week was flagged for revision. Update your hours and submit it again."
-        : "Confirm your daily hours, then submit the week when everything is correct.";
+        : viewingOwnWeekAsChief
+          ? "This is your own week. Confirm your hours and the office approves it."
+          : "Confirm your daily hours, then submit the week when everything is correct.";
   } else if (effectiveViewer.role === "foreman") {
     workflowMessage =
       employeeWeek.status === "office_locked"
@@ -570,7 +575,7 @@ export function EmployeeCard({
                     Confirm week
                   </button>
                 ) : null}
-                {canApproveWeek(effectiveViewer.role, employeeWeek) ? (
+                {canApproveWeek(effectiveViewer.role, employeeWeek, effectiveViewer.employeeId) ? (
                   <>
                     <button
                       className="button-strong"
@@ -614,7 +619,7 @@ export function EmployeeCard({
       ) : (
         <>
           <div className="truck-week-actions">
-            {effectiveViewer.role === "employee" && canConfirmWeek(effectiveViewer.role, effectiveViewer.employeeId, employeeWeek) ? (
+            {canConfirmWeek(effectiveViewer.role, effectiveViewer.employeeId, employeeWeek) ? (
               <button
                 className="button-strong"
                 onClick={() => void onStatusChange(employeeWeek.id, "employee_confirmed")}
@@ -623,7 +628,7 @@ export function EmployeeCard({
                 Confirm
               </button>
             ) : null}
-            {effectiveViewer.role === "foreman" && canApproveWeek(effectiveViewer.role, employeeWeek) ? (
+            {effectiveViewer.role === "foreman" && canApproveWeek(effectiveViewer.role, employeeWeek, effectiveViewer.employeeId) ? (
               <button
                 className="button-strong"
                 onClick={() => void onStatusChange(employeeWeek.id, "foreman_approved")}

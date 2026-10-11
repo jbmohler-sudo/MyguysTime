@@ -11,6 +11,7 @@ import { companyRouter } from "./routes/company.js";
 import { employeesRouter } from "./routes/employees.js";
 import { invitesRouter } from "./routes/invites.js";
 import { timesheetsRouter } from "./routes/timesheets.js";
+import { crewsRouter } from "./routes/crews.js";
 import { reportsRouter } from "./routes/reports.js";
 import { billingRouter } from "./routes/billing.js";
 import { isOriginAllowed } from "./publicUrl.js";
@@ -37,6 +38,7 @@ app.use("/api", companyRouter);
 app.use("/api", employeesRouter);
 app.use("/api", invitesRouter);
 app.use("/api", timesheetsRouter);
+app.use("/api", crewsRouter);
 app.use("/api", reportsRouter);
 app.use("/api", billingRouter);
 

@@ -41,6 +41,7 @@ import {
   fetchBootstrap,
   listEmployees,
   listInvites,
+  manageCrews,
   removeEmployee,
   resendInvite,
   revokeInvite,
@@ -53,7 +54,7 @@ import {
   updateMe,
   updateTimesheetStatus,
 } from "./lib/api";
-import type { EmployeeInput, InviteInput } from "./domain/models";
+import type { CrewOperation, EmployeeInput, InviteInput } from "./domain/models";
 import type { ExpenseSubmissionInput } from "./domain/models";
 import { getCurrentHostname, isPublicHomepageHost } from "./lib/host";
 import {
@@ -457,6 +458,22 @@ function AppContent() {
     return removeEmployee(token, employeeId);
   }
 
+  async function handleManageCrews(operation: CrewOperation) {
+    if (!token) throw new Error("Not authenticated");
+    const roster = await manageCrews(token, operation);
+    if (operation.type !== "list") {
+      // Crew changes reshape the board, crew pickers, and who sees which weeks.
+      // Refresh quietly: loadApp() shows the full-screen loader, which would
+      // drop the office back on the dashboard mid-edit.
+      try {
+        setData(await fetchBootstrap(token, data?.weekStart));
+      } catch (refreshError) {
+        console.error("Crew saved, but board refresh failed.", refreshError);
+      }
+    }
+    return roster;
+  }
+
   async function handleListInvites() {
     if (!token) return [];
     const response = await listInvites(token);
@@ -682,6 +699,7 @@ function AppContent() {
         onUpdateEmployee={handleUpdateEmployee}
         onRemoveEmployee={handleRemoveEmployee}
         onListInvites={handleListInvites}
+        onManageCrews={handleManageCrews}
         onCreateInvite={handleCreateInvite}
         onResendInvite={handleResendInvite}
         onRevokeInvite={handleRevokeInvite}

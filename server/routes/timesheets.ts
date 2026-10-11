@@ -42,8 +42,10 @@ router.patch("/timesheets/:timesheetId/days/:dayEntryId", authenticate, asyncHan
   }
 
   const user = await getCurrentUserOrThrow(req.auth!.userId);
+  // A crew chief editing his own week follows the same rules as any worker.
+  const editingOwnWeekAsChief = req.auth!.role === "FOREMAN" && user.employeeId === timesheet.employeeId;
   if (
-    req.auth!.role === "EMPLOYEE" &&
+    (req.auth!.role === "EMPLOYEE" || editingOwnWeekAsChief) &&
     (user.employeeId !== timesheet.employeeId ||
       !canEmployeeEditStatus(asTimesheetStatus(timesheet.status)))
   ) {
@@ -464,7 +466,7 @@ router.patch("/timesheets/:timesheetId/status", authenticate, asyncHandler(async
   const user = await getCurrentUserOrThrow(auth.userId);
 
   if (nextStatus === "EMPLOYEE_CONFIRMED") {
-    if (auth.role !== "EMPLOYEE" || user.employeeId !== timesheet.employeeId) {
+    if (!["EMPLOYEE", "FOREMAN"].includes(auth.role) || !user.employeeId || user.employeeId !== timesheet.employeeId) {
       res.status(403).json({ error: "Only the employee can confirm their own week." });
       return;
     }
@@ -506,6 +508,10 @@ router.patch("/timesheets/:timesheetId/status", authenticate, asyncHandler(async
       return;
     }
     if (auth.role === "FOREMAN") {
+      if (user.employeeId === timesheet.employeeId) {
+        res.status(403).json({ error: "The office reviews a crew chief's own week." });
+        return;
+      }
       const crewIds = await getAccessibleCrewIds(auth.userId, auth.role, auth.companyId);
       if (!crewIds?.includes(timesheet.crewId)) {
         res.status(403).json({ error: "Foremen can only flag assigned crew weeks for revision." });
@@ -539,6 +545,10 @@ router.patch("/timesheets/:timesheetId/status", authenticate, asyncHandler(async
       return;
     }
     if (auth.role === "FOREMAN") {
+      if (user.employeeId === timesheet.employeeId) {
+        res.status(403).json({ error: "The office approves a crew chief's own week." });
+        return;
+      }
       const crewIds = await getAccessibleCrewIds(auth.userId, auth.role, auth.companyId);
       if (!crewIds?.includes(timesheet.crewId)) {
         res.status(403).json({ error: "Foremen can only approve assigned crew weeks." });

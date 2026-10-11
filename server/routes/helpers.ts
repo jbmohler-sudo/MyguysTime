@@ -261,6 +261,92 @@ export async function getCompanyCrewOrThrow(companyId: string, crewId: string) {
   return crew;
 }
 
+// Weeks still in the worker's or crew chief's hands. Approved and locked weeks stay
+// with the crew that approved them.
+const CREW_MOVABLE_WEEK_STATUSES = ["DRAFT", "NEEDS_REVISION", "EMPLOYEE_CONFIRMED"];
+
+/**
+ * When a worker changes crews, his open weeks (this week and later, not yet approved
+ * or locked) follow him so the new crew chief reviews them. Past weeks stay put: those
+ * hours were worked under the old crew chief.
+ */
+export async function carryOpenWeeksToCrew(employeeId: string, crewId: string | null) {
+  if (!crewId) {
+    return 0;
+  }
+
+  const result = await prisma.timesheetWeek.updateMany({
+    where: {
+      employeeId,
+      crewId: { not: crewId },
+      weekStartDate: { gte: parseWeekStart(undefined) },
+      status: { in: CREW_MOVABLE_WEEK_STATUSES },
+    },
+    data: { crewId },
+  });
+
+  return result.count;
+}
+
+/**
+ * Puts an active worker on a crew (or takes him off all crews with crewId = null).
+ * Caller must have checked admin access. Returns null when the worker or crew is not
+ * in this company.
+ */
+export async function moveEmployeeToCrew(companyId: string, employeeId: string, crewId: string | null) {
+  const employee = await prisma.employee.findFirst({
+    where: { id: employeeId, companyId, employmentStatus: "ACTIVE" },
+    select: { id: true },
+  });
+  if (!employee) {
+    return null;
+  }
+
+  if (crewId) {
+    const crew = await prisma.crew.findFirst({ where: { id: crewId, companyId }, select: { id: true } });
+    if (!crew) {
+      return null;
+    }
+  }
+
+  await prisma.employee.update({
+    where: { id: employee.id },
+    data: { defaultCrewId: crewId },
+  });
+  const movedWeeks = await carryOpenWeeksToCrew(employee.id, crewId);
+  if (crewId) {
+    // Creates this week's timesheet if he had none (e.g. he was unassigned).
+    await refreshEmployeeCurrentWeek(employee.id, companyId);
+  }
+
+  return { movedWeeks };
+}
+
+/**
+ * Crew chief = foreman login. Leading at least one crew makes a worker's login FOREMAN;
+ * leading none puts it back to EMPLOYEE. Office (ADMIN) logins are never changed.
+ * Workers without a login are skipped; invite acceptance handles them.
+ */
+export async function syncCrewChiefRole(companyId: string, employeeId: string | null | undefined) {
+  if (!employeeId) {
+    return;
+  }
+
+  const user = await prisma.user.findFirst({
+    where: { companyId, employeeId },
+    select: { id: true, role: true },
+  });
+  if (!user || user.role === "ADMIN") {
+    return;
+  }
+
+  const crewsLed = await prisma.crew.count({ where: { companyId, foremanId: employeeId } });
+  const nextRole = crewsLed > 0 ? "FOREMAN" : "EMPLOYEE";
+  if (user.role !== nextRole) {
+    await prisma.user.update({ where: { id: user.id }, data: { role: nextRole } });
+  }
+}
+
 export async function refreshEmployeeCurrentWeek(employeeId: string, companyId: string) {
   const currentWeekStart = parseWeekStart(undefined);
   await ensureWeekData(companyId, currentWeekStart);
@@ -539,7 +625,7 @@ export async function getAuthorizedTimesheet(req: AuthenticatedRequest, timeshee
   }
 
   const user = await getCurrentUserOrThrow(auth.userId);
-  if (auth.role === "EMPLOYEE" && user.employeeId === timesheet.employeeId) {
+  if ((auth.role === "EMPLOYEE" || auth.role === "FOREMAN") && user.employeeId === timesheet.employeeId) {
     return timesheet;
   }
 
@@ -709,7 +795,7 @@ export async function buildBootstrap(userId: string, role: UserRole, companyId: 
         : user.employeeId
           ? {
               companyId,
-              OR: [{ foremanId: user.employeeId }, { assignments: { some: { employeeId: user.employeeId } } }],
+              OR: [{ foremanId: user.employeeId }, { defaultEmployees: { some: { id: user.employeeId } } }],
             }
           : { companyId, id: { in: [] as string[] } };
 
@@ -729,7 +815,15 @@ export async function buildBootstrap(userId: string, role: UserRole, companyId: 
     role === "ADMIN"
       ? { weekStartDate: weekStart, employee: { companyId: companyId } }
       : role === "FOREMAN"
-        ? { weekStartDate: weekStart, crewId: { in: accessibleCrewIds ?? [] } }
+        ? {
+            weekStartDate: weekStart,
+            employee: { companyId: companyId },
+            OR: [
+              { crewId: { in: accessibleCrewIds ?? [] } },
+              // A crew chief always sees his own week, even if it sits on another crew.
+              ...(user.employeeId ? [{ employeeId: user.employeeId }] : []),
+            ],
+          }
         : { weekStartDate: weekStart, employeeId: user.employeeId ?? "" };
 
   const timesheets = await prisma.timesheetWeek.findMany({
@@ -804,6 +898,7 @@ export async function buildBootstrap(userId: string, role: UserRole, companyId: 
     crews: crews.map((crew) => ({
       id: crew.id,
       name: crew.name,
+      foremanEmployeeId: crew.foremanId,
       foremanName: crew.foreman?.displayName ?? "Unassigned",
       dayDefaults: crew.dayDefaults.map((dayDefault) => ({
         dayIndex: dayDefault.dayIndex,
@@ -923,6 +1018,12 @@ export async function finalizeEmployeeArchive(
   const inviteEmail = employee.user?.email?.trim().toLowerCase() ?? null;
 
   const result = await prisma.$transaction(async (tx) => {
+    // An archived worker can't run a crew: release any crew he was chief of.
+    await tx.crew.updateMany({
+      where: { companyId, foremanId: employee.id },
+      data: { foremanId: null },
+    });
+
     await tx.employee.update({
       where: { id: employee.id },
       data: {

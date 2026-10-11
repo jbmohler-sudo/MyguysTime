@@ -5,6 +5,7 @@ import {
   asyncHandler,
   finalizeEmployeeArchive,
   getCompanyContextOrThrow,
+  carryOpenWeeksToCrew,
   getCompanyCrewOrThrow,
   isFiniteNonNegativeNumber,
   normalizeManagedEmployeeWorkerType,
@@ -239,6 +240,18 @@ router.patch("/employees/:employeeId", authenticate, asyncHandler(async (req: Au
     },
   });
 
+  if (active && cleanDefaultCrewId !== currentEmployee.defaultCrewId) {
+    // Same rule as the Crews screen: his open weeks follow him to the new crew.
+    await carryOpenWeeksToCrew(updatedEmployee.id, cleanDefaultCrewId);
+  }
+  if (archivedNow) {
+    // An archived worker can't run a crew.
+    await prisma.crew.updateMany({
+      where: { companyId: req.auth!.companyId, foremanId: updatedEmployee.id },
+      data: { foremanId: null },
+    });
+  }
+
   if (active) {
     await refreshEmployeeCurrentWeek(updatedEmployee.id, req.auth!.companyId);
   }
@@ -363,6 +376,12 @@ router.post("/employees/:employeeId/remove", authenticate, asyncHandler(async (r
           ...(inviteEmail ? [{ email: { equals: inviteEmail, mode: "insensitive" as const } }] : []),
         ],
       },
+    });
+
+    // An archived worker can't run a crew: release any crew he was chief of.
+    await tx.crew.updateMany({
+      where: { companyId: req.auth!.companyId, foremanId: employee.id },
+      data: { foremanId: null },
     });
 
     // Transition to fully ARCHIVED within the same transaction

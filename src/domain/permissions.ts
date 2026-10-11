@@ -9,26 +9,33 @@ export function canEditTimesheet(role: UserRole, viewerEmployeeId: string | null
     return false;
   }
 
-  if (role === "admin" || role === "foreman") {
+  // A crew chief's own week follows the same rules as any worker's.
+  const ownWeek = viewerEmployeeId !== null && viewerEmployeeId === week.employeeId;
+  if (role === "admin" || (role === "foreman" && !ownWeek)) {
     return true;
   }
 
   return (
-    role === "employee" &&
-    viewerEmployeeId === week.employeeId &&
+    (role === "employee" || role === "foreman") &&
+    ownWeek &&
     (week.status === "draft" || week.status === "needs_revision")
   );
 }
 
 export function canConfirmWeek(role: UserRole, viewerEmployeeId: string | null, week: EmployeeWeek) {
   return (
-    role === "employee" &&
+    (role === "employee" || role === "foreman") &&
+    viewerEmployeeId !== null &&
     viewerEmployeeId === week.employeeId &&
     (week.status === "draft" || week.status === "needs_revision")
   );
 }
 
-export function canApproveWeek(role: UserRole, week: EmployeeWeek) {
+export function canApproveWeek(role: UserRole, week: EmployeeWeek, viewerEmployeeId: string | null = null) {
+  // The office approves a crew chief's own week.
+  if (role === "foreman" && viewerEmployeeId !== null && viewerEmployeeId === week.employeeId) {
+    return false;
+  }
   return (role === "admin" || role === "foreman") && week.status !== "office_locked";
 }
 

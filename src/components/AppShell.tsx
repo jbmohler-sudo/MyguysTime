@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   BootstrapPayload,
+  CrewOperation,
+  CrewRoster,
   EmployeeInput,
   ExpenseSubmissionInput,
   InviteDeliveryMode,
@@ -12,6 +14,7 @@ import type {
 } from "../domain/models";
 import { prettyStatus } from "../domain/permissions";
 import { AddEmployeeModal } from "./AddEmployeeModal";
+import { CrewManagementPanel } from "./CrewManagementPanel";
 import { AccountSettingsPanel } from "./AccountSettingsPanel";
 import { ArchivePanel } from "./ArchivePanel";
 import { InviteEmployeeModal } from "./InviteEmployeeModal";
@@ -92,6 +95,7 @@ interface AppShellProps {
     deliveryMode: InviteDeliveryMode;
   }>;
   onRevokeInvite: (inviteId: string) => Promise<void>;
+  onManageCrews?: (operation: CrewOperation) => Promise<CrewRoster>;
   onUpdateMe: (payload: { fullName?: string; preferredView?: "office" | "truck" }) => Promise<void>;
   onManageBilling: () => Promise<void>;
   onVerifyBackendSentry?: () => Promise<string | null>;
@@ -118,6 +122,7 @@ export function AppShell({
   onCreateInvite,
   onResendInvite,
   onRevokeInvite,
+  onManageCrews,
 }: AppShellProps) {
   const onboarding = useOnboardingContext();
   const { showToast } = useToast();
@@ -930,6 +935,7 @@ export function AppShell({
                     </div>
                   </div>
                 ) : null}
+                {onManageCrews ? <CrewManagementPanel onManageCrews={onManageCrews} /> : null}
                 <TeamManagementPanel
                   data={data}
                   onOpenAddEmployee={() => setShowAddEmployeeModal(true)}
@@ -1542,6 +1548,7 @@ export function AppShell({
                 </button>
               </div>
             )}
+            {onManageCrews ? <CrewManagementPanel onManageCrews={onManageCrews} /> : null}
             <TeamManagementPanel
               data={data}
               onOpenAddEmployee={() => setShowAddEmployeeModal(true)}

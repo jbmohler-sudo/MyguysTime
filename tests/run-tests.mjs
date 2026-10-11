@@ -831,7 +831,7 @@ await runCase("foreman can flag assigned crew week as needs revision with audit 
       headers: { Authorization: `Bearer ${foremanToken}` },
     });
     const mePayload = await meResponse.json();
-    const timesheetId = mePayload.employeeWeeks[0].id;
+    const timesheetId = mePayload.employeeWeeks.find((week) => week.employeeId !== mePayload.viewer.employeeId).id;
 
     const revisionResponse = await app.api(`/api/timesheets/${timesheetId}/status`, {
       method: "PATCH",
@@ -860,7 +860,7 @@ await runCase("needs revision requires audit note", async () => {
       headers: { Authorization: `Bearer ${foremanToken}` },
     });
     const mePayload = await meResponse.json();
-    const timesheetId = mePayload.employeeWeeks[0].id;
+    const timesheetId = mePayload.employeeWeeks.find((week) => week.employeeId !== mePayload.viewer.employeeId).id;
 
     const revisionResponse = await app.api(`/api/timesheets/${timesheetId}/status`, {
       method: "PATCH",
@@ -937,7 +937,7 @@ await runCase("foreman cannot approve locked week", async () => {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
     const mePayload = await meResponse.json();
-    const timesheetId = mePayload.employeeWeeks[0].id;
+    const timesheetId = mePayload.employeeWeeks.find((week) => week.employeeName === "Marco Diaz").id;
 
     await app.api(`/api/timesheets/${timesheetId}/status`, {
       method: "PATCH",
@@ -1273,6 +1273,299 @@ await runCase("changing company state does not return state tax defaults", async
     assert.equal("supportLevel" in payload.companySettings, false);
     assert.equal("defaultStateWithholdingMode" in payload.companySettings, false);
     assert.equal("defaultStateWithholdingValue" in payload.companySettings, false);
+  } finally {
+    await app.shutdown();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Crew management: office adds crews, picks crew chiefs, moves workers.
+// ---------------------------------------------------------------------------
+
+function jsonRequest(token, method, body) {
+  return {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+    },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  };
+}
+
+async function employeeIdByName(companyEmail, displayName) {
+  const user = await prisma.user.findUniqueOrThrow({ where: { email: companyEmail }, select: { companyId: true } });
+  const employee = await prisma.employee.findFirstOrThrow({
+    where: { companyId: user.companyId, displayName },
+    select: { id: true },
+  });
+  return employee.id;
+}
+
+await runCase("office adds a crew, moves a worker onto it, and his open week follows him", async () => {
+  const app = await bootApp();
+  try {
+    const adminToken = await app.login("admin@crewtime.local", "admin123");
+
+    const created = await app.api("/api/crews", jsonRequest(adminToken, "POST", { name: "  Chimney   Crew " }));
+    const createdPayload = await created.json();
+    assert.equal(created.status, 201);
+    const chimney = createdPayload.crews.find((crew) => crew.name === "Chimney Crew");
+    assert.ok(chimney, "crew name is trimmed and collapsed");
+    assert.equal(chimney.chiefEmployeeId, null);
+
+    const duplicate = await app.api("/api/crews", jsonRequest(adminToken, "POST", { name: "chimney crew" }));
+    assert.equal(duplicate.status, 409);
+
+    // Load the current week so every active worker has a timesheet for it.
+    const current = await app.api("/api/auth/me", { headers: { Authorization: `Bearer ${adminToken}` } });
+    const currentPayload = await current.json();
+    const currentWeekStart = new Date(`${currentPayload.weekStart}T00:00:00`);
+
+    const marcoId = await employeeIdByName("admin@crewtime.local", "Marco Diaz");
+    const masonry = currentPayload.crews.find((crew) => crew.name === "Masonry Crew");
+
+    const moved = await app.api(`/api/crews/${chimney.id}/members/${marcoId}`, jsonRequest(adminToken, "PUT"));
+    const movedPayload = await moved.json();
+    assert.equal(moved.status, 200);
+    assert.equal(movedPayload.workers.find((worker) => worker.employeeId === marcoId).crewId, chimney.id);
+    assert.ok(movedPayload.crews.find((crew) => crew.id === chimney.id).memberIds.includes(marcoId));
+
+    const marcoWeeks = await prisma.timesheetWeek.findMany({
+      where: { employeeId: marcoId },
+      select: { crewId: true, weekStartDate: true },
+    });
+    const thisWeek = marcoWeeks.find((week) => week.weekStartDate.getTime() === currentWeekStart.getTime());
+    const seededWeek = marcoWeeks.find((week) => week.weekStartDate.getTime() === new Date(`${WEEK_START}T00:00:00`).getTime());
+    assert.equal(thisWeek.crewId, chimney.id, "open week follows the worker to his new crew");
+    assert.equal(seededWeek.crewId, masonry.id, "past weeks stay with the crew that worked them");
+
+    const removed = await app.api(`/api/crews/${chimney.id}/members/${marcoId}`, jsonRequest(adminToken, "DELETE"));
+    assert.equal(removed.status, 200);
+    const marco = await prisma.employee.findUniqueOrThrow({ where: { id: marcoId }, select: { defaultCrewId: true } });
+    assert.equal(marco.defaultCrewId, null);
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("office picks a crew chief: chief gets foreman access, sees his crew, and cannot approve himself", async () => {
+  const app = await bootApp();
+  try {
+    const adminToken = await app.login("admin@crewtime.local", "admin123");
+    const marcoToken = await app.login("marco@crewtime.local", "employee123");
+    const marcoId = await employeeIdByName("admin@crewtime.local", "Marco Diaz");
+    const troyId = await employeeIdByName("admin@crewtime.local", "Troy Bennett");
+
+    const created = await app.api(
+      "/api/crews",
+      jsonRequest(adminToken, "POST", { name: "Stone Crew", chiefEmployeeId: marcoId }),
+    );
+    const createdPayload = await created.json();
+    assert.equal(created.status, 201);
+    const stone = createdPayload.crews.find((crew) => crew.name === "Stone Crew");
+    assert.equal(stone.chiefEmployeeId, marcoId);
+    assert.ok(stone.memberIds.includes(marcoId), "the chief works on the crew he runs");
+
+    const marcoUser = await prisma.user.findUniqueOrThrow({ where: { email: "marco@crewtime.local" }, select: { role: true } });
+    assert.equal(marcoUser.role, "FOREMAN");
+
+    const addTroy = await app.api(`/api/crews/${stone.id}/members/${troyId}`, jsonRequest(adminToken, "PUT"));
+    assert.equal(addTroy.status, 200);
+
+    const board = await app.api("/api/auth/me", { headers: { Authorization: `Bearer ${marcoToken}` } });
+    const boardPayload = await board.json();
+    assert.equal(board.status, 200);
+    assert.equal(boardPayload.viewer.role, "foreman");
+    assert.deepEqual(boardPayload.crews.map((crew) => crew.name), ["Stone Crew"]);
+    const ownWeek = boardPayload.employeeWeeks.find((week) => week.employeeId === marcoId);
+    const troyWeek = boardPayload.employeeWeeks.find((week) => week.employeeId === troyId);
+    assert.ok(ownWeek, "crew chief sees his own week");
+    assert.ok(troyWeek, "crew chief sees his crew's weeks");
+
+    const selfApprove = await app.api(
+      `/api/timesheets/${ownWeek.id}/status`,
+      jsonRequest(marcoToken, "PATCH", { status: "foreman_approved" }),
+    );
+    assert.equal(selfApprove.status, 403);
+
+    const selfSubmit = await app.api(
+      `/api/timesheets/${ownWeek.id}/status`,
+      jsonRequest(marcoToken, "PATCH", { status: "employee_confirmed" }),
+    );
+    const selfSubmitPayload = await selfSubmit.json();
+    assert.equal(selfSubmit.status, 200);
+    assert.equal(selfSubmitPayload.timesheet.status, "employee_confirmed");
+
+    const approveTroy = await app.api(
+      `/api/timesheets/${troyWeek.id}/status`,
+      jsonRequest(marcoToken, "PATCH", { status: "foreman_approved" }),
+    );
+    assert.equal(approveTroy.status, 200);
+
+    // Old crew chief of Masonry (Luis) no longer sees Troy's moved week.
+    const luisToken = await app.login("luis@crewtime.local", "foreman123");
+    const luisBoard = await (await app.api("/api/auth/me", { headers: { Authorization: `Bearer ${luisToken}` } })).json();
+    assert.equal(luisBoard.employeeWeeks.some((week) => week.id === troyWeek.id), false);
+
+    const cleared = await app.api(`/api/crews/${stone.id}`, jsonRequest(adminToken, "PATCH", { chiefEmployeeId: null }));
+    assert.equal(cleared.status, 200);
+    const marcoAfter = await prisma.user.findUniqueOrThrow({ where: { email: "marco@crewtime.local" }, select: { role: true } });
+    assert.equal(marcoAfter.role, "EMPLOYEE", "leading no crew puts the login back to worker");
+
+    const renamed = await app.api(`/api/crews/${stone.id}`, jsonRequest(adminToken, "PATCH", { name: "Stone & Block" }));
+    const renamedPayload = await renamed.json();
+    assert.equal(renamed.status, 200);
+    assert.ok(renamedPayload.crews.some((crew) => crew.name === "Stone & Block"));
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("crews can only be removed when empty and without history", async () => {
+  const app = await bootApp();
+  try {
+    const adminToken = await app.login("admin@crewtime.local", "admin123");
+    const roster = await (await app.api("/api/crews", { headers: { Authorization: `Bearer ${adminToken}` } })).json();
+    const masonry = roster.crews.find((crew) => crew.name === "Masonry Crew");
+
+    const busy = await app.api(`/api/crews/${masonry.id}`, jsonRequest(adminToken, "DELETE"));
+    assert.equal(busy.status, 409);
+
+    const created = await (await app.api("/api/crews", jsonRequest(adminToken, "POST", { name: "Temp Crew" }))).json();
+    const temp = created.crews.find((crew) => crew.name === "Temp Crew");
+    const deleted = await app.api(`/api/crews/${temp.id}`, jsonRequest(adminToken, "DELETE"));
+    const deletedPayload = await deleted.json();
+    assert.equal(deleted.status, 200);
+    assert.equal(deletedPayload.crews.some((crew) => crew.id === temp.id), false);
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("only the office can manage crews", async () => {
+  const app = await bootApp();
+  try {
+    const foremanToken = await app.login("luis@crewtime.local", "foreman123");
+    const employeeToken = await app.login("marco@crewtime.local", "employee123");
+    for (const token of [foremanToken, employeeToken]) {
+      const list = await app.api("/api/crews", { headers: { Authorization: `Bearer ${token}` } });
+      assert.equal(list.status, 403);
+      const create = await app.api("/api/crews", jsonRequest(token, "POST", { name: "Sneaky Crew" }));
+      assert.equal(create.status, 403);
+    }
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("crews and timesheets are fenced to their own company", async () => {
+  const app = await bootApp();
+  try {
+    const crewtimeAdmin = await app.login("admin@crewtime.local", "admin123");
+    const apexAdmin = await app.login("admin@apexroofing.local", "apex_admin123");
+    const crewtimeBoard = await (
+      await app.api(`/api/auth/me?weekStart=${WEEK_START}`, { headers: { Authorization: `Bearer ${crewtimeAdmin}` } })
+    ).json();
+    const otherCrew = crewtimeBoard.crews[0];
+    const otherWeek = crewtimeBoard.employeeWeeks[0];
+    const marcoId = await employeeIdByName("admin@crewtime.local", "Marco Diaz");
+
+    const rename = await app.api(`/api/crews/${otherCrew.id}`, jsonRequest(apexAdmin, "PATCH", { name: "Hijacked" }));
+    assert.equal(rename.status, 404);
+    const move = await app.api(`/api/crews/${otherCrew.id}/members/${marcoId}`, jsonRequest(apexAdmin, "PUT"));
+    assert.equal(move.status, 404);
+    const lock = await app.api(
+      `/api/timesheets/${otherWeek.id}/status`,
+      jsonRequest(apexAdmin, "PATCH", { status: "office_locked" }),
+    );
+    assert.equal(lock.status, 403);
+    const edit = await app.api(
+      `/api/timesheets/${otherWeek.id}/days/${otherWeek.entries[0].id}`,
+      jsonRequest(apexAdmin, "PATCH", { lunchMinutes: 0 }),
+    );
+    assert.equal(edit.status, 403);
+    const defaults = await app.api(
+      `/api/crews/${otherCrew.id}/defaults`,
+      jsonRequest(apexAdmin, "POST", { weekStart: WEEK_START, dayIndex: 0, start: "06:00", end: "18:00" }),
+    );
+    assert.equal(defaults.status, 403);
+    const invite = await app.api(
+      "/api/company/invites",
+      jsonRequest(apexAdmin, "POST", { email: "fence-test@apexroofing.local", role: "employee", crewId: otherCrew.id }),
+    );
+    assert.equal(invite.status, 400);
+
+    const untouched = await prisma.timesheetWeek.findUniqueOrThrow({ where: { id: otherWeek.id }, select: { status: true } });
+    assert.notEqual(untouched.status, "OFFICE_LOCKED");
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("invited foreman becomes chief of his crew when it has none", async () => {
+  const app = await bootApp();
+  try {
+    const adminToken = await app.login("admin@crewtime.local", "admin123");
+    const created = await (await app.api("/api/crews", jsonRequest(adminToken, "POST", { name: "Patio Crew" }))).json();
+    const patio = created.crews.find((crew) => crew.name === "Patio Crew");
+    const inviteEmail = `chief-${Date.now()}@crewtime.local`;
+
+    const inviteResponse = await app.api(
+      "/api/company/invites",
+      jsonRequest(adminToken, "POST", { email: inviteEmail, role: "foreman", crewId: patio.id, hourlyRate: 30 }),
+    );
+    const invitePayload = await inviteResponse.json();
+    assert.equal(inviteResponse.status, 201);
+    const inviteToken = new URL(invitePayload.inviteUrl).searchParams.get("invite");
+
+    const accept = await app.api("/api/auth/accept-invite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: inviteToken, fullName: "Pat Chief", password: "chiefpass123" }),
+    });
+    assert.equal(accept.status, 201);
+
+    const chiefToken = await app.login(inviteEmail, "chiefpass123");
+    const board = await (await app.api("/api/auth/me", { headers: { Authorization: `Bearer ${chiefToken}` } })).json();
+    assert.equal(board.viewer.role, "foreman");
+    assert.deepEqual(board.crews.map((crew) => crew.name), ["Patio Crew"]);
+    assert.equal(board.crews[0].foremanEmployeeId, board.viewer.employeeId);
+    assert.ok(board.employeeWeeks.some((week) => week.employeeId === board.viewer.employeeId), "chief sees his own week");
+  } finally {
+    await app.shutdown();
+  }
+});
+
+await runCase("worker picked as crew chief before he had a login gets foreman access when he accepts any invite", async () => {
+  const app = await bootApp();
+  try {
+    const adminToken = await app.login("admin@crewtime.local", "admin123");
+    const troyId = await employeeIdByName("admin@crewtime.local", "Troy Bennett");
+    const created = await (
+      await app.api("/api/crews", jsonRequest(adminToken, "POST", { name: "Block Crew", chiefEmployeeId: troyId }))
+    ).json();
+    assert.equal(created.crews.find((crew) => crew.name === "Block Crew").chiefEmployeeId, troyId);
+
+    const inviteEmail = `troy-${Date.now()}@crewtime.local`;
+    const inviteResponse = await app.api(
+      "/api/company/invites",
+      jsonRequest(adminToken, "POST", { email: inviteEmail, role: "employee", employeeId: troyId }),
+    );
+    const invitePayload = await inviteResponse.json();
+    assert.equal(inviteResponse.status, 201);
+    const inviteToken = new URL(invitePayload.inviteUrl).searchParams.get("invite");
+    const accept = await app.api("/api/auth/accept-invite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: inviteToken, fullName: "Troy Bennett", password: "troypass123" }),
+    });
+    assert.equal(accept.status, 201);
+
+    const troyToken = await app.login(inviteEmail, "troypass123");
+    const board = await (await app.api("/api/auth/me", { headers: { Authorization: `Bearer ${troyToken}` } })).json();
+    assert.equal(board.viewer.role, "foreman");
+    assert.deepEqual(board.crews.map((crew) => crew.name), ["Block Crew"]);
   } finally {
     await app.shutdown();
   }
