@@ -2,6 +2,14 @@
 
 > Older Session Log entries rolled out of [JOURNEY.md](JOURNEY.md). Newest of these first.
 
+### 2026-10-06 — Workyard comparison page live (8ed149f, fc9cdd3)
+**Did:** Published `/vs/workyard` from the approved 2026-10-02 draft (Jeff's go-live OK, including the "No GPS, by choice" callout). Added the workyard config in `vs.tsx` (answer block, fit block, 5 FAQs, pain cards, comparison table, flow, callout, pills, closing CTA). Prerender title, meta, OG, and self-canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Workyard. Sitemap is 25 URLs. Inbound links: footer Comparisons column, pills on the other `/vs` pages (including `/vs/busybusy`), and the cost hub per-user mention plus compare list. Re-checked workyard.com/pricing on 2026-10-06: Starter, Pro, Autopilot, Enterprise, per user per month, and the table's feature claims still match. No base fee on their page, so none added. No competitor dollar figures. No CSV, breaks, petty cash, or multi-crew claims for My Guys Time. FAQ 3 keeps the interim sentence and does not link `/best-construction-time-tracking-apps`. `npm run build` passed. Dist HTML: title `Workyard Pricing vs $12 Flat for Crews | My Guys Time`, one H1, canonical `https://www.myguystime.com/vs/workyard`. Earlier this week, `/vs/busybusy` shipped in fc9cdd3 (sitemap was 24; dist title `BusyBusy Pricing vs $12 Flat for Crews | My Guys Time`).
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database. The best-apps page stays unlinked until it is live.
+**State after:** `/vs/workyard` and `/vs/busybusy` are on `main`. Sitemap has 25 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live Workyard page returns the prerendered HTML.
+
 ### 2026-10-02 — Week one content live (23 URLs); week two five briefs ready (86a5555)
 **Did:** Week one (Mon–Fri) marketing pages are live and in the sitemap: construction time tracking pillar, ClockShark vs, cost hub, construction timesheet template (PDF+Excel), Connecteam vs. Live sitemap count **23** (matched repo). Friday SEO planning re-pulled keyword/SERP data, wrote five writer briefs for week two (busybusy vs, Workyard vs, QuickBooks CSV guide, best-apps listicle, how-contractors-track-hours guide), and updated the seo-desk publishing schedule. No code changes in this commit.
 **Decided:** nothing new in-repo. Week two slug for the QuickBooks guide is `/guides/crew-hours-quickbooks` (no -payroll in the URL).
