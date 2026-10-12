@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/stripe/webhook", "destination": "/api/billing/webhook" },
+    { "source": "/api/:path*", "destination": "/api/[...path]" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
