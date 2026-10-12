@@ -668,6 +668,97 @@ pages.push([
   ],
 ]);
 
+const supercrewRoute = "/vs/supercrew";
+const supercrewFaqs = typeof ssr.vsPageFaqs === "function" ? ssr.vsPageFaqs("supercrew") : [];
+if (!Array.isArray(supercrewFaqs) || supercrewFaqs.length !== 5) {
+  console.error("[prerender] supercrew FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+
+const supercrewFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: supercrewFaqs.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const supercrewSoftwareLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "My Guys Time",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: canonicalHost + supercrewRoute,
+  offers: {
+    "@type": "Offer",
+    price: "12",
+    priceCurrency: "USD",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: "12",
+      priceCurrency: "USD",
+      billingDuration: "P1M",
+      unitText: "per company per month",
+    },
+  },
+  description:
+    "A weekly crew time card built by a contractor. $12/mo flat for the whole company.",
+};
+
+const supercrewBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Comparisons",
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Supercrew",
+      item: canonicalHost + supercrewRoute,
+    },
+  ],
+};
+
+pages.push([
+  supercrewRoute,
+  "vs/supercrew/index.html",
+  () => ssr.renderVsHtml("supercrew"),
+  "Supercrew (ConstructionClock) vs $12 Flat | My Guys Time",
+  "ConstructionClock is now Supercrew, priced per crew member with automatic GPS clock-in. My Guys Time is $12/mo flat for the whole company. Compare.",
+  [
+    ["ld-softwareapplication", supercrewSoftwareLd],
+    ["ld-faqpage", supercrewFaqLd],
+    ["ld-breadcrumb", supercrewBreadcrumbLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    "Supercrew vs My Guys Time: Per-Member GPS Clock or One Flat Price",
+    "My Guys Time vs Supercrew (formerly ConstructionClock)",
+    "Each guy joins the crew team from his own phone",
+    "Timesheet approval",
+    "Listed as &quot;Soon&quot;",
+    "https://supercrew.com/pricing",
+    "https://supercrew.com/blog/meet-supercrew-why-we-changed-from-constructionclock",
+    "what crew time apps cost",
+    "$12/month flat for the whole company",
+    "need the GPS",
+  ],
+]);
+
 const costRoute = "/construction-time-tracking-cost";
 const costTitle = "Construction Time Tracking Cost: Per-Seat vs Flat Pricing";
 const costDescription =
@@ -1264,6 +1355,19 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
     if (hit.length > 0 || badDollars.length > 0) {
       console.error("[prerender] workyard page contains banned copy:", hit, badDollars);
+      process.exit(1);
+    }
+  }
+
+  if (routePath === "/vs/supercrew") {
+    const withoutBreadcrumb = markup.toLowerCase().replace(/breadcrumb/g, "");
+    const banned = ["csv", "petty cash", "one phone per crew", "multi-crew"];
+    const hit = banned.filter((token) => withoutBreadcrumb.includes(token));
+    if (/\bbreaks?\b/.test(withoutBreadcrumb)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    if (hit.length > 0 || badDollars.length > 0) {
+      console.error("[prerender] supercrew page contains banned copy:", hit, badDollars);
       process.exit(1);
     }
   }

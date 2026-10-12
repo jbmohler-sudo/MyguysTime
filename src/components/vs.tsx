@@ -1,7 +1,15 @@
+export interface VsFaqLink {
+  phrase: string;
+  href: string;
+  external?: boolean;
+}
+
 export interface VsFaq {
   q: string;
   text: string;
-  link?: { phrase: string; href: string; external?: boolean };
+  link?: VsFaqLink;
+  /** Extra phrases in the same answer. `link` still works for a single phrase. */
+  links?: VsFaqLink[];
 }
 
 export interface VsCompareRow {
@@ -19,6 +27,8 @@ export interface VsTextPart {
 export interface VsConfig {
   slug: string;
   name: string;
+  /** Overrides the default "My Guys Time vs {name}" eyebrow. */
+  eyebrow?: string;
   h1: string;
   sub: string;
   intro: string;
@@ -41,11 +51,14 @@ export interface VsConfig {
   };
   /** Sentence under the intro, used to link the cost hub from live comparison pages. */
   afterIntro?: VsTextPart[];
+  /** Short answer under the intro, same words as the visible page. */
+  answer?: string;
   calloutTitle: string;
   calloutText: string;
   faqHeading?: string;
   faqs: VsFaq[];
   closingHeading?: string;
+  closingSub?: string;
 }
 
 export const VS_PAGES: VsConfig[] = [
@@ -919,6 +932,174 @@ export const VS_PAGES: VsConfig[] = [
       },
     ],
     closingHeading: "Don't need the map? Try it free for 7 days.",
+  },
+  {
+    slug: "supercrew",
+    name: "Supercrew",
+    eyebrow: "My Guys Time vs Supercrew (formerly ConstructionClock)",
+    h1: "Supercrew vs My Guys Time: Per-Member GPS Clock or One Flat Price",
+    sub: "If you searched for ConstructionClock, you're in the right place. ConstructionClock changed its name to Supercrew in September 2026. Same company, same app, new name. It's a time clock for construction crews that can clock your guys in and out automatically by GPS.",
+    intro:
+      "The big difference between us is how the bill works. Supercrew charges per crew member, so the bill follows your headcount. My Guys Time is one price for the whole company, so it doesn't.",
+    answer:
+      "ConstructionClock is now called Supercrew. It's an automatic GPS time clock for construction crews, priced per crew member across Lite, Team and Pro plans, with GPS clock-in, live crew location and payroll integrations on the paid tiers. My Guys Time is a simpler weekly crew time card at $12/month flat for the whole company, with no GPS.",
+    painHeading: "When a per-member GPS clock is more than a small crew needs",
+    painSub:
+      "Supercrew is built to clock crews in automatically and show you where they are. Here's where that can be more than a small outfit needs.",
+    pains: [
+      {
+        title: "The bill follows headcount.",
+        text: "Supercrew is priced per crew member. Hire a laborer in April, bring on two seasonal guys for the summer rush, and each one shows up on the bill. That's a fair way to price software. It just means your cost moves every time your crew does.",
+      },
+      {
+        title: "Automatic GPS is the product.",
+        text: "On Supercrew's Team plan, GPS clocks guys in and out on its own and shows live crew location and route history. If you need location-verified time, that's a real tool and it's built for it. Some crews don't want their phones tracking them. My Guys Time doesn't track location at all.",
+      },
+      {
+        title: "More app than the week needs.",
+        text: "Job budgets and costing, route history, advanced reporting, payroll integrations. Good features for the companies that use them. A crew that needs hours in, a foreman's sign-off and receipts on the card may never open most of it.",
+      },
+      {
+        title: "Thursday still comes around.",
+        text: "A clock only works if somebody uses it every day. When hours don't get put in the day they're worked, somebody is sitting at the kitchen table Thursday night piecing the week back together from texts. What fixes that is hours going in before the crew pulls off the job, from each guy's own phone or the foreman's.",
+      },
+    ],
+    compareCta: true,
+    compareSecondaryLabel: "See the foreman view, no signup",
+    compare: [
+      {
+        label: "Pricing model",
+        oldWay:
+          "Pay per crew member, monthly or annual. Lite, Team and Pro plans, and a custom plan for crews over 50.",
+        myGuys: "$12/month flat for the whole company. One plan, no tiers.",
+      },
+      {
+        label: "How time gets in",
+        oldWay: "Lite: manual clock-in and clock-out. Team: automatic GPS clock-in and clock-out.",
+        myGuys:
+          "Each guy joins the crew team from his own phone. He or the foreman logs the hours in the browser.",
+      },
+      {
+        label: "Location",
+        oldWay: "Team: live crew location and route history",
+        myGuys: "No GPS, no location tracking",
+      },
+      {
+        label: "Getting hours to payroll",
+        oldWay:
+          "Team: payroll integrations (QuickBooks, Xero, Payworks, Sage). Payroll exports on every paid plan.",
+        myGuys:
+          "The office reviews the approved week and hands the hours to whoever runs payroll. No integrations, and it doesn't calculate pay or taxes.",
+      },
+      {
+        label: "Timesheet approval",
+        oldWay: 'Listed as "Soon" on Supercrew\'s pricing page (Pro plan) as of October 2026',
+        myGuys: "Foreman approval. A one-person crew auto-approves.",
+      },
+      {
+        label: "App",
+        oldWay: "Mobile app for iOS and Android; web app access on Team and up",
+        myGuys: "Browser app you add to your home screen. No app store download.",
+      },
+      {
+        label: "Trying it",
+        oldWay: "7-day free trial, no credit card, no contracts",
+        myGuys: "7-day free trial, no card. Demo roles with no signup.",
+      },
+    ],
+    flowHeading: "How a week runs in My Guys Time",
+    flowLink: { label: "See how it works", href: "/how-it-works" },
+    flow: [
+      {
+        title: "Hours go in from the job",
+        text: "Each guy joins the crew team from his own phone. Before the truck leaves the site, he or the foreman puts in the day's hours. Nothing runs in the background. Somebody who was there writes down what happened.",
+      },
+      {
+        title: "Foreman signs off",
+        text: "The weekly crew board shows every guy and every day. The foreman adds an incident note on the day something went wrong, then approves. A one-person crew skips this step and auto-approves.",
+      },
+      {
+        title: "Office looks it over once",
+        text: "Hours, rate and notes for each person, with receipt photos on anything a guy bought for the job. W-2 guys and 1099 subs sit on the same board.",
+      },
+      {
+        title: "Hours go to whoever runs payroll",
+        text: "The office hands the approved week to whoever does payroll. That's the whole handoff. No integration to set up, and the app doesn't figure pay.",
+      },
+    ],
+    fit: {
+      columns: [
+        {
+          heading: "When Supercrew is the better fit",
+          points: [
+            "You want guys clocked in and out automatically by GPS, with live crew location and route history.",
+            "You want job budgets and costing in the same app as your time clock.",
+            "You want hours to flow into QuickBooks, Xero, Payworks or Sage through an integration, and you're fine paying per crew member.",
+          ],
+        },
+        {
+          heading: "When My Guys Time fits better",
+          points: [
+            "You run a small crew and trust your foreman to log the day.",
+            "You want a foreman sign-off, receipt photos on the card, and W-2 and 1099 guys on one board.",
+            "You want one flat bill that doesn't move when you hire.",
+          ],
+        },
+      ],
+      footer: [
+        { text: "Comparing how these apps charge? See " },
+        { text: "what crew time apps cost", href: "/construction-time-tracking-cost" },
+        { text: ", " },
+        { text: "$12/month flat for the whole crew", href: "/pricing" },
+        { text: ", or " },
+        { text: "more construction time tracking app comparisons", href: "/best-construction-time-tracking-apps" },
+        { text: "." },
+      ],
+    },
+    calloutTitle: "Built by a mason, priced like one",
+    calloutText:
+      "My Guys Time started with a mason who kept his crew's hours in pencil on a scrap of 2x6 that rode behind the truck seat. When he went looking for an app, every one he found wanted more money for every guy he hired. That never made sense to him. So he built a time card the foreman fills in from the truck, and he priced it at $12 a month flat for the whole company, whether you've got three guys or thirty.",
+    faqHeading: "Supercrew and ConstructionClock: common questions",
+    faqs: [
+      {
+        q: "Is ConstructionClock the same as Supercrew?",
+        text: "Yes. ConstructionClock renamed itself Supercrew in September 2026. Their announcement says accounts, logins and data stayed the same.",
+        link: {
+          phrase: "announcement",
+          href: "https://supercrew.com/blog/meet-supercrew-why-we-changed-from-constructionclock",
+          external: true,
+        },
+      },
+      {
+        q: "How much does a construction clock app cost?",
+        text: "It depends on the pricing model. Supercrew charges per crew member. Some apps charge a monthly base fee plus a fee per user. Others offer a free plan capped by users or features. My Guys Time is $12/month flat for the whole company. For Supercrew's current rates, check supercrew.com/pricing. We lay out the models in what crew time apps cost.",
+        links: [
+          {
+            phrase: "supercrew.com/pricing",
+            href: "https://supercrew.com/pricing",
+            external: true,
+          },
+          {
+            phrase: "what crew time apps cost",
+            href: "/construction-time-tracking-cost",
+          },
+        ],
+      },
+      {
+        q: "Does Supercrew track location?",
+        text: "Yes. Supercrew's Team plan lists automatic GPS clock-in and clock-out, plus live crew location and route history, according to its pricing page. My Guys Time doesn't track location.",
+      },
+      {
+        q: "How do construction workers clock in?",
+        text: "A few common ways: a paper time card, a GPS app on each guy's phone, a kiosk at the site, or the foreman putting in the crew's hours. With My Guys Time, each guy joins the crew team from his own phone, and he or the foreman logs the hours in the browser.",
+      },
+      {
+        q: "Do I pay per crew member with My Guys Time?",
+        text: "No. It's $12/month flat for the whole company: foremen, laborers, subs and the office. Hiring another guy doesn't change the bill.",
+      },
+    ],
+    closingHeading: "Don't need the GPS? Try it free for 7 days.",
+    closingSub: "One flat price for the whole company. Cancel anytime.",
   },
 ];
 

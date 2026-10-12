@@ -463,6 +463,10 @@ export function ConstructionTimeTrackingCostPage() {
               one flat price.
             </li>
             <li>
+              <TextLink href="/vs/supercrew">Supercrew pricing</TextLink>: pay per crew member, next to one flat price
+              for the whole company.
+            </li>
+            <li>
               <TextLink href="/vs/quickbooks-time">QuickBooks Time vs My Guys Time</TextLink>: keep your accounting,
               change how hours come in.
             </li>

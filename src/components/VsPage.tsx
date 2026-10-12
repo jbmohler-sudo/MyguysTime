@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { AlertCircle, ArrowRight, CheckCircle2, ClipboardList, XCircle } from "lucide-react";
 import {
   APP_LOGIN_URL,
@@ -30,23 +31,35 @@ function VsLinkedText({ parts }: { parts: VsTextPart[] }) {
 }
 
 function VsFaqAnswer({ faq }: { faq: VsFaq }) {
-  const link = faq.link;
-  if (!link) return <>{faq.text}</>;
-  const index = faq.text.indexOf(link.phrase);
-  if (index === -1) return <>{faq.text}</>;
-  return (
-    <>
-      {faq.text.slice(0, index)}
+  const links = faq.links?.length ? faq.links : faq.link ? [faq.link] : [];
+  if (links.length === 0) return <>{faq.text}</>;
+  const ranges = links
+    .map((link) => {
+      const start = faq.text.indexOf(link.phrase);
+      return start === -1 ? null : { start, end: start + link.phrase.length, link };
+    })
+    .filter((range): range is { start: number; end: number; link: (typeof links)[number] } => range !== null)
+    .sort((a, b) => a.start - b.start);
+  if (ranges.length === 0) return <>{faq.text}</>;
+  const parts: ReactNode[] = [];
+  let cursor = 0;
+  ranges.forEach((range, index) => {
+    if (range.start < cursor) return;
+    if (range.start > cursor) parts.push(faq.text.slice(cursor, range.start));
+    parts.push(
       <a
-        href={link.href}
+        key={index}
+        href={range.link.href}
         className="text-orange-600 font-semibold hover:underline"
-        {...(link.external ? { target: "_blank", rel: "nofollow noopener noreferrer" } : {})}
+        {...(range.link.external ? { target: "_blank", rel: "nofollow noopener noreferrer" } : {})}
       >
-        {link.phrase}
-      </a>
-      {faq.text.slice(index + link.phrase.length)}
-    </>
-  );
+        {range.link.phrase}
+      </a>,
+    );
+    cursor = range.end;
+  });
+  if (cursor < faq.text.length) parts.push(faq.text.slice(cursor));
+  return <>{parts}</>;
 }
 
 export function VsPage({ slug }: { slug: string }) {
@@ -78,7 +91,7 @@ export function VsPage({ slug }: { slug: string }) {
       <MarketingHeader />
       <main>
         <PageHero
-          eyebrow={`My Guys Time vs ${vs.name}`}
+          eyebrow={vs.eyebrow ?? `My Guys Time vs ${vs.name}`}
           title={vs.h1}
           sub={vs.sub}
         />
@@ -90,6 +103,7 @@ export function VsPage({ slug }: { slug: string }) {
               <VsLinkedText parts={vs.afterIntro} />
             </p>
           )}
+          {vs.answer && <p className="text-slate-700 leading-relaxed mt-4">{vs.answer}</p>}
           <p className="text-slate-600 leading-relaxed mt-4">
             For the full picture, see the{" "}
             <a href="/construction-time-tracking" className="text-orange-600 font-semibold hover:underline">
@@ -297,7 +311,7 @@ export function VsPage({ slug }: { slug: string }) {
 
         <CtaBand
           heading={vs.closingHeading ?? `Still on ${vs.name.toLowerCase()}? Try it free for 7 days.`}
-          sub="One flat price. The whole crew. Cancel anytime."
+          sub={vs.closingSub ?? "One flat price. The whole crew. Cancel anytime."}
         />
       </main>
       <MarketingFooter />

@@ -342,7 +342,7 @@ export function BestConstructionTimeTrackingAppsPage() {
               <TextLink href="https://supercrew.com/pricing" external>
                 Supercrew pricing
               </TextLink>
-              ).
+              ). See <TextLink href="/vs/supercrew">Supercrew vs My Guys Time</TextLink>.
             </li>
             <li>
               <strong className="text-slate-900">Clockify:</strong> a general-purpose time tracker used across many
