@@ -13,19 +13,20 @@
   `/construction-time-tracking-cost`, `/best-construction-time-tracking-apps`,
   `/guides/how-contractors-track-crew-hours`,
   `/templates/construction-timesheet-template`, seven `/trades/:slug` pages, and
-  `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy,workyard}` — all prerendered, in the sitemap
-  (27 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
+  `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy,workyard,supercrew}` — all prerendered, in the sitemap
+  (28 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
   construction timesheet template, and Connecteam vs. Week two: `/vs/busybusy` (2026-10-05), `/vs/workyard` (2026-10-06),
   `/best-construction-time-tracking-apps` (2026-10-08), and `/guides/how-contractors-track-crew-hours` (2026-10-09).
+  Week three started: `/vs/supercrew` (2026-10-12).
   Still not live and on hold pending Jeff's CSV confirmation: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
 - **In progress:** PR #6 structure fixes is open, awaiting Jeff (drops `/demo/*` from sitemap -> 24;
   `/privacy` and `/terms` 404 after merge). Branch `feat/crew-management` (47ee53d, 282499c, 7839a13)
   is pushed, awaiting Jeff's review: office crew management (add/rename/remove crews, crew chiefs, move
   workers) plus a security fix that fences timesheets to their own company. Not on `main`.
-- **Next:** Week three five posts planned 10/12-10/16: `/vs/supercrew`, refresh of
-  `/vs/quickbooks-time` (no new URL), `/templates/time-to-decimal-chart`,
-  `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
+- **Next:** Remaining week-three posts (10/13-10/16): refresh of `/vs/quickbooks-time` (no new URL),
+  `/templates/time-to-decimal-chart`, `/guides/do-1099-subs-get-overtime`,
+  `/templates/construction-daily-report-template`.
 - **Biggest open item:** Jeff's call on PR #6 merge, CSV-export confirmation for the QuickBooks
   guide, and two Cursor branches (Open Questions). Optional later: Auth admin on `sb_secret_`
   (then disable legacy JWT), Neon→one Supabase DB.
@@ -101,6 +102,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-12 — Supercrew comparison page live (3a5b900)
+**Did:** Published `/vs/supercrew` from the approved 2026-10-12 draft (Jeff's go-live OK for the week's drafts). Added the supercrew config in `vs.tsx` (hero, answer block, pain cards, comparison table, flow, fit, callout, 5 FAQs, pills, closing CTA). Each person joins the crew on his own phone; he or the foreman logs the hours. Prerender title `Supercrew (ConstructionClock) vs $12 Flat | My Guys Time`, the draft meta and OG description, self-canonical `https://www.myguystime.com/vs/supercrew`, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Supercrew. Sitemap is 28 URLs. Inbound links: Supercrew pill on the other `/vs` pages, footer Comparisons column, cost hub compare list ("Supercrew pricing", per-member model), and a one-line link in best-apps "Also worth a look". No link to `/guides/crew-hours-quickbooks` or other unpublished week-three paths. No Supercrew dollar figures. The callout says `$12 a month flat for the whole company`. Re-checked https://supercrew.com/pricing on 2026-10-12: Timesheet approval is still labeled Soon on the Pro plan, so the table row stays. `npm run build` passed. Dist HTML: one H1, canonical as above, dollar amounts are only `$12`.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
+**State after:** `/vs/supercrew` is on `main`. Sitemap has 28 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML. Remaining week-three posts: `/vs/quickbooks-time` refresh, `/templates/time-to-decimal-chart`, `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
+
 ### 2026-10-11 — Crew management + crew chiefs; cross-company timesheet fence (47ee53d, 282499c, 7839a13, on `feat/crew-management`)
 **Did:** Investigated whether foremen/workers can log weekly hours and whether multi-crew companies work. Hour logging worked; crews did not: the only crew ever created was signup's "Main Crew", nothing set `Crew.foremanId` (only the seed did), invited foremen saw an empty board including their own week, a foreman could approve his own week, crew moves left the current week on the old crew, and `getAuthorizedTimesheet` returned any company's timesheet to any office login. Built on branch `feat/crew-management`: (1) 47ee53d stale test now expects 404 from the removed payroll export (it had failed on `main`, stopping `npm test` at case 2); (2) 282499c security: timesheets, crew-default hours and invite crews fenced to the caller's company, and a FOREMAN login with no worker record no longer matches every chief-less crew; (3) 7839a13 feature: `server/routes/crews.ts` (GET/POST `/api/crews`, PATCH/DELETE `/api/crews/:id`, PUT/DELETE `/api/crews/:id/members/:employeeId`, admin only), `CrewManagementPanel` at the top of the Team page (desktop and mobile), chief role sync, open weeks follow crew moves (employee edit form too), chief sees/submits his own week and the office approves it, foreman invite becomes chief of a chief-less crew, archiving releases a chief's crews, client permissions updated. Verified: `npm test` 43/43 (7 new cases; mutation check: reverting the fence and self-approval fixes makes those cases fail) against a throwaway local Postgres plus a fake Supabase Auth server, never hosted services; `npm run build` passes in the sandbox and natively on Jeff's Windows checkout; UI checked in a browser (office creates crew with chief, worker moved, board refreshes in place; new chief logs in as foreman and sees his crew and own week with Confirm and no Approve; 390px layout). Three old foreman tests used `employeeWeeks[0]`, which was the foreman's own week; they now target a crew member's week.
 **Decided:** see the two 2026-10-11 Decisions Log rows (crew chief = foreman login; open weeks follow moves, office approves a chief's own week).
@@ -123,14 +132,6 @@ Supabase; app rows moved to Neon.
 **Killed:** nothing.
 **Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). `/guides/crew-hours-quickbooks` stays unlinked.
 **State after:** `/guides/how-contractors-track-crew-hours` is on `main`. Sitemap has 27 URLs.
-**Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
-
-### 2026-10-08 — Best construction time tracking apps listicle live (5d9b028)
-**Did:** Published `/best-construction-time-tracking-apps` from the approved 2026-10-08 draft (Jeff's go-live OK). New `BestConstructionTimeTrackingAppsPage` with intro, answer block, quick picks, seven app cards, also-worth mentions, 5-question chooser, FAQ, and closing CTA. Prerender title, meta, OG, and self-canonical, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), ItemList of the seven cards (no ratings), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Best Time Tracking Apps for Small Construction Crews. Sitemap is 26 URLs. Inbound links from the pillar cost section, the cost hub compare list, the homepage product column, the footer Comparisons column, a pill on every `/vs` page, and the Workyard "best timesheet app" FAQ (the interim "soon" sentence now points here). Dropped the unpublished guide notes. Clockify FAQ says the free plan caps it at a small number of users, with the "up to 5" parenthetical removed from the FAQ and the also-worth line. No competitor dollar figures. No CSV, breaks, or petty cash claims for My Guys Time. `npm run build` passed. Dist HTML: title `Best Time Tracking Apps for Small Construction Crews`, one H1, canonical `https://www.myguystime.com/best-construction-time-tracking-apps`, `$12/month` intact.
-**Decided:** nothing new.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). `/guides/crew-hours-quickbooks` and `/guides/how-contractors-track-crew-hours` stay unlinked.
-**State after:** `/best-construction-time-tracking-apps` is on `main`. Sitemap has 26 URLs.
 **Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
