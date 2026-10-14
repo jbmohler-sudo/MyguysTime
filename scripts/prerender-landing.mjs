@@ -959,6 +959,114 @@ pages.push([
   ],
 ]);
 
+const decimalChartRoute = "/templates/time-to-decimal-chart";
+const decimalChartTitle = "Time to Decimal Chart: Minutes to Decimal Hours (Printable)";
+const decimalChartDescription =
+  "Free minutes-to-decimal hours chart for time cards: 1 to 60 minutes, decimal back to minutes, and a printable PDF. From a contractor, not a payroll firm.";
+const decimalChartHeadline = "Time to Decimal Chart: Convert Minutes to Decimal Hours";
+
+if (!Array.isArray(ssr.decimalChartFaqItems) || ssr.decimalChartFaqItems.length !== 5) {
+  console.error("[prerender] decimal chart FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+if (!Array.isArray(ssr.decimalMinuteRows) || ssr.decimalMinuteRows.length !== 60) {
+  console.error("[prerender] decimal chart minute rows missing or not 60 — refusing to ship.");
+  process.exit(1);
+}
+
+const decimalChartFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: ssr.decimalChartFaqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const decimalChartArticleLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: decimalChartHeadline,
+  description: decimalChartDescription,
+  datePublished: "2026-10-14",
+  author: {
+    "@type": "Person",
+    name: "Jeff Mohler",
+    jobTitle: "Founder",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "My Guys Time",
+    url: canonicalHost + "/",
+    logo: {
+      "@type": "ImageObject",
+      url: canonicalHost + "/images/og-myguystime.png",
+    },
+  },
+  mainEntityOfPage: canonicalHost + decimalChartRoute,
+};
+
+const decimalChartBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Free Construction Timesheet Template",
+      item: canonicalHost + templateRoute,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Time to Decimal Chart",
+      item: canonicalHost + decimalChartRoute,
+    },
+  ],
+};
+
+pages.push([
+  decimalChartRoute,
+  "templates/time-to-decimal-chart/index.html",
+  () => ssr.renderTimeToDecimalChartHtml(),
+  decimalChartTitle,
+  decimalChartDescription,
+  [
+    ["ld-article", decimalChartArticleLd],
+    ["ld-faqpage", decimalChartFaqLd],
+    ["ld-breadcrumb", decimalChartBreadcrumbLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    decimalChartHeadline,
+    "15 minutes is 0.25 hours",
+    "Decimal hours rounded to two places (minutes divided by 60).",
+    "decimal time chart, minutes to decimal hours 1 to 60",
+    "/templates/time-to-decimal-chart.pdf",
+    "/templates/time-to-decimal-chart.xlsx",
+    "How do I calculate decimal hours?",
+    "What is .26 of an hour?",
+    "Is 7.30 the same as 7 hours 30 minutes?",
+    "Tired of converting?",
+    "$12/month flat for the whole company",
+    "/demo/foreman",
+    "/pricing",
+    "/templates/construction-timesheet-template",
+    "/guides/how-contractors-track-crew-hours",
+    "/vs/paper-timesheets",
+    "38.58",
+    "each guy joins the crew team from his own phone",
+  ],
+]);
+
 const bestAppsRoute = "/best-construction-time-tracking-apps";
 const bestAppsTitle = "Best Time Tracking Apps for Small Construction Crews";
 const bestAppsDescription =
@@ -1442,6 +1550,54 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     const hit = banned.filter((token) => finalHtml.toLowerCase().includes(token.toLowerCase()));
     if (hit.length > 0 || /csv/i.test(markup)) {
       console.error("[prerender] template page contains banned copy:", hit, /csv/i.test(markup) ? "CSV" : "");
+      process.exit(1);
+    }
+  }
+
+  if (routePath === "/templates/time-to-decimal-chart") {
+    const lower = markup.toLowerCase();
+    const banned = [
+      "csv",
+      "petty cash",
+      "google sheets",
+      "one phone per crew",
+      "/guides/crew-hours-quickbooks",
+      "calculates payroll",
+      "calculates tax",
+    ];
+    const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    const missingRows = (ssr.decimalMinuteRows || []).filter(
+      (row) => !markup.includes(`>${row.minutes}</td><td class="p-4 text-slate-600">${row.decimal}</td>`),
+    );
+    if (hit.length > 0 || badDollars.length > 0 || missingRows.length > 0) {
+      console.error("[prerender] decimal chart page failed copy or table check:", hit, badDollars, missingRows.slice(0, 5));
+      process.exit(1);
+    }
+    if ((markup.match(/<h1[\s>]/g) || []).length !== 1) {
+      console.error("[prerender] decimal chart page must have exactly one H1.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"@type":"Article"') || !finalHtml.includes('"@type":"FAQPage"') || !finalHtml.includes('"@type":"WebPage"') || !finalHtml.includes('"@type":"BreadcrumbList"')) {
+      console.error("[prerender] decimal chart page missing Article, WebPage, FAQPage, or BreadcrumbList JSON-LD.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"datePublished":"2026-10-14"') || !finalHtml.includes('"name":"Jeff Mohler"') || !finalHtml.includes('"jobTitle":"Founder"')) {
+      console.error("[prerender] decimal chart Article JSON-LD missing author or date.");
+      process.exit(1);
+    }
+    if (finalHtml.includes('"name":"Templates"') || !finalHtml.includes("https://www.myguystime.com/templates/time-to-decimal-chart")) {
+      console.error("[prerender] decimal chart canonical or breadcrumb is wrong.");
+      process.exit(1);
+    }
+    const visible = markup.replace(/&#x27;/g, "'").replace(/&amp;/g, "&").replace(/&quot;/g, '"');
+    const faqMismatch = ssr.decimalChartFaqItems.filter(
+      (item) => !visible.includes(item.q) || !visible.includes(item.a),
+    );
+    if (faqMismatch.length > 0) {
+      console.error("[prerender] decimal chart FAQ text drifted from JSON-LD source:", faqMismatch.map((item) => item.q));
       process.exit(1);
     }
   }

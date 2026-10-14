@@ -265,7 +265,9 @@ export const VS_PAGES: VsConfig[] = [
       { text: "free construction timesheet template", href: "/templates/construction-timesheet-template" },
       { text: " as a PDF or an Excel file. See " },
       { text: "how other contractors track crew hours", href: "/guides/how-contractors-track-crew-hours" },
-      { text: "." },
+      { text: ". When those Excel totals need decimal hours, " },
+      { text: "convert minutes to decimal hours", href: "/templates/time-to-decimal-chart" },
+      { text: " with the free chart." },
     ],
     pains: [
       {

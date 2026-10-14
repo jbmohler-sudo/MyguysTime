@@ -29,12 +29,17 @@ import {
   templateFaqItems,
 } from "../src/components/ConstructionTimesheetTemplatePage";
 import {
+  TimeToDecimalChartPage,
+  decimalChartFaqItems,
+  decimalMinuteRows,
+} from "../src/components/TimeToDecimalChartPage";
+import {
   BestConstructionTimeTrackingAppsPage,
   bestAppsFaqItems,
 } from "../src/components/BestConstructionTimeTrackingAppsPage";
 import { GuidePage, guideFaqItems } from "../src/components/GuidePage";
 
-export { faqItems, faqPageItems, constructionFaqItems, costFaqItems, templateFaqItems, bestAppsFaqItems, guideFaqItems };
+export { faqItems, faqPageItems, constructionFaqItems, costFaqItems, templateFaqItems, bestAppsFaqItems, guideFaqItems, decimalChartFaqItems, decimalMinuteRows };
 
 export function vsPageFaqs(slug: string): { q: string; a: string }[] {
   const page = getVs(slug);
@@ -72,6 +77,10 @@ export function renderConstructionTimeTrackingCostHtml(): string {
 
 export function renderConstructionTimesheetTemplateHtml(): string {
   return renderToStaticMarkup(createElement(ConstructionTimesheetTemplatePage));
+}
+
+export function renderTimeToDecimalChartHtml(): string {
+  return renderToStaticMarkup(createElement(TimeToDecimalChartPage));
 }
 
 export function renderBestConstructionTimeTrackingAppsHtml(): string {
