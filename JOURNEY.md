@@ -17,7 +17,8 @@
   (29 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
   construction timesheet template, and Connecteam vs. Week two: `/vs/busybusy` (2026-10-05), `/vs/workyard` (2026-10-06),
   `/best-construction-time-tracking-apps` (2026-10-08), and `/guides/how-contractors-track-crew-hours` (2026-10-09).
-  Week three: `/vs/supercrew` (2026-10-12) and `/templates/time-to-decimal-chart` (2026-10-14).
+  Week three: `/vs/supercrew` (2026-10-12), `/templates/time-to-decimal-chart` (2026-10-14), and a refresh of
+  `/vs/quickbooks-time` (2026-10-14, same URL).
   Still not live and on hold pending Jeff's CSV confirmation: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
 - **In progress:** PR #6 structure fixes is open, awaiting Jeff (drops `/demo/*` from sitemap -> 24;
@@ -26,8 +27,7 @@
   move workers), the cross-company timesheet fence, and the deep `/api` routing fix (a7b9abd). Before a7b9abd,
   every API path two or more segments below its prefix 404'd in production, so saving day hours and week
   status changes did not work on the live site.
-- **Next:** Remaining week-three posts: refresh of `/vs/quickbooks-time` (no new URL),
-  `/guides/do-1099-subs-get-overtime`,
+- **Next:** Remaining week-three posts: `/guides/do-1099-subs-get-overtime`,
   `/templates/construction-daily-report-template`.
 - **Biggest open item:** Jeff's call on PR #6 merge, CSV-export confirmation for the QuickBooks
   guide, and two Cursor branches (Open Questions). Optional later: Auth admin on `sb_secret_`
@@ -108,6 +108,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-14 — QuickBooks Time comparison page refreshed (54da680)
+**Did:** Refreshed existing `/vs/quickbooks-time` from the approved 2026-10-13 draft (Jeff's go-live for the content-only page). Updated the quickbooks-time config in `vs.tsx` (eyebrow, h1, answer block, pain cards, comparison table, flow, callout, 6 FAQs, closing CTA). Each person joins the crew team from his own phone; he or the foreman logs the hours. Removed "one phone per crew is enough." Prerender title `QuickBooks Time Pricing vs $12 Flat for Crews | My Guys Time`, the draft meta and OG description, self-canonical `https://www.myguystime.com/vs/quickbooks-time`. Kept the existing SoftwareApplication, Organization, WebSite, and WebPage schema; WebPage `dateModified` is 2026-10-14. No new FAQPage or breadcrumb. Sitemap stays 29 URLs; this URL's `<lastmod>` is 2026-10-14. No competitor dollar figures. `$12` reads as flat for the whole company. Left out of the page: CSV export, multiple crews, breaks, petty cash, Intuit dollar amounts, and the old Support row. `npm run build` passed. Dist HTML: one H1, canonical as above, body dollar amounts are only `$12`, and "one phone per crew" is absent.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
+**State after:** `/vs/quickbooks-time` refresh is on `main` (54da680). Sitemap has 29 URLs.
+**Next:** Confirm the Vercel deploy is READY and https://www.myguystime.com/vs/quickbooks-time returns 200 without "one phone per crew". Remaining week-three posts: `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
+
 ### 2026-10-14 — Time to decimal chart template page live (85175cb)
 **Did:** Published `/templates/time-to-decimal-chart` from the approved 2026-10-14 draft (Jeff's go-live for the content-only page). New `TimeToDecimalChartPage` with the minutes-to-decimal chart (60 values in prerendered HTML), reverse decimal-to-minutes table, worked week, rounding caveat with no rule or threshold, print links, soft CTA, and 5 FAQs. Each person joins the crew team from his own phone; he or the foreman logs the hours. Prerender title `Time to Decimal Chart: Minutes to Decimal Hours (Printable)`, the draft meta and OG description, self-canonical `https://www.myguystime.com/templates/time-to-decimal-chart`, plus Article (Jeff Mohler, Founder, datePublished 2026-10-14), WebPage, FAQPage from the 5 FAQs, and BreadcrumbList Home / Free Construction Timesheet Template / Time to Decimal Chart. PDF and XLSX are in `public/templates/` and are not in the sitemap. Sitemap is 29 URLs. Inbound links: timesheet template page ("convert minutes to decimal hours") and `/vs/spreadsheets` (Excel totals line). No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll-calculation claims. `npm run build` passed. Dist HTML: one H1, canonical as above, 60 chart rows, dollar amounts are only `$12`.
 **Decided:** nothing new.
@@ -131,14 +139,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
 **State after:** `/vs/supercrew` is on `main`. Sitemap has 28 URLs.
 **Next:** Confirm the Vercel deploy is READY and the live page returns the prerendered HTML. Remaining week-three posts: `/vs/quickbooks-time` refresh, `/templates/time-to-decimal-chart`, `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
-
-### 2026-10-11 — Crew management + crew chiefs; cross-company timesheet fence (47ee53d, 282499c, 7839a13, on `feat/crew-management`)
-**Did:** Investigated whether foremen/workers can log weekly hours and whether multi-crew companies work. Hour logging worked; crews did not: the only crew ever created was signup's "Main Crew", nothing set `Crew.foremanId` (only the seed did), invited foremen saw an empty board including their own week, a foreman could approve his own week, crew moves left the current week on the old crew, and `getAuthorizedTimesheet` returned any company's timesheet to any office login. Built on branch `feat/crew-management`: (1) 47ee53d stale test now expects 404 from the removed payroll export (it had failed on `main`, stopping `npm test` at case 2); (2) 282499c security: timesheets, crew-default hours and invite crews fenced to the caller's company, and a FOREMAN login with no worker record no longer matches every chief-less crew; (3) 7839a13 feature: `server/routes/crews.ts` (GET/POST `/api/crews`, PATCH/DELETE `/api/crews/:id`, PUT/DELETE `/api/crews/:id/members/:employeeId`, admin only), `CrewManagementPanel` at the top of the Team page (desktop and mobile), chief role sync, open weeks follow crew moves (employee edit form too), chief sees/submits his own week and the office approves it, foreman invite becomes chief of a chief-less crew, archiving releases a chief's crews, client permissions updated. Verified: `npm test` 43/43 (7 new cases; mutation check: reverting the fence and self-approval fixes makes those cases fail) against a throwaway local Postgres plus a fake Supabase Auth server, never hosted services; `npm run build` passes in the sandbox and natively on Jeff's Windows checkout; UI checked in a browser (office creates crew with chief, worker moved, board refreshes in place; new chief logs in as foreman and sees his crew and own week with Confirm and no Approve; 390px layout). Three old foreman tests used `employeeWeeks[0]`, which was the foreman's own week; they now target a crew member's week.
-**Decided:** see the two 2026-10-11 Decisions Log rows (crew chief = foreman login; open weeks follow moves, office approves a chief's own week).
-**Killed:** nothing. `CrewAssignment` stays in the schema but nothing reads it now.
-**Deferred:** Crew archiving (removing a crew with timesheet history is refused; an archive flag needs a migration and Jeff's OK). Letting crew chiefs invite into their own crew. The remove-worker button still bounces the office to the dashboard (full-screen reload); crew edits refresh in place.
-**State after:** `feat/crew-management` pushed (7839a13); Vercel preview deployment started from it. `main` unchanged. Jeff's checkout is back on `main`.
-**Next:** Jeff reviews the branch (security fix included, so it needs his OK), then merge to `main`, confirm the production deploy is READY, and try it on a real company: add a second crew, pick a chief, invite him.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
