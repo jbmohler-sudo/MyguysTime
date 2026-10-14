@@ -36,6 +36,8 @@ export interface VsConfig {
   painHeading?: string;
   painSub?: string;
   compare: VsCompareRow[];
+  /** Line under the comparison table, before the CTAs. */
+  compareFooter?: VsTextPart[];
   /** Extra CTAs under the comparison table (free week + foreman demo). */
   compareCta?: boolean;
   /** Label for the foreman-demo button under the comparison table. */
@@ -163,8 +165,9 @@ export const VS_PAGES: VsConfig[] = [
   {
     slug: "quickbooks-time",
     name: "QuickBooks Time",
-    h1: "Stop paying per head.",
-    sub: "Every hire raises the bill. Seasonal help, subs, a new laborer — each one is another seat. There's a flatter way to track crew hours.",
+    eyebrow: "My Guys Time vs QuickBooks Time (formerly TSheets)",
+    h1: "QuickBooks Time vs My Guys Time: Per-User Fees or One Flat Price",
+    sub: "Stop paying per head.",
     intro:
       "Per-seat pricing punishes you for growing. Hire a guy Monday, pay more next month. Bring on seasonal help, pay for seats that sit empty all winter. Add a 1099 sub to the job, pay for him too. My Guys Time was built on the opposite idea: why should the app cost more because you hired another guy? One flat price, the whole company, no seats to count.",
     afterIntro: [
@@ -172,86 +175,132 @@ export const VS_PAGES: VsConfig[] = [
       { text: "what crew time apps cost", href: "/construction-time-tracking-cost" },
       { text: "." },
     ],
+    answer:
+      "QuickBooks Time, formerly TSheets, is priced with a monthly base fee plus a fee for every user, on Premium and Elite plans, and it needs a QuickBooks Online subscription. Elite adds things like geofencing and mileage tracking. My Guys Time is a simpler crew time card at $12/month flat for the whole company. No per-user fees, and no QuickBooks subscription required.",
+    painHeading: "What QuickBooks Time costs you every week",
+    painSub: "If any of these sound like your week, the pricing model is working against you.",
     pains: [
       {
-        title: "Every hire raises the bill",
-        text: "New laborer starts Monday — your software bill goes up next month. Growth is supposed to make you money, not raise your overhead one seat at a second.",
+        title: "A base fee, then a fee for every guy",
+        text: "QuickBooks Time charges a monthly base fee, then adds a fee for each user on top. New laborer starts Monday, the bill goes up next month. And it runs on top of a QuickBooks Online subscription, so that's another bill before you track a single hour.",
       },
       {
         title: "Seasonal crews cost you year-round",
-        text: "You hire in spring and lose guys by fall, but per-seat plans charge you for every seat whether somebody's in it or not. Construction isn't a 12-months-same-headcount business.",
+        text: "You hire in spring and lose guys by fall. On a per-user plan, you're managing who's on the bill every time the crew changes. Construction isn't a same-headcount-all-year business.",
       },
       {
-        title: "Subs need seats too",
-        text: "The 1099 crew on your big job still counts as users on a per-seat plan. You're paying full price to track guys who aren't even your employees.",
+        title: "Subs count too",
+        text: "The 1099 crew on your big job still counts as users on a per-user plan. You pay to track guys who aren't even your employees.",
       },
       {
         title: "Built for HR, not the field",
-        text: "Corporate time software comes with onboarding videos, settings panels, and integrations nobody in the truck asked for. You need a time card, not an HR platform.",
+        text: "Office time software comes with settings panels, admin screens and features nobody in the truck asked for. You need a time card, not an HR platform.",
       },
     ],
+    compareFooter: [{ text: "$12/month flat for the whole crew", href: "/pricing" }],
+    compareCta: true,
+    compareSecondaryLabel: "See the foreman view, no signup",
     compare: [
       {
-        label: "Pricing",
-        oldWay: "Per user, per month — the bill grows with your headcount",
-        myGuys: "$12/mo flat for the whole company. Hire ten guys, pay the same.",
+        label: "Pricing model",
+        oldWay:
+          "Monthly base fee plus a fee per user, by plan (Premium or Elite). Requires a QuickBooks Online subscription.",
+        myGuys: "$12/month flat for the whole company. One plan, no tiers, no other subscription needed.",
+      },
+      {
+        label: "What's included",
+        oldWay:
+          "Premium: time tracking app, time kiosk, scheduling, alerts. Elite adds geofencing, mileage tracking, project tracking with estimates vs actuals, and timesheet signatures.",
+        myGuys:
+          "Crew time cards, weekly crew board, foreman approval (a one-person crew auto-approves), foreman incident notes, receipt photos for expenses",
       },
       {
         label: "Adding a new hire",
-        oldWay: "Buy another seat, set up another account, update the invoice",
-        myGuys: "Send a copyable invite link — he's logging hours the same day",
+        oldWay: "Another user, another monthly fee",
+        myGuys: "Send a copyable invite link. The price doesn't change.",
       },
       {
         label: "1099 subs",
-        oldWay: "More seats, more cost, for guys who aren't your employees",
-        myGuys: "Included in the flat price, tracked in their own lane",
+        oldWay: "Each one counts as a user",
+        myGuys: "W-2 and 1099 guys on the same board, in the same flat price",
+      },
+      {
+        label: "Getting hours to payroll",
+        oldWay: "Connects to QuickBooks payroll and other payroll software",
+        myGuys:
+          "The office reviews the week and hands the hours to whoever runs payroll. No integrations, and it doesn't calculate pay or taxes.",
       },
       {
         label: "Learning curve",
-        oldWay: "Onboarding flows, settings to configure, features to ignore",
+        oldWay: "Admin settings, plans and add-ons to sort through",
         myGuys: "Foreman opens it in the browser and taps in hours. That's it.",
       },
-      {
-        label: "Support",
-        oldWay: "Ticket queues and chatbots",
-        myGuys: "Built by a contractor — email jeff@myguystime.com and get a human",
-      },
     ],
+    flowLink: { label: "See how it works", href: "/how-it-works" },
     flow: [
       {
         title: "Crew logs from the field",
-        text: "Foreman taps in the day's hours from his phone — no per-seat logins to manage, no onboarding course. One phone per crew is enough.",
+        text: "Each guy joins the crew team from his own phone. He or the foreman logs the hours on the job, the day they're worked. No per-user fees, no onboarding course.",
+      },
+      {
+        title: "Add guys as you need them",
+        text: "New laborer or a seasonal guy for the summer? Send him an invite link. He's on the board and the bill doesn't move.",
       },
       {
         title: "You review the week",
-        text: "One board: employees and subs, every day. Seasonal hires appear the day they start and disappear the day they leave — no seat juggling.",
+        text: "Foreman-approved cards, W-2 and 1099 guys on one board, receipt photos attached.",
       },
       {
-        title: "Adjust and separate",
-        text: "Move hours, fix days, keep W-2 and 1099 hours in their own lanes for payroll and tax time.",
-      },
-      {
-        title: "Export for payroll",
-        text: "Weekly summary and time-detail CSVs drop into whatever you run payroll with — including QuickBooks. Keep your accounting; fix your time tracking.",
+        title: "Hand it to payroll",
+        text: "Hand the approved week to whoever runs payroll, including your QuickBooks bookkeeper. Keep your accounting; fix your time tracking.",
       },
     ],
     calloutTitle: "One price. The whole crew.",
     calloutText:
-      "That's the entire pricing page: $12 a month, flat, for everybody — foremen, laborers, subs, office. Seven-day free trial, cancel anytime from the billing portal. No tiers, no seat math, no surprise invoice because you had a good hiring month.",
+      "That's the entire pricing page: $12 a month, flat, for everybody: foremen, laborers, subs, office. Seven-day free trial, cancel anytime from the billing portal. No tiers, no seat math, no surprise invoice because you had a good hiring month.",
     faqs: [
       {
-        q: "We already use QuickBooks for accounting. Does this replace it?",
-        text: "No — keep your accounting. My Guys Time handles the time cards: daily logging, weekly review, and CSV exports that drop into payroll. It's the front end your crew actually touches.",
+        q: "Is QuickBooks Time the same as TSheets?",
+        text: "Yes. Intuit renamed TSheets to QuickBooks Time, and its announcement says the features stayed the same. If you're looking for a TSheets alternative, you're looking at QuickBooks Time.",
+        link: {
+          phrase: "its announcement",
+          href: "https://quickbooks.intuit.com/r/news/introducing-quickbooks-time-its-tsheets-with-a-new-name/",
+          external: true,
+        },
       },
       {
-        q: "$12 a month for the whole company — what's the catch?",
-        text: "No catch. No tiers, no per-seat fees, no feature gates. The 7-day trial is free and you can cancel anytime from the billing portal. It costs $12 because a time card shouldn't cost more than that.",
+        q: "How much does QuickBooks Time cost?",
+        text: "QuickBooks Time charges a monthly base fee plus a fee for each user, and the amounts depend on the plan. You also need a QuickBooks Online subscription. Check Intuit's pricing page for current rates. My Guys Time is $12/month flat for the whole company. We compare the models in what crew time apps cost.",
+        links: [
+          {
+            phrase: "Intuit's pricing page",
+            href: "https://quickbooks.intuit.com/time-tracking/pricing/",
+            external: true,
+          },
+          {
+            phrase: "what crew time apps cost",
+            href: "/construction-time-tracking-cost",
+          },
+        ],
+      },
+      {
+        q: "What's the difference between QuickBooks Time Premium and Elite?",
+        text: "Per Intuit's site, Elite adds geofencing reminders, mileage tracking, project tracking with estimates vs actuals reporting, and timesheet signatures. Both plans include the time tracking app, a time kiosk and scheduling.",
+      },
+      {
+        q: "We already use QuickBooks for accounting. Does this replace it?",
+        text: "No. Keep your accounting. My Guys Time handles the time cards: daily logging, the foreman's sign-off and the weekly review. It's the part your crew actually touches. When the week is approved, hand the hours to whoever runs payroll.",
       },
       {
         q: "Can it handle a bigger crew?",
-        text: "The flat price covers the whole company — 5 guys or 50. Crews get their own boards, and the weekly review shows the full picture no matter how many teams you're running.",
+        text: "The flat price covers the whole company, 5 guys or 50.",
+      },
+      {
+        q: "$12 a month for the whole company: what's the catch?",
+        text: "No catch. No tiers, no per-seat fees, no feature gates. The 7-day trial costs nothing and you can cancel anytime from the billing portal. It costs $12 because a time card shouldn't cost more than that.",
       },
     ],
+    closingHeading: "Still on QuickBooks Time? Try it free for 7 days.",
   },
   {
     slug: "spreadsheets",

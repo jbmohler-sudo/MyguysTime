@@ -146,7 +146,7 @@ const constructionBreadcrumbLd = {
 };
 
 function webPageLd(title, routePath, description) {
-  return {
+  const page = {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: title,
@@ -154,6 +154,10 @@ function webPageLd(title, routePath, description) {
     description,
     isPartOf: { "@type": "WebSite", name: "My Guys Time", url: canonicalHost + "/" },
   };
+  if (routePath === "/vs/quickbooks-time") {
+    page.dateModified = "2026-10-14";
+  }
+  return page;
 }
 
 // [pageRoute, outFile, renderFn, title, description, ldBlocks, requiredSnippets]
@@ -297,9 +301,9 @@ const vsPages = [
   ["paper-timesheets", "Paper Timesheets", "Paper Timesheets vs My Guys Time | Contractor Time Cards",
     "Still running crew hours on paper time cards? Lost hours, Thursday-night reconstruction, unreadable handwriting — see what changes with $12/mo flat time cards.",
     "Retire the paper time card."],
-  ["quickbooks-time", "QuickBooks Time", "QuickBooks Time Alternative for Contractors | My Guys Time",
-    "QuickBooks Time charges per user — every hire raises the bill. My Guys Time is $12/mo flat for the whole company. Contractor time tracking without per-seat pricing.",
-    "Stop paying per head."],
+  ["quickbooks-time", "QuickBooks Time", "QuickBooks Time Pricing vs $12 Flat for Crews | My Guys Time",
+    "QuickBooks Time charges a monthly base fee plus a fee per user, on top of QuickBooks Online. My Guys Time is $12/mo flat for the whole company.",
+    "QuickBooks Time vs My Guys Time: Per-User Fees or One Flat Price"],
   ["spreadsheets", "Spreadsheets", "Spreadsheet Time Tracking vs My Guys Time | $12/mo Flat",
     "If your time-tracking 'system' is a spreadsheet rebuilt every Thursday at 5pm, you're paying for it in lost hours. Daily field logging, one weekly review, clean CSV export.",
     "Kill the Thursday spreadsheet."],
@@ -1463,6 +1467,31 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
     if (hit.length > 0 || badDollars.length > 0) {
       console.error("[prerender] workyard page contains banned copy:", hit, badDollars);
+      process.exit(1);
+    }
+  }
+
+  if (routePath === "/vs/quickbooks-time") {
+    const lower = markup.toLowerCase();
+    const banned = ["csv", "petty cash", "one phone per crew", "own boards", "multi-crew", "shared phone"];
+    const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    if (hit.length > 0 || badDollars.length > 0) {
+      console.error("[prerender] quickbooks-time page contains banned copy:", hit, badDollars);
+      process.exit(1);
+    }
+    if ((markup.match(/<h1[\s>]/g) || []).length !== 1) {
+      console.error("[prerender] quickbooks-time page must have exactly one H1.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"dateModified":"2026-10-14"')) {
+      console.error("[prerender] quickbooks-time WebPage JSON-LD missing dateModified.");
+      process.exit(1);
+    }
+    if (!markup.includes("Each guy joins the crew team from his own phone")) {
+      console.error("[prerender] quickbooks-time page missing own-phone crew join line.");
       process.exit(1);
     }
   }
