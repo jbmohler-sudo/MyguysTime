@@ -12,12 +12,12 @@
 - **Marketing site live:** `/features`, `/pricing`, `/how-it-works`, `/faq`, `/construction-time-tracking`,
   `/construction-time-tracking-cost`, `/best-construction-time-tracking-apps`,
   `/guides/how-contractors-track-crew-hours`,
-  `/templates/construction-timesheet-template`, seven `/trades/:slug` pages, and
+  `/templates/construction-timesheet-template`, `/templates/time-to-decimal-chart`, seven `/trades/:slug` pages, and
   `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy,workyard,supercrew}` — all prerendered, in the sitemap
-  (28 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
+  (29 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
   construction timesheet template, and Connecteam vs. Week two: `/vs/busybusy` (2026-10-05), `/vs/workyard` (2026-10-06),
   `/best-construction-time-tracking-apps` (2026-10-08), and `/guides/how-contractors-track-crew-hours` (2026-10-09).
-  Week three started: `/vs/supercrew` (2026-10-12).
+  Week three: `/vs/supercrew` (2026-10-12) and `/templates/time-to-decimal-chart` (2026-10-14).
   Still not live and on hold pending Jeff's CSV confirmation: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
 - **In progress:** PR #6 structure fixes is open, awaiting Jeff (drops `/demo/*` from sitemap -> 24;
@@ -26,8 +26,8 @@
   move workers), the cross-company timesheet fence, and the deep `/api` routing fix (a7b9abd). Before a7b9abd,
   every API path two or more segments below its prefix 404'd in production, so saving day hours and week
   status changes did not work on the live site.
-- **Next:** Remaining week-three posts (10/13-10/16): refresh of `/vs/quickbooks-time` (no new URL),
-  `/templates/time-to-decimal-chart`, `/guides/do-1099-subs-get-overtime`,
+- **Next:** Remaining week-three posts: refresh of `/vs/quickbooks-time` (no new URL),
+  `/guides/do-1099-subs-get-overtime`,
   `/templates/construction-daily-report-template`.
 - **Biggest open item:** Jeff's call on PR #6 merge, CSV-export confirmation for the QuickBooks
   guide, and two Cursor branches (Open Questions). Optional later: Auth admin on `sb_secret_`
@@ -108,6 +108,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-14 — Time to decimal chart template page live (85175cb)
+**Did:** Published `/templates/time-to-decimal-chart` from the approved 2026-10-14 draft (Jeff's go-live for the content-only page). New `TimeToDecimalChartPage` with the minutes-to-decimal chart (60 values in prerendered HTML), reverse decimal-to-minutes table, worked week, rounding caveat with no rule or threshold, print links, soft CTA, and 5 FAQs. Each person joins the crew team from his own phone; he or the foreman logs the hours. Prerender title `Time to Decimal Chart: Minutes to Decimal Hours (Printable)`, the draft meta and OG description, self-canonical `https://www.myguystime.com/templates/time-to-decimal-chart`, plus Article (Jeff Mohler, Founder, datePublished 2026-10-14), WebPage, FAQPage from the 5 FAQs, and BreadcrumbList Home / Free Construction Timesheet Template / Time to Decimal Chart. PDF and XLSX are in `public/templates/` and are not in the sitemap. Sitemap is 29 URLs. Inbound links: timesheet template page ("convert minutes to decimal hours") and `/vs/spreadsheets` (Excel totals line). No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll-calculation claims. `npm run build` passed. Dist HTML: one H1, canonical as above, 60 chart rows, dollar amounts are only `$12`.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset; only `.env.example`). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
+**State after:** `/templates/time-to-decimal-chart` is on `main` (85175cb). Sitemap has 29 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live page and PDF return 200. Remaining week-three posts: `/vs/quickbooks-time` refresh, `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
+
 ### 2026-10-12 — Crew management live; deep /api routes fixed in production (a1b7013 merged, a7b9abd)
 **Did:** Jeff said ship it: fast-forwarded `main` to `feat/crew-management` (a1b7013; code identical to the 43/43 tested build). Production deploy READY. Live check found every API path two or more segments below its prefix returned Vercel NOT_FOUND, on today's deploy and on the previous one (49dddda), so this was pre-existing: day-hour saves, week status, expenses, adjustments, crew defaults, crew member moves, invite resend/revoke all failed on the live site (the app calls same-host `/api`). Cause: `api/<prefix>/[...path].ts` matches one segment on this project (earlier sessions worked around it with explicit files such as `employees/[employeeId]/remove.ts`). Fix a7b9abd: one `vercel.json` rewrite, `/api/:path*` → `/api/[...path]`, after the Stripe rule. Verified: on previews the deep path went from NOT_FOUND to reaching the function (previews crash at boot for every route, so no further preview test was possible); `npm run build` passed natively; on production after deploy, 9 deep routes return the app's own 401 JSON, 10 previously working routes unchanged (health 200, auth/crews/employees/invites/billing 401, both Stripe webhooks 400 missing signature), `/login` and `/pricing` 200. Rebased over the Supercrew commits (marketing only).
 **Decided:** see the 2026-10-12 Decisions Log row (rewrite supersedes the per-prefix file rule).
@@ -131,14 +139,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** Crew archiving (removing a crew with timesheet history is refused; an archive flag needs a migration and Jeff's OK). Letting crew chiefs invite into their own crew. The remove-worker button still bounces the office to the dashboard (full-screen reload); crew edits refresh in place.
 **State after:** `feat/crew-management` pushed (7839a13); Vercel preview deployment started from it. `main` unchanged. Jeff's checkout is back on `main`.
 **Next:** Jeff reviews the branch (security fix included, so it needs his OK), then merge to `main`, confirm the production deploy is READY, and try it on a real company: add a second crew, pick a chief, invite him.
-
-### 2026-10-09 — Week two wrap: 4 of 5 posts live, sitemap 27; week three briefed (fc9cdd3, 8ed149f, 5d9b028, 552541b)
-**Did:** Week two (2026-10-05 to 10-09) shipped 4 of 5 planned posts, each from a Jeff-approved draft with `npm run build` passing: `/vs/busybusy` (10/5, fc9cdd3 + a1fe22d JOURNEY), `/vs/workyard` (10/6, 8ed149f + 67f56b9), `/best-construction-time-tracking-apps` (10/8, 5d9b028 + f97e2ae), `/guides/how-contractors-track-crew-hours` (10/9, 552541b + 979753e, with the real route, breadcrumb and 4 inbound links). Live https://www.myguystime.com/sitemap.xml fetched 2026-10-09 09:36 ET: 27 URLs, matches repo `public/sitemap.xml` (27); every published post is listed. Friday planning (seo-desk, off-repo) wrote five week-three briefs from the 2026-10-09 OpenSEO pull (GSC: first non-branded queries, "clockshark pricing" pos ~38-43, "quickbooks time alternative" pos 37; `/vs/quickbooks-time` avg pos 11.5). No code changes in this commit.
-**Decided:** nothing new in-repo.
-**Killed:** nothing.
-**Deferred:** Wed 10/7 `/guides/crew-hours-quickbooks` (MGT-08) stays on HOLD until Jeff confirms CSV export; not live, not linked. `npm test` (no fixture DB in cloud; docs-only change). Search Console sitemap resubmit still manual.
-**State after:** 27 sitemap URLs (3 are `/demo/*`). PR #6 (https://github.com/jbmohler-sudo/MyguysTime/pull/6, branch `structure-fixes-2026-10`: real 404s for unknown public paths, breadcrumbs sitewide, homepage shared footer + hub links, trade-page links, FAQPage JSON-LD, `/demo/*` removed from sitemap -> 24 URLs) is open, build passing, waiting on Jeff's merge OK. After merge `/privacy` and `/terms` will 404 (no pages exist). Week three planned (briefed, drafts not started): Mon 10/12 `/vs/supercrew` (Supercrew, ex-ConstructionClock); Tue 10/13 refresh of existing `/vs/quickbooks-time` (no new URL); Wed 10/14 `/templates/time-to-decimal-chart`; Thu 10/15 `/guides/do-1099-subs-get-overtime`; Fri 10/16 `/templates/construction-daily-report-template`.
-**Next:** Jeff decides on PR #6 (merge early in the week so new pages build on it) and on CSV export for the QuickBooks guide; Blogs drafts week three for Jeff review; each post ships only on Jeff's yes, adds its URL to `public/sitemap.xml` (27 -> 31 on current main, or 24 -> 28 if PR #6 merges first), Vercel READY check, sitemap resubmit.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
