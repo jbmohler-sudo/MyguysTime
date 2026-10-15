@@ -11,25 +11,24 @@
   period, 7-day no-card trial on new signups. Paid companies stay on `active`.
 - **Marketing site live:** `/features`, `/pricing`, `/how-it-works`, `/faq`, `/construction-time-tracking`,
   `/construction-time-tracking-cost`, `/best-construction-time-tracking-apps`,
-  `/guides/how-contractors-track-crew-hours`, `/guides/do-1099-subs-get-overtime`,
+  `/guides`, `/guides/how-contractors-track-crew-hours`, `/guides/do-1099-subs-get-overtime`,
   `/templates/construction-timesheet-template`, `/templates/time-to-decimal-chart`, seven `/trades/:slug` pages, and
   `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy,workyard,supercrew}` — all prerendered, in the sitemap
-  (30 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
+  (31 URLs on `main`). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
   construction timesheet template, and Connecteam vs. Week two: `/vs/busybusy` (2026-10-05), `/vs/workyard` (2026-10-06),
   `/best-construction-time-tracking-apps` (2026-10-08), and `/guides/how-contractors-track-crew-hours` (2026-10-09).
   Week three: `/vs/supercrew` (2026-10-12), `/templates/time-to-decimal-chart` (2026-10-14), a refresh of
   `/vs/quickbooks-time` (2026-10-14, same URL), and `/guides/do-1099-subs-get-overtime` (2026-10-15).
   Still not live and on hold pending Jeff's CSV confirmation: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
-- **In progress:** PR #6 structure fixes is open, awaiting Jeff (`/privacy` and `/terms` 404 after merge;
-  it also drops `/demo/*` from the sitemap). A `/guides` hub is on branch `cursor/guides-hub-62ff`
-  (bb7e430), not on `main`. Until that merges, https://www.myguystime.com/guides still serves the homepage.
-  The branch sitemap has 31 URLs.
+- **In progress:** `/privacy` and `/terms` are on `cursor/privacy-terms-pages-0543` (4153dba), not on
+  `main`. The branch sitemap has 33 URLs. PR #6 still expects those URLs to 404 until a privacy/terms
+  change merges; this branch is that change, and it is not merged. `/guides` is on `main` (fad0670).
 - **App live (2026-10-11/12):** office crew management on the Team page (add/rename/remove crews, crew chiefs,
   move workers), the cross-company timesheet fence, and the deep `/api` routing fix (a7b9abd). Before a7b9abd,
   every API path two or more segments below its prefix 404'd in production, so saving day hours and week
   status changes did not work on the live site.
-- **Next:** Jeff's review of the `/guides` hub PR. Remaining week-three post: `/templates/construction-daily-report-template`.
+- **Next:** Jeff reviews the privacy and terms PR and has an attorney skim both pages. Remaining week-three post: `/templates/construction-daily-report-template`.
 - **Biggest open item:** Jeff's call on PR #6 merge, CSV-export confirmation for the QuickBooks
   guide, and two Cursor branches (Open Questions). Optional later: Auth admin on `sb_secret_`
   (then disable legacy JWT), Neon→one Supabase DB.
@@ -108,6 +107,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-15 — Privacy and terms pages on a branch (4153dba)
+**Did:** Added plain-English `/privacy` and `/terms`. New `PrivacyPage` and `TermsPage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Titles `Privacy Policy | My Guys Time` and `Terms of Use | My Guys Time`. Each page has one H1, effective date 2026-10-15, a self-canonical (`https://www.myguystime.com/privacy` and `https://www.myguystime.com/terms`), and BreadcrumbList JSON-LD Home / Privacy and Home / Terms. Links are in `MarketingFooter` and the homepage footer. Sitemap on this branch is 33 URLs. Copy follows the code: Supabase auth, Neon app data, Stripe $12/month checkout and billing portal, 7-day no-card trial, Resend email, Vercel hosting, Google Analytics tag G-EEFB8F86YM, optional PostHog and Sentry, receipt photos in the private Supabase `receipts` bucket, no GPS. The privacy page says we do not sell data. Placeholders are marked `[JEFF: confirm]`. No CSV, breaks, or petty cash. A company can run more than one crew, and each worker uses his own phone. `npm run build` passed. Dist HTML: one H1 and the self-canonical on each page. Not merged to `main`.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset, no `.env`). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase. Shipping to `main` waits on Jeff, including an attorney skim.
+**State after:** `/privacy` and `/terms` are on `cursor/privacy-terms-pages-0543` (4153dba). Production does not have them yet. Branch sitemap has 33 URLs.
+**Next:** Jeff reviews the PR and has an attorney skim both pages.
+
 ### 2026-10-15 — Guides hub page on a branch (bb7e430)
 **Did:** Added a real `/guides` hub so that URL stops falling through to the homepage. New `GuidesHubPage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Prerender title `Guides and Templates for Construction Crew Hours | My Guys Time`, self-canonical `https://www.myguystime.com/guides`, one H1, a short intro, and a link list of the two live guides and two live templates, each with a one-line description. JSON-LD is CollectionPage, ItemList, and BreadcrumbList Home / Construction Time Tracking / Guides. No link to `/guides/crew-hours-quickbooks`. Sitemap on this branch is 31 URLs. Copy says `$12/month flat for the whole company` and that each person uses his own phone. No CSV, breaks, petty cash, or payroll/tax calculation claims. `npm run build` passed. Dist HTML: one H1, canonical as above, dollar amounts are only `$12`. Not merged to `main`.
 **Decided:** The two live guide articles keep Home / Construction Time Tracking / article title. Neither breadcrumb names Guides, and the prerender still rejects a Guides crumb on those articles, so there was no unlinked Guides crumb to point at `/guides`.
@@ -131,14 +138,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
 **State after:** `/vs/quickbooks-time` refresh is on `main` (54da680). Sitemap has 29 URLs.
 **Next:** Confirm the Vercel deploy is READY and https://www.myguystime.com/vs/quickbooks-time returns 200 without "one phone per crew". Remaining week-three posts: `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
-
-### 2026-10-14 — Time to decimal chart template page live (85175cb)
-**Did:** Published `/templates/time-to-decimal-chart` from the approved 2026-10-14 draft (Jeff's go-live for the content-only page). New `TimeToDecimalChartPage` with the minutes-to-decimal chart (60 values in prerendered HTML), reverse decimal-to-minutes table, worked week, rounding caveat with no rule or threshold, print links, soft CTA, and 5 FAQs. Each person joins the crew team from his own phone; he or the foreman logs the hours. Prerender title `Time to Decimal Chart: Minutes to Decimal Hours (Printable)`, the draft meta and OG description, self-canonical `https://www.myguystime.com/templates/time-to-decimal-chart`, plus Article (Jeff Mohler, Founder, datePublished 2026-10-14), WebPage, FAQPage from the 5 FAQs, and BreadcrumbList Home / Free Construction Timesheet Template / Time to Decimal Chart. PDF and XLSX are in `public/templates/` and are not in the sitemap. Sitemap is 29 URLs. Inbound links: timesheet template page ("convert minutes to decimal hours") and `/vs/spreadsheets` (Excel totals line). No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll-calculation claims. `npm run build` passed. Dist HTML: one H1, canonical as above, 60 chart rows, dollar amounts are only `$12`.
-**Decided:** nothing new.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset; only `.env.example`). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
-**State after:** `/templates/time-to-decimal-chart` is on `main` (85175cb). Sitemap has 29 URLs.
-**Next:** Confirm the Vercel deploy is READY and the live page and PDF return 200. Remaining week-three posts: `/vs/quickbooks-time` refresh, `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
