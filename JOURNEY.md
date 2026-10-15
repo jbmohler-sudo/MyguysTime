@@ -107,6 +107,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-15 — Main merged into structure fixes; /guides stays a page (2695ee6)
+**Did:** Merged `origin/main` (through the `/guides` hub, fad0670) into `structure-fixes-2026-10`. Kept every live page: `/vs/supercrew`, `/templates/time-to-decimal-chart`, the `/vs/quickbooks-time` refresh, `/guides/do-1099-subs-get-overtime`, and `/guides`. Conflicts were in `JOURNEY.md`, `JOURNEY_ARCHIVE.md`, `src/components/VsPage.tsx`, and `vercel.json`. `scripts/prerender-landing.mjs`, `src/App.tsx`, and `public/sitemap.xml` merged clean. `/guides` stays in `marketingPageMap` and prerenders to `dist/guides/index.html`. The 404 catch-all stays behind that file, with explicit `/guides` rewrites to `/guides/index.html`, and main's `/api/:path*` rewrite stays. The breadcrumb check still rejects Comparisons, Templates, and Guides, except the hub crumb whose URL is `https://www.myguystime.com/guides`. New pages use `MarketingBreadcrumb` and `MarketingFooter`. The footer Guides & tools column links the hub, the 1099 guide, and the decimal chart. Those two pages link back to `/guides`. QuickBooks Time's 6 visible FAQs now emit FAQPage; the decimal chart and 1099 guide already had it. Sitemap is 28 URLs (every live page, no `/demo/*`). `/privacy` and `/terms` still have no page, so they 404. `npm run build` passed. Live https://www.myguystime.com/guides returns title `Guides and Templates for Construction Crew Hours | My Guys Time` and canonical `https://www.myguystime.com/guides`.
+**Decided:** The `/guides` hub crumb is allowed (2026-10-15 Decisions Log). Multiple crews stays in the footer. CSV export, breaks, and petty cash stay out of new copy.
+**Killed:** nothing.
+**Deferred:** `npm test` (`DATABASE_URL` unset). Do not merge until Jeff says to ship.
+**State after:** PR #6 contains current `main` plus the structure fixes. Branch sitemap is 28 URLs. Not merged.
+**Next:** Jeff reviews PR #6.
+
 ### 2026-10-15 — Guides hub page live on main (fad0670)
 **Did:** Added a real `/guides` hub so that URL stops falling through to the homepage. New `GuidesHubPage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Prerender title `Guides and Templates for Construction Crew Hours | My Guys Time`, self-canonical `https://www.myguystime.com/guides`, one H1, a short intro, and a link list of the two live guides and two live templates, each with a one-line description. JSON-LD is CollectionPage, ItemList, and BreadcrumbList Home / Construction Time Tracking / Guides. No link to `/guides/crew-hours-quickbooks`. Sitemap on `main` is 31 URLs. Copy says `$12/month flat for the whole company` and that each person uses his own phone. No CSV, breaks, petty cash, or payroll/tax calculation claims. `npm run build` passed. Dist HTML: one H1, canonical as above, dollar amounts are only `$12`. Squashed to `main` as fad0670.
 **Decided:** The two live guide articles keep Home / Construction Time Tracking / article title. Neither breadcrumb names Guides, and the prerender still rejects a Guides crumb on those articles.
@@ -130,14 +138,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
 **State after:** `/vs/quickbooks-time` refresh is on `main` (54da680). Sitemap has 29 URLs.
 **Next:** Confirm the Vercel deploy is READY and https://www.myguystime.com/vs/quickbooks-time returns 200 without "one phone per crew". Remaining week-three posts: `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
-
-### 2026-10-14 — Time to decimal chart template page live (85175cb)
-**Did:** Published `/templates/time-to-decimal-chart` from the approved 2026-10-14 draft (Jeff's go-live for the content-only page). New `TimeToDecimalChartPage` with the minutes-to-decimal chart (60 values in prerendered HTML), reverse decimal-to-minutes table, worked week, rounding caveat with no rule or threshold, print links, soft CTA, and 5 FAQs. Each person joins the crew team from his own phone; he or the foreman logs the hours. Prerender title `Time to Decimal Chart: Minutes to Decimal Hours (Printable)`, the draft meta and OG description, self-canonical `https://www.myguystime.com/templates/time-to-decimal-chart`, plus Article (Jeff Mohler, Founder, datePublished 2026-10-14), WebPage, FAQPage from the 5 FAQs, and BreadcrumbList Home / Free Construction Timesheet Template / Time to Decimal Chart. PDF and XLSX are in `public/templates/` and are not in the sitemap. Sitemap is 29 URLs. Inbound links: timesheet template page ("convert minutes to decimal hours") and `/vs/spreadsheets` (Excel totals line). No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll-calculation claims. `npm run build` passed. Dist HTML: one H1, canonical as above, 60 chart rows, dollar amounts are only `$12`.
-**Decided:** nothing new.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset; only `.env.example`). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
-**State after:** `/templates/time-to-decimal-chart` is on `main` (85175cb). Sitemap has 29 URLs.
-**Next:** Confirm the Vercel deploy is READY and the live page and PDF return 200. Remaining week-three posts: `/vs/quickbooks-time` refresh, `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
