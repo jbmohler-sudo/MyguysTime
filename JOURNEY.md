@@ -11,25 +11,23 @@
   period, 7-day no-card trial on new signups. Paid companies stay on `active`.
 - **Marketing site live:** `/features`, `/pricing`, `/how-it-works`, `/faq`, `/construction-time-tracking`,
   `/construction-time-tracking-cost`, `/best-construction-time-tracking-apps`,
-  `/guides/how-contractors-track-crew-hours`, `/guides/do-1099-subs-get-overtime`,
+  `/guides`, `/guides/how-contractors-track-crew-hours`, `/guides/do-1099-subs-get-overtime`,
   `/templates/construction-timesheet-template`, `/templates/time-to-decimal-chart`, seven `/trades/:slug` pages, and
   `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy,workyard,supercrew}` — all prerendered, in the sitemap
-  (30 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
+  (31 URLs on `main`). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
   construction timesheet template, and Connecteam vs. Week two: `/vs/busybusy` (2026-10-05), `/vs/workyard` (2026-10-06),
   `/best-construction-time-tracking-apps` (2026-10-08), and `/guides/how-contractors-track-crew-hours` (2026-10-09).
   Week three: `/vs/supercrew` (2026-10-12), `/templates/time-to-decimal-chart` (2026-10-14), a refresh of
   `/vs/quickbooks-time` (2026-10-14, same URL), and `/guides/do-1099-subs-get-overtime` (2026-10-15).
   Still not live and on hold pending Jeff's CSV confirmation: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
-- **In progress:** Gross pay is weekly hours times rate plus hours past 40 times the overtime rate, shown to admin and foreman only, on `cursor/gross-pay-estimate-d1f7` (not merged). PR #6 structure fixes is open, awaiting Jeff (`/privacy` and `/terms` 404 after merge;
-  it also drops `/demo/*` from the sitemap). A `/guides` hub is on branch `cursor/guides-hub-62ff`
-  (bb7e430), not on `main`. Until that merges, https://www.myguystime.com/guides still serves the homepage.
-  The branch sitemap has 31 URLs.
+- **Live pay figure:** weekly gross for admin and foreman (a1aa857). Regular hours times the hourly rate, plus hours past 40 times the overtime rate. No taxes, deductions, or net pay. Workers do not receive the dollar fields.
+- **In progress:** `/privacy` and `/terms` are on `cursor/privacy-terms-pages-0543` (pay wording updated in 02b3bfe to match a1aa857), not on `main`. The branch sitemap has 33 URLs. PR #6 still expects those URLs to 404 until this change merges. `/guides` is on `main` (fad0670).
 - **App live (2026-10-11/12):** office crew management on the Team page (add/rename/remove crews, crew chiefs,
   move workers), the cross-company timesheet fence, and the deep `/api` routing fix (a7b9abd). Before a7b9abd,
   every API path two or more segments below its prefix 404'd in production, so saving day hours and week
   status changes did not work on the live site.
-- **Next:** Jeff's review of the `/guides` hub PR. Remaining week-three post: `/templates/construction-daily-report-template`.
+- **Next:** Jeff reviews the privacy and terms PR and has an attorney skim both pages. Remaining week-three post: `/templates/construction-daily-report-template`.
 - **Biggest open item:** Jeff's call on PR #6 merge, CSV-export confirmation for the QuickBooks
   guide, and two Cursor branches (Open Questions). Optional later: Auth admin on `sb_secret_`
   (then disable legacy JWT), Neon→one Supabase DB.
@@ -38,7 +36,7 @@
 
 MyGuys started as a payroll + timesheet app. A large arc of work **stripped the tax/payroll
 engine out** (tax columns dropped from DB, tax types removed from models/UI, payroll exports and
-reports routes removed) — the office view is now hours + rate + notes only. On top of that, the
+reports routes removed) — the office view shows hours, the hourly rate, hours past 40, and a weekly gross estimate for admin and foreman. On top of that, the
 crew workflow was built up: weekly crew board, foreman incident notes, solo-crew auto-approval
 past the foreman step, copyable invite links, and receipt-photo capture for expenses via Supabase
 Storage. September 2026 added live Stripe billing ($12/mo per company), a 7-day
@@ -109,13 +107,29 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
-### 2026-10-15 — Gross pay estimate only, shown to the office (branch)
+### 2026-10-15 — Privacy and terms match the weekly gross estimate (02b3bfe)
+**Did:** Merged `main` (including #9, a1aa857) into `cursor/privacy-terms-pages-0543`. Rewrote the pay, overtime, gross, and tax sentences on `/privacy` and `/terms` to the live formula: regular hours times the hourly rate, plus hours past 40 times the overtime rate. Flat rate uses the hourly rate for those hours. Standard employee uses 1.5 times the hourly rate. Admin and foreman see the rate, the hours past 40, and the gross, with the office disclaimer. A worker login does not receive the rate or the gross. Expenses are not added to gross. The app does not calculate taxes, deductions, or net pay. Removed Terms placeholder #2. The other `[JEFF: confirm]` placeholders stay. `npm run build` passed. Sitemap on this branch is 33 URLs. Not merged to `main`.
+**Decided:** nothing new. The 2026-10-15 gross-pay decision is already on `main`.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database. Live homepage still lists "Reimbursements and deductions" on the sample office card, and still mentions CSV export. #9 left that CSV copy alone.
+**State after:** `/privacy` and `/terms` on this branch describe the same gross estimate that is live in the app. Production still does not have these two pages.
+**Next:** Jeff reviews the PR and has an attorney skim both pages.
+
+### 2026-10-15 — Privacy and terms pages on a branch (4153dba)
+**Did:** Added plain-English `/privacy` and `/terms`. New `PrivacyPage` and `TermsPage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Titles `Privacy Policy | My Guys Time` and `Terms of Use | My Guys Time`. Each page has one H1, effective date 2026-10-15, a self-canonical (`https://www.myguystime.com/privacy` and `https://www.myguystime.com/terms`), and BreadcrumbList JSON-LD Home / Privacy and Home / Terms. Links are in `MarketingFooter` and the homepage footer. Sitemap on this branch is 33 URLs. Copy follows the code: Supabase auth, Neon app data, Stripe $12/month checkout and billing portal, 7-day no-card trial, Resend email, Vercel hosting, Google Analytics tag G-EEFB8F86YM, optional PostHog and Sentry, receipt photos in the private Supabase `receipts` bucket, no GPS. The privacy page says we do not sell data. Placeholders are marked `[JEFF: confirm]`. No CSV, breaks, or petty cash. A company can run more than one crew, and each worker uses his own phone. `npm run build` passed. Dist HTML: one H1 and the self-canonical on each page. Not merged to `main`.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset, no `.env`). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase. Shipping to `main` waits on Jeff, including an attorney skim.
+**State after:** `/privacy` and `/terms` are on `cursor/privacy-terms-pages-0543` (4153dba). Production does not have them yet. Branch sitemap has 33 URLs.
+**Next:** Jeff reviews the PR and has an attorney skim both pages.
+
+### 2026-10-15 — Gross pay estimate only, shown to the office (a1aa857)
 **Did:** Pay estimate is weekly gross only: regular hours times the hourly rate, plus hours past 40 times the overtime rate. Removed net check, reimbursement, and deduction math from `calculatePayrollEstimate` and from the API (`payrollEstimate` no longer has reimbursements, deductions, or `netCheckEstimate`; year-to-date no longer has net, reimbursements, or deductions). Expense and receipt logging stays a list and does not change gross. Admin and foreman see weekly gross on the office card and the admin dashboard, with the estimate disclaimer. Employee API responses omit `grossPay` dollars (`null`), omit `payrollEstimate`, and omit year-to-date dollar fields. Company setup no longer says "Compliant with FLSA". Marketing pages now say the app shows weekly hours, hours past 40, and a simple gross estimate, and that it does not calculate taxes, deductions, net pay, or payroll. `npm run build` passed. `npm test` passed.
 **Decided:** see the 2026-10-15 Decisions Log row. The database column `netCheckEstimateCents` stays; new rows store 0. No migration.
 **Killed:** nothing removed from the schema. Net-check math is gone from the estimate function and the API.
 **Deferred:** CSV export copy that was not part of this pass. California daily overtime. Week-start mismatches. The stored pay-estimate column was not dropped.
-**State after:** on branch `cursor/gross-pay-estimate-d1f7`, not merged.
-**Next:** Jeff reviews the PR.
+**State after:** merged to `main` as a1aa857.
+**Next:** Privacy and terms copy on this branch is updated to the same formula.
 
 ### 2026-10-15 — Guides hub page on a branch (bb7e430)
 **Did:** Added a real `/guides` hub so that URL stops falling through to the homepage. New `GuidesHubPage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Prerender title `Guides and Templates for Construction Crew Hours | My Guys Time`, self-canonical `https://www.myguystime.com/guides`, one H1, a short intro, and a link list of the two live guides and two live templates, each with a one-line description. JSON-LD is CollectionPage, ItemList, and BreadcrumbList Home / Construction Time Tracking / Guides. No link to `/guides/crew-hours-quickbooks`. Sitemap on this branch is 31 URLs. Copy says `$12/month flat for the whole company` and that each person uses his own phone. No CSV, breaks, petty cash, or payroll/tax calculation claims. `npm run build` passed. Dist HTML: one H1, canonical as above, dollar amounts are only `$12`. Not merged to `main`.
@@ -124,22 +138,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase. Shipping to `main` waits on Jeff.
 **State after:** `/guides` hub is on `cursor/guides-hub-62ff` (bb7e430). Production still serves the homepage at `/guides`. Branch sitemap has 31 URLs.
 **Next:** Jeff reviews the PR. See the PR notes for conflicts with open PR #6.
-
-### 2026-10-15 — 1099 overtime guide live (292ef07)
-**Did:** Published `/guides/do-1099-subs-get-overtime` from the approved 2026-10-15 draft (Jeff's go-live for the content-only page). New `Do1099SubsOvertimePage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Title `Do 1099 Subs Get Overtime? What Contractors Should Know`, the draft meta and OG description, self-canonical `https://www.myguystime.com/guides/do-1099-subs-get-overtime`, plus Article (Jeff Mohler, Founder, datePublished 2026-10-15), FAQPage from the 5 FAQs, and BreadcrumbList Home / Construction Time Tracking / Do 1099 Subs Get Overtime? Disclaimers are in the prerendered HTML at the top and the bottom. Jeff's first-person lines are unchanged. Sitemap is 30 URLs. Inbound links: the crew-hours guide and `/trades/general-contracting`. No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll/overtime/tax calculation claims. Re-opened the DOL overtime page, the DOL FLSA page, Fact Sheet 13, the 2026 contractor NPRM page, Fact Sheet 21, the IRS independent-contractor page, the Form SS-8 page, and the California Labor Commissioner ABC FAQ on 2026-10-15. Each claim in the draft still matches those pages, so no legal line was rewritten. The Wage and Hour helpline on those DOL pages is still 1-866-487-9243. `npm run build` passed. Dist HTML: one H1, canonical as above, dollar amounts are only `$12`.
-**Decided:** Marketing copy may mention multiple crews (see the 2026-10-15 Decisions Log row). This page does not add a multi-crew claim of its own.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase. `/features` outbound link left out of the approved copy. Plumbing, electrical, and FAQ inbound links left to the one relevant page (general contracting).
-**State after:** `/guides/do-1099-subs-get-overtime` is on `main` (292ef07). Sitemap has 30 URLs.
-**Next:** Confirm the Vercel deploy is READY and the live page returns 200 with one H1. Remaining week-three post: `/templates/construction-daily-report-template`.
-
-### 2026-10-14 — QuickBooks Time comparison page refreshed (54da680)
-**Did:** Refreshed existing `/vs/quickbooks-time` from the approved 2026-10-13 draft (Jeff's go-live for the content-only page). Updated the quickbooks-time config in `vs.tsx` (eyebrow, h1, answer block, pain cards, comparison table, flow, callout, 6 FAQs, closing CTA). Each person joins the crew team from his own phone; he or the foreman logs the hours. Removed "one phone per crew is enough." Prerender title `QuickBooks Time Pricing vs $12 Flat for Crews | My Guys Time`, the draft meta and OG description, self-canonical `https://www.myguystime.com/vs/quickbooks-time`. Kept the existing SoftwareApplication, Organization, WebSite, and WebPage schema; WebPage `dateModified` is 2026-10-14. No new FAQPage or breadcrumb. Sitemap stays 29 URLs; this URL's `<lastmod>` is 2026-10-14. No competitor dollar figures. `$12` reads as flat for the whole company. Left out of the page: CSV export, multiple crews, breaks, petty cash, Intuit dollar amounts, and the old Support row. `npm run build` passed. Dist HTML: one H1, canonical as above, body dollar amounts are only `$12`, and "one phone per crew" is absent.
-**Decided:** nothing new.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
-**State after:** `/vs/quickbooks-time` refresh is on `main` (54da680). Sitemap has 29 URLs.
-**Next:** Confirm the Vercel deploy is READY and https://www.myguystime.com/vs/quickbooks-time returns 200 without "one phone per crew". Remaining week-three posts: `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 

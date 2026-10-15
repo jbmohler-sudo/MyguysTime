@@ -743,7 +743,6 @@ export function PublicHomepage() {
               </ul>
             </div>
 
-            {/* TODO: Privacy + Terms pages don't exist in this app yet. Do not invent legal copy — add real static pages here when written. */}
             <div>
               <h4 className="font-semibold text-slate-900 mb-4">Trades</h4>
               <ul className="space-y-2 text-sm text-slate-600">
@@ -791,6 +790,16 @@ export function PublicHomepage() {
                 <li>
                   <a href="mailto:jeff@myguystime.com" className="hover:text-orange-500 transition-colors">
                     Contact
+                  </a>
+                </li>
+                <li>
+                  <a href="/privacy" className="hover:text-orange-500 transition-colors">
+                    Privacy
+                  </a>
+                </li>
+                <li>
+                  <a href="/terms" className="hover:text-orange-500 transition-colors">
+                    Terms
                   </a>
                 </li>
               </ul>

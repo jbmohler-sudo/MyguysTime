@@ -1504,6 +1504,70 @@ pages.push([
   ],
 ]);
 
+function legalBreadcrumbLd(name, routePath) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: canonicalHost + "/",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name,
+        item: canonicalHost + routePath,
+      },
+    ],
+  };
+}
+
+pages.push([
+  "/privacy",
+  "privacy/index.html",
+  () => ssr.renderPrivacyHtml(),
+  "Privacy Policy | My Guys Time",
+  "What My Guys Time stores: names, emails, hours, receipt photos, and billing. We do not sell your data.",
+  [
+    ["ld-breadcrumb", legalBreadcrumbLd("Privacy", "/privacy")],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    "Privacy Policy",
+    "2026-10-15",
+    "We do not sell your data",
+    "jeff@myguystime.com",
+    "[JEFF: confirm the legal entity name",
+  ],
+]);
+
+pages.push([
+  "/terms",
+  "terms/index.html",
+  () => ssr.renderTermsHtml(),
+  "Terms of Use | My Guys Time",
+  "Terms for My Guys Time, a browser crew time card at $12 a month flat for the whole company, with a 7-day trial.",
+  [
+    ["ld-breadcrumb", legalBreadcrumbLd("Terms", "/terms")],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    "Terms of Use",
+    "2026-10-15",
+    "$12 a month flat",
+    "7-day trial",
+    "more than one crew",
+    "his own phone",
+    "jeff@myguystime.com",
+    "[JEFF: confirm the governing-law state.]",
+  ],
+]);
+
 const template = fs.readFileSync(templatePath, "utf8");
 const rootMarker = '<div id="root">';
 const hydrationFlag = '<div id="root" data-prerendered="true">';
@@ -1714,6 +1778,36 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     const hit = banned.filter((token) => finalHtml.includes(token));
     if (hit.length > 0 || /csv/i.test(markup)) {
       console.error("[prerender] cost page contains banned copy:", hit, /csv/i.test(markup) ? "CSV" : "");
+      process.exit(1);
+    }
+  }
+
+  if (routePath === "/privacy" || routePath === "/terms") {
+    const lower = markup.toLowerCase();
+    const banned = ["csv", "petty cash"];
+    const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    const crumbName = routePath === "/privacy" ? "Privacy" : "Terms";
+    if (hit.length > 0 || badDollars.length > 0) {
+      console.error(`[prerender] ${routePath} contains banned copy:`, hit, badDollars);
+      process.exit(1);
+    }
+    if ((markup.match(/<h1[\s>]/g) || []).length !== 1) {
+      console.error(`[prerender] ${routePath} must have exactly one H1.`);
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"@type":"BreadcrumbList"') || !finalHtml.includes('"name":"Home"') || !finalHtml.includes(`"name":"${crumbName}"`)) {
+      console.error(`[prerender] ${routePath} breadcrumb is not Home > ${crumbName}.`);
+      process.exit(1);
+    }
+    if (!finalHtml.includes(`<link rel="canonical" href="https://www.myguystime.com${routePath}" />`)) {
+      console.error(`[prerender] ${routePath} canonical is not its own URL.`);
+      process.exit(1);
+    }
+    if (!markup.includes("2026-10-15") || !markup.includes("jeff@myguystime.com")) {
+      console.error(`[prerender] ${routePath} missing effective date or contact email.`);
       process.exit(1);
     }
   }

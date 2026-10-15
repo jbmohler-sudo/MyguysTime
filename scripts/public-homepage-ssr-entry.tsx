@@ -40,6 +40,8 @@ import {
 import { GuidePage, guideFaqItems } from "../src/components/GuidePage";
 import { Do1099SubsOvertimePage, overtimeGuideFaqItems } from "../src/components/Do1099SubsOvertimePage";
 import { GuidesHubPage, guidesHubItems } from "../src/components/GuidesHubPage";
+import { PrivacyPage } from "../src/components/PrivacyPage";
+import { TermsPage } from "../src/components/TermsPage";
 
 export { faqItems, faqPageItems, constructionFaqItems, costFaqItems, templateFaqItems, bestAppsFaqItems, guideFaqItems, overtimeGuideFaqItems, decimalChartFaqItems, decimalMinuteRows, guidesHubItems };
 
@@ -99,6 +101,14 @@ export function renderGuideHtml(): string {
 
 export function renderOvertimeGuideHtml(): string {
   return renderToStaticMarkup(createElement(Do1099SubsOvertimePage));
+}
+
+export function renderPrivacyHtml(): string {
+  return renderToStaticMarkup(createElement(PrivacyPage));
+}
+
+export function renderTermsHtml(): string {
+  return renderToStaticMarkup(createElement(TermsPage));
 }
 
 export function renderTradeHtml(slug: string): string {
