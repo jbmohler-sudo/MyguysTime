@@ -1,4 +1,4 @@
-import { MarketingFooter, MarketingHeader } from "./MarketingChrome";
+import { MarketingBreadcrumb, MarketingFooter, MarketingHeader } from "./MarketingChrome";
 
 export const guidesHubItems: { href: string; title: string; description: string }[] = [
   {
@@ -32,21 +32,13 @@ export function GuidesHubPage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <MarketingHeader />
       <main>
-        <nav aria-label="Breadcrumb" className="max-w-3xl mx-auto px-6 pt-8 text-sm text-slate-500">
-          <a href="/" className="hover:text-orange-600">
-            Home
-          </a>
-          <span className="mx-2" aria-hidden="true">
-            /
-          </span>
-          <a href="/construction-time-tracking" className="hover:text-orange-600">
-            Construction Time Tracking
-          </a>
-          <span className="mx-2" aria-hidden="true">
-            /
-          </span>
-          <span className="text-slate-700">Guides</span>
-        </nav>
+        <MarketingBreadcrumb
+          items={[
+            { name: "Home", href: "/" },
+            { name: "Construction Time Tracking", href: "/construction-time-tracking" },
+            { name: "Guides" },
+          ]}
+        />
 
         <article className="max-w-3xl mx-auto px-6 pt-8 pb-16">
           <p className="text-orange-600 font-semibold text-sm uppercase tracking-widest mb-4">

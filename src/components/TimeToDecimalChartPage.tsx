@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { Download } from "lucide-react";
-import { MarketingFooter, MarketingHeader } from "./MarketingChrome";
+import { MarketingBreadcrumb, MarketingFooter, MarketingHeader } from "./MarketingChrome";
 
 export const DECIMAL_CHART_PDF_HREF = "/templates/time-to-decimal-chart.pdf";
 export const DECIMAL_CHART_XLSX_HREF = "/templates/time-to-decimal-chart.xlsx";
@@ -153,21 +153,14 @@ export function TimeToDecimalChartPage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <MarketingHeader />
       <main>
-        <nav aria-label="Breadcrumb" className="max-w-6xl mx-auto px-6 pt-8 text-sm text-slate-500">
-          <a href="/" className="hover:text-orange-600">
-            Home
-          </a>
-          <span className="mx-2" aria-hidden="true">
-            /
-          </span>
-          <a href="/templates/construction-timesheet-template" className="hover:text-orange-600">
-            Free Construction Timesheet Template
-          </a>
-          <span className="mx-2" aria-hidden="true">
-            /
-          </span>
-          <span className="text-slate-700">Time to Decimal Chart</span>
-        </nav>
+        <MarketingBreadcrumb
+          widthClass="max-w-6xl"
+          items={[
+            { name: "Home", href: "/" },
+            { name: "Free Construction Timesheet Template", href: "/templates/construction-timesheet-template" },
+            { name: "Time to Decimal Chart" },
+          ]}
+        />
 
         <article className="max-w-6xl mx-auto px-6 pt-8 pb-4">
           <p className="text-orange-600 font-semibold text-sm uppercase tracking-widest mb-4">
@@ -377,7 +370,8 @@ export function TimeToDecimalChartPage() {
               <TextLink href="/guides/how-contractors-track-crew-hours">
                 how contractors track crew hours without the Thursday rebuild
               </TextLink>
-              , and why <TextLink href="/vs/paper-timesheets">paper timesheets</TextLink> leak.
+              , and why <TextLink href="/vs/paper-timesheets">paper timesheets</TextLink> leak. The rest of the{" "}
+              <TextLink href="/guides">guides and templates</TextLink> are listed together.
             </p>
           </div>
         </section>

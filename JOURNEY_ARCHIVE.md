@@ -2,6 +2,22 @@
 
 > Older Session Log entries rolled out of [JOURNEY.md](JOURNEY.md). Newest of these first.
 
+### 2026-10-14 — Time to decimal chart template page live (85175cb)
+**Did:** Published `/templates/time-to-decimal-chart` from the approved 2026-10-14 draft (Jeff's go-live for the content-only page). New `TimeToDecimalChartPage` with the minutes-to-decimal chart (60 values in prerendered HTML), reverse decimal-to-minutes table, worked week, rounding caveat with no rule or threshold, print links, soft CTA, and 5 FAQs. Each person joins the crew team from his own phone; he or the foreman logs the hours. Prerender title `Time to Decimal Chart: Minutes to Decimal Hours (Printable)`, the draft meta and OG description, self-canonical `https://www.myguystime.com/templates/time-to-decimal-chart`, plus Article (Jeff Mohler, Founder, datePublished 2026-10-14), WebPage, FAQPage from the 5 FAQs, and BreadcrumbList Home / Free Construction Timesheet Template / Time to Decimal Chart. PDF and XLSX are in `public/templates/` and are not in the sitemap. Sitemap is 29 URLs. Inbound links: timesheet template page ("convert minutes to decimal hours") and `/vs/spreadsheets` (Excel totals line). No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll-calculation claims. `npm run build` passed. Dist HTML: one H1, canonical as above, 60 chart rows, dollar amounts are only `$12`.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset; only `.env.example`). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
+**State after:** `/templates/time-to-decimal-chart` is on `main` (85175cb). Sitemap has 29 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live page and PDF return 200. Remaining week-three posts: `/vs/quickbooks-time` refresh, `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
+
+### 2026-10-12 — Structure fixes rebased onto main; Supercrew kept (24b8e04, 7320109)
+**Did:** Rebased `structure-fixes-2026-10` onto current `main` (through the `/vs/supercrew` publish). Kept the Supercrew page and the structure fixes from 24b8e04: unknown public URLs return a noindex 404, breadcrumbs use real hubs, the homepage uses `MarketingFooter` with a Guides & tools column and body links to best-apps, the cost page, and the template, the pillar links Workyard, trade pages link the template, `/pricing`, and best-apps, `/vs` pages that lacked a body `/pricing` link get one, FAQPage JSON-LD matches the visible FAQs on the trades and the three older `/vs` pages, and `/demo/*` left the sitemap. Supercrew's BreadcrumbList middle crumb is Best Construction Time Tracking Apps (`/best-construction-time-tracking-apps`), same as the other `/vs` pages (7320109). Branch sitemap is 25 URLs (live 28 minus the three demo URLs). `/privacy` and `/terms` still have no page, so they 404. `npm run build` passed after the rebase, including `/vs/supercrew`.
+**Decided:** nothing new. The 2026-10-09 structure decision still stands.
+**Killed:** nothing.
+**Deferred:** Claim-copy strings stay until Jeff confirms them. Topic H1 rewrites and the rest of the interlink matrix were not in this pass. `npm test` did not run (`DATABASE_URL` unset).
+**State after:** Structure fixes plus Supercrew are on `structure-fixes-2026-10`. Not merged. Live `main` is still the 28-URL site.
+**Next:** Leave PR #6 for Jeff. Do not merge until he says to ship.
+
 ### 2026-10-12 — Crew management live; deep /api routes fixed in production (a1b7013 merged, a7b9abd)
 **Did:** Jeff said ship it: fast-forwarded `main` to `feat/crew-management` (a1b7013; code identical to the 43/43 tested build). Production deploy READY. Live check found every API path two or more segments below its prefix returned Vercel NOT_FOUND, on today's deploy and on the previous one (49dddda), so this was pre-existing: day-hour saves, week status, expenses, adjustments, crew defaults, crew member moves, invite resend/revoke all failed on the live site (the app calls same-host `/api`). Cause: `api/<prefix>/[...path].ts` matches one segment on this project (earlier sessions worked around it with explicit files such as `employees/[employeeId]/remove.ts`). Fix a7b9abd: one `vercel.json` rewrite, `/api/:path*` → `/api/[...path]`, after the Stripe rule. Verified: on previews the deep path went from NOT_FOUND to reaching the function (previews crash at boot for every route, so no further preview test was possible); `npm run build` passed natively; on production after deploy, 9 deep routes return the app's own 401 JSON, 10 previously working routes unchanged (health 200, auth/crews/employees/invites/billing 401, both Stripe webhooks 400 missing signature), `/login` and `/pricing` 200. Rebased over the Supercrew commits (marketing only).
 **Decided:** see the 2026-10-12 Decisions Log row (rewrite supersedes the per-prefix file rule).
@@ -57,7 +73,6 @@
 **Deferred:** `npm test`. This environment has no local fixture database. The best-apps page stays unlinked until it is live.
 **State after:** `/vs/workyard` and `/vs/busybusy` are on `main`. Sitemap has 25 URLs.
 **Next:** Confirm the Vercel deploy is READY and the live Workyard page returns the prerendered HTML.
-
 ### 2026-10-02 — Week one content live (23 URLs); week two five briefs ready (86a5555)
 **Did:** Week one (Mon–Fri) marketing pages are live and in the sitemap: construction time tracking pillar, ClockShark vs, cost hub, construction timesheet template (PDF+Excel), Connecteam vs. Live sitemap count **23** (matched repo). Friday SEO planning re-pulled keyword/SERP data, wrote five writer briefs for week two (busybusy vs, Workyard vs, QuickBooks CSV guide, best-apps listicle, how-contractors-track-hours guide), and updated the seo-desk publishing schedule. No code changes in this commit.
 **Decided:** nothing new in-repo. Week two slug for the QuickBooks guide is `/guides/crew-hours-quickbooks` (no -payroll in the URL).
