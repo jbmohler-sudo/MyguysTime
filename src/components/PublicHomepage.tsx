@@ -32,8 +32,8 @@ const workflowSteps: WorkflowStep[] = [
   {
     number: 3,
     title: 'Adjust and finalize',
-    description: 'Handle reimbursements, deductions, and mixed crews — W-2 and 1099.',
-    details: 'Clean weekly review with all the details that matter to your bottom line.',
+    description: 'Review weekly hours, hours past 40, and a simple gross pay estimate. W-2 and 1099 on the same board.',
+    details: 'No taxes, deductions, net pay, or payroll. Receipts stay on the card as a list.',
     icon: <BarChart3 className="w-8 h-8" />,
   },
   {
@@ -61,7 +61,7 @@ export const faqItems: { q: string; a: string }[] = [
   },
   { q: 'Do I pay per employee?', a: "No. $12 a month covers the entire company — foremen, workers, office, all of them." },
   { q: 'Does it handle 1099 subs or just W-2 guys?', a: "Both. Mixed crews are normal; the app doesn't care how you classify them." },
-  { q: 'What if my guys buy materials out of pocket?', a: "Log it as a reimbursement or petty cash right on the time card. It lands in the weekly totals." },
+  { q: 'What if my guys buy materials out of pocket?', a: "Log the receipt on his time card. It stays on that week as a list, with a photo. It is not added to his hours or to the gross pay estimate." },
   { q: 'What happens after the 7-day trial?', a: "The $12/month subscription starts. Cancel anytime before that and you pay nothing." },
   { q: 'Can I cancel?', a: "Anytime, from the billing portal. No contract, no retention call." },
 ];

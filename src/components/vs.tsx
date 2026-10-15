@@ -228,7 +228,7 @@ export const VS_PAGES: VsConfig[] = [
         label: "Getting hours to payroll",
         oldWay: "Connects to QuickBooks payroll and other payroll software",
         myGuys:
-          "The office reviews the week and hands the hours to whoever runs payroll. No integrations, and it doesn't calculate pay or taxes.",
+          "The office sees weekly hours, hours past 40, and a simple gross pay estimate, then hands the week to whoever runs payroll. No taxes, deductions, net pay, or payroll in the app. No integrations.",
       },
       {
         label: "Learning curve",
@@ -448,7 +448,7 @@ export const VS_PAGES: VsConfig[] = [
       {
         label: "Getting hours to payroll",
         oldWay: "Direct integrations, including QuickBooks, ADP, Gusto, Xero and Sage 100 Contractor",
-        myGuys: "Weekly summary CSV and time detail CSV for whoever runs payroll. No integrations, and it doesn't calculate pay.",
+        myGuys: "The office sees weekly hours, hours past 40, and a simple gross pay estimate. No taxes, deductions, net pay, or payroll. No integrations.",
       },
       {
         label: "How the crew uses it",
@@ -588,7 +588,7 @@ export const VS_PAGES: VsConfig[] = [
       {
         label: "Getting hours to payroll",
         oldWay: "Payroll integration listed in its Operations plans",
-        myGuys: "Office reviews the week and hands hours to whoever runs payroll. No integrations, and it doesn't calculate pay.",
+        myGuys: "The office sees weekly hours, hours past 40, and a simple gross pay estimate. No taxes, deductions, net pay, or payroll. No integrations.",
       },
       {
         label: "Adding the crew",
@@ -733,7 +733,7 @@ export const VS_PAGES: VsConfig[] = [
         label: "Getting hours to payroll",
         oldWay: "Integrations with other software, plus a BusyPayroll add-on that runs payroll with Gusto",
         myGuys:
-          "The office reviews the week and hands the hours to whoever runs payroll. No integrations, and it doesn't calculate pay.",
+          "The office sees weekly hours, hours past 40, and a simple gross pay estimate. No taxes, deductions, net pay, or payroll. No integrations.",
       },
       {
         label: "How the crew uses it",
@@ -881,7 +881,7 @@ export const VS_PAGES: VsConfig[] = [
         oldWay:
           "One-click export to QuickBooks Online, QuickBooks Desktop, ADP, Gusto and more, on every plan",
         myGuys:
-          "The office reviews the week and hands the hours to whoever runs payroll. No integrations, and it doesn't calculate pay.",
+          "The office sees weekly hours, hours past 40, and a simple gross pay estimate. No taxes, deductions, net pay, or payroll. No integrations.",
       },
       {
         label: "Location",
@@ -1040,7 +1040,7 @@ export const VS_PAGES: VsConfig[] = [
         oldWay:
           "Team: payroll integrations (QuickBooks, Xero, Payworks, Sage). Payroll exports on every paid plan.",
         myGuys:
-          "The office reviews the approved week and hands the hours to whoever runs payroll. No integrations, and it doesn't calculate pay or taxes.",
+          "The office sees weekly hours, hours past 40, and a simple gross pay estimate. No taxes, deductions, net pay, or payroll. No integrations.",
       },
       {
         label: "Timesheet approval",
@@ -1075,7 +1075,7 @@ export const VS_PAGES: VsConfig[] = [
       },
       {
         title: "Hours go to whoever runs payroll",
-        text: "The office hands the approved week to whoever does payroll. That's the whole handoff. No integration to set up, and the app doesn't figure pay.",
+        text: "The office sees weekly hours, hours past 40, and a simple gross pay estimate, then hands the week to whoever runs payroll. No taxes, deductions, net pay, or payroll in the app.",
       },
     ],
     fit: {

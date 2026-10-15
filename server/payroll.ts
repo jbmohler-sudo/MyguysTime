@@ -1,8 +1,4 @@
-import type {
-  Employee,
-  TimeEntryDay,
-  WeeklyAdjustment,
-} from "@prisma/client";
+import type { Employee, TimeEntryDay } from "@prisma/client";
 
 const REGULAR_MINUTES_LIMIT = 40 * 60;
 const DEFAULT_OVERTIME_MULTIPLIER = 1.5;
@@ -25,7 +21,6 @@ export function calculateDayTotalMinutes(
 export interface PayrollCalculationInput {
   employee: Pick<Employee, "hourlyRateCents" | "overtimeRateCents">;
   dayEntries: Array<Pick<TimeEntryDay, "totalMinutes">>;
-  adjustment: Pick<WeeklyAdjustment, "gasReimbursementCents" | "pettyCashCents" | "deductionCents"> | null;
 }
 
 export function calculatePayrollEstimate(input: PayrollCalculationInput) {
@@ -40,15 +35,9 @@ export function calculatePayrollEstimate(input: PayrollCalculationInput) {
     roundCents((regularMinutes / 60) * input.employee.hourlyRateCents) +
     roundCents((overtimeMinutes / 60) * overtimeRateCents);
 
-  const reimbursements =
-    (input.adjustment?.gasReimbursementCents ?? 0) + (input.adjustment?.pettyCashCents ?? 0);
-  const deductions = input.adjustment?.deductionCents ?? 0;
-  const netCheckEstimateCents = grossPayCents + reimbursements - deductions;
-
   return {
     regularMinutes,
     overtimeMinutes,
     grossPayCents,
-    netCheckEstimateCents,
   };
 }

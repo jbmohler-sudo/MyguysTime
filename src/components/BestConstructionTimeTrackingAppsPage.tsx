@@ -177,7 +177,7 @@ const APPS: AppCard[] = [
       </>
     ),
     well: "a weekly crew board where the foreman approves the week (one-person crews auto-approve), incident notes on the day they happen, receipt photos on expenses, and W-2 and 1099 guys on one board. The office sees hours, rate and notes. It runs in the phone's browser and you add it to the home screen. The crew joins through a copyable invite link.",
-    skip: "if you need GPS, geofencing, scheduling, job costing or a payroll integration, pick one of the apps above. My Guys Time doesn't calculate pay or taxes. It hands hours to whoever runs payroll.",
+    skip: "if you need GPS, geofencing, scheduling, job costing or a payroll integration, pick one of the apps above. My Guys Time shows weekly hours, hours past 40, and a simple gross pay estimate. It doesn't calculate taxes, deductions, net pay, or payroll.",
     after: (
       <>
         Built by a mason who used to keep his crew's hours on a 2x6. More on{" "}

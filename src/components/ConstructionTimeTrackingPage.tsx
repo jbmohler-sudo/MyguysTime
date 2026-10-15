@@ -82,7 +82,7 @@ const FEATURES: { title: string; body: string }[] = [
   },
   {
     title: "Office view: hours, rate and notes",
-    body: "The office sees hours, rate and notes for each person. It doesn't calculate pay. It shows the office what it needs for the handoff.",
+    body: "The office sees weekly hours, hours past 40, the hourly rate, and a simple gross pay estimate. It doesn't calculate taxes, deductions, net pay, or payroll.",
   },
   {
     title: "CSV exports",
@@ -239,8 +239,8 @@ export function ConstructionTimeTrackingPage() {
               day. Then turning those days into weekly totals the office can hand to whoever runs payroll.
             </p>
             <p>
-              My Guys Time handles the hours part. It doesn't run payroll and it doesn't figure anybody's pay. It gets
-              clean hours to the person who does.
+              My Guys Time shows weekly hours, hours past 40, and a simple gross pay estimate. It doesn't calculate
+              taxes, deductions, net pay, or run payroll. The office hands that week to the person who does.
             </p>
             <p>For a small crew, that comes down to three jobs:</p>
             <ol className="list-decimal pl-6 space-y-2">

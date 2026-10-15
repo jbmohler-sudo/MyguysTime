@@ -100,6 +100,11 @@ await runCase("employee cannot view private reports", async () => {
     assert.equal(response.status, 200);
     assert.equal(payload.privateReports.length, 0);
     assert.equal(payload.employeeWeeks.length, 1);
+    const ownWeek = payload.employeeWeeks[0];
+    assert.equal(ownWeek.grossPay, null);
+    assert.equal("payrollEstimate" in ownWeek, false);
+    assert.equal("grossPayments" in ownWeek.ytdSummary, false);
+    assert.equal("netEstimate" in ownWeek.ytdSummary, false);
   } finally {
     await app.shutdown();
   }
@@ -133,6 +138,8 @@ await runCase("foreman only accesses assigned crews", async () => {
     assert.equal(payload.crews.length, 1);
     assert.equal(payload.crews[0].name, "Masonry Crew");
     assert.ok(payload.employeeWeeks.every((week) => week.crewName === "Masonry Crew"));
+    assert.ok(payload.employeeWeeks.every((week) => typeof week.grossPay === "number"));
+    assert.ok(payload.employeeWeeks.every((week) => week.payrollEstimate && typeof week.payrollEstimate.grossPay === "number"));
   } finally {
     await app.shutdown();
   }
@@ -151,8 +158,14 @@ await runCase("admin bootstrap includes YTD reporting totals", async () => {
     assert.equal(response.status, 200);
     assert.equal(firstWeek.workerType, "employee");
     assert.equal(firstWeek.ytdSummary.calendarYear, 2026);
+    assert.equal(typeof firstWeek.grossPay, "number");
     assert.ok(firstWeek.ytdSummary.grossPayments >= firstWeek.payrollEstimate.grossPay);
-    assert.ok(firstWeek.ytdSummary.netEstimate >= firstWeek.payrollEstimate.netCheckEstimate);
+    assert.equal("netCheckEstimate" in firstWeek.payrollEstimate, false);
+    assert.equal("reimbursements" in firstWeek.payrollEstimate, false);
+    assert.equal("deductions" in firstWeek.payrollEstimate, false);
+    assert.equal("netEstimate" in firstWeek.ytdSummary, false);
+    assert.equal("reimbursements" in firstWeek.ytdSummary, false);
+    assert.equal("deductions" in firstWeek.ytdSummary, false);
   } finally {
     await app.shutdown();
   }
@@ -1022,7 +1035,7 @@ await runCase("reopen requires admin audit note", async () => {
   }
 });
 
-await runCase("payroll estimate updates correctly after adjustment edits", async () => {
+await runCase("adjustment edits do not change the gross pay estimate", async () => {
   const app = await bootApp();
   try {
     const token = await app.login("admin@crewtime.local", "admin123");
@@ -1031,7 +1044,7 @@ await runCase("payroll estimate updates correctly after adjustment edits", async
     });
     const mePayload = await meResponse.json();
     const timesheet = mePayload.employeeWeeks[0];
-    const beforeNet = timesheet.payrollEstimate.netCheckEstimate;
+    const beforeGross = timesheet.payrollEstimate.grossPay;
 
     const adjustResponse = await app.api(`/api/timesheets/${timesheet.id}/adjustment`, {
       method: "PATCH",
@@ -1049,9 +1062,13 @@ await runCase("payroll estimate updates correctly after adjustment edits", async
     const payload = await adjustResponse.json();
 
     assert.equal(adjustResponse.status, 200);
-    assert.equal(payload.timesheet.payrollEstimate.netCheckEstimate, beforeNet + 25);
+    assert.equal(payload.timesheet.payrollEstimate.grossPay, beforeGross);
+    assert.equal("netCheckEstimate" in payload.timesheet.payrollEstimate, false);
+    assert.equal("reimbursements" in payload.timesheet.payrollEstimate, false);
+    assert.equal("deductions" in payload.timesheet.payrollEstimate, false);
+    assert.equal("netEstimate" in payload.timesheet.ytdSummary, false);
     assert.equal(payload.timesheet.adjustment.notes, "Office adjustment test.");
-    assert.ok(payload.timesheet.ytdSummary.netEstimate >= payload.timesheet.payrollEstimate.netCheckEstimate);
+    assert.equal(payload.timesheet.adjustment.gasReimbursement, 20);
   } finally {
     await app.shutdown();
   }
@@ -1213,6 +1230,10 @@ await runCase("time card estimates do not expose withholding fields", async () =
 
     assert.equal(mePayload.companySettings.companyState, "MA");
     assert.ok(troyWeek.payrollEstimate.grossPay > 0);
+    assert.equal(troyWeek.grossPay, troyWeek.payrollEstimate.grossPay);
+    assert.equal("netCheckEstimate" in troyWeek.payrollEstimate, false);
+    assert.equal("reimbursements" in troyWeek.payrollEstimate, false);
+    assert.equal("deductions" in troyWeek.payrollEstimate, false);
     assert.equal("pfmlWithholding" in troyWeek.payrollEstimate, false);
     assert.equal("extraStateWithholdingLabel" in troyWeek.payrollEstimate, false);
   } finally {

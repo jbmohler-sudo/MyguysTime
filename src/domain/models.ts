@@ -111,18 +111,12 @@ export interface PayrollEstimateSummary {
   regularHours: number;
   overtimeHours: number;
   grossPay: number;
-  reimbursements: number;
-  deductions: number;
-  netCheckEstimate: number;
 }
 
 export interface YtdPayrollSummary {
   calendarYear: number;
   workerType: WorkerType;
-  grossPayments: number;
-  reimbursements: number;
-  deductions: number;
-  netEstimate: number;
+  grossPayments?: number;
 }
 
 export interface EmployeeWeek {
@@ -137,12 +131,12 @@ export interface EmployeeWeek {
   entries: DayEntry[];
   weeklyTotalHours: number;
   overtimeHours: number;
-  grossPay: number;
+  grossPay: number | null;
   confirmedDays: number;
   missingConfirmationDays: number;
   adjustment: AdjustmentSummary;
   expenseSubmissions: ExpenseSubmissionSummary[];
-  payrollEstimate: PayrollEstimateSummary;
+  payrollEstimate?: PayrollEstimateSummary;
   ytdSummary: YtdPayrollSummary;
   exportedAt: string | null;
   exportedByFullName: string | null;

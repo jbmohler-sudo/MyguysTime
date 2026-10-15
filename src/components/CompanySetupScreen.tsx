@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { CompanyOnboardingInput, CompanySettingsSummary } from "../domain/models";
+import { GROSS_PAY_DISCLAIMER } from "../domain/format";
 import { WEEKDAY_OPTIONS } from "../domain/week";
 
 interface CompanySetupScreenProps {
@@ -37,12 +38,12 @@ const PAY_TYPE_OPTIONS = [
     value: "hourly" as const,
     title: "Flat Rate (1099 / Subcontractor)",
     detail:
-      "Calculates all hours at a single rate. Use only for properly classified independent contractors or subcontractors.",
+      "The gross pay estimate uses one rate for every hour. For properly classified independent contractors or subcontractors.",
   },
   {
     value: "hourly_overtime" as const,
     title: "Standard Employee (W2)",
-    detail: "Compliant with FLSA; calculates 1.5x for hours exceeding 40 in a workweek.",
+    detail: "Hours past 40 in the week use 1.5x in the gross pay estimate.",
   },
 ] as const;
 
@@ -327,6 +328,7 @@ export function CompanySetupScreen({ companySettings, onComplete }: CompanySetup
                 </button>
               ))}
             </div>
+            <p className="field-helper">{GROSS_PAY_DISCLAIMER}</p>
 
             <div className="onboarding-toggle-row">
               <div>

@@ -122,9 +122,6 @@ export function createEmptyYtdSummary(workerType: WorkerType, calendarYear: numb
     calendarYear,
     workerType: workerTypeToClient(workerType),
     grossPayments: 0,
-    reimbursements: 0,
-    deductions: 0,
-    netEstimate: 0,
   };
 }
 
@@ -642,12 +639,10 @@ export async function getAuthorizedTimesheet(req: AuthenticatedRequest, timeshee
 function livePayrollEstimate(timesheet: {
   employee: { hourlyRateCents: number; overtimeRateCents: number | null };
   dayEntries: Array<{ totalMinutes: number }>;
-  adjustment: { gasReimbursementCents: number; pettyCashCents: number; deductionCents: number } | null;
 }) {
   return calculatePayrollEstimate({
     employee: timesheet.employee,
     dayEntries: timesheet.dayEntries,
-    adjustment: timesheet.adjustment,
   });
 }
 
@@ -658,9 +653,11 @@ export function serializeTimesheet(
   ytdSummary: ReturnType<typeof createEmptyYtdSummary>,
 ) {
   const estimate = livePayrollEstimate(timesheet);
+  const hidePay = viewerRole === "EMPLOYEE";
   const totalHours = timesheet.dayEntries.reduce((sum, day) => sum + day.totalMinutes, 0) / 60;
   const overtimeHours = estimate.overtimeMinutes / 60;
   const confirmedDays = timesheet.dayEntries.filter((entry) => entry.employeeConfirmed).length;
+  const grossPay = currencyFromCents(estimate.grossPayCents);
 
   return {
     id: timesheet.id,
@@ -669,7 +666,7 @@ export function serializeTimesheet(
     workerType: workerTypeToClient(asWorkerType(timesheet.employee.workerType)),
     crewId: timesheet.crewId,
     crewName: timesheet.crew.name,
-    hourlyRate: viewerRole === "EMPLOYEE" ? null : currencyFromCents(timesheet.employee.hourlyRateCents),
+    hourlyRate: hidePay ? null : currencyFromCents(timesheet.employee.hourlyRateCents),
     status: statusToClient(asTimesheetStatus(timesheet.status)),
     entries: timesheet.dayEntries.map((entry) => ({
       id: entry.id,
@@ -685,7 +682,7 @@ export function serializeTimesheet(
     })),
     weeklyTotalHours: Math.round((totalHours + Number.EPSILON) * 100) / 100,
     overtimeHours: Math.round((overtimeHours + Number.EPSILON) * 100) / 100,
-    grossPay: currencyFromCents(estimate.grossPayCents),
+    grossPay: hidePay ? null : grossPay,
     confirmedDays,
     missingConfirmationDays: 7 - confirmedDays,
     adjustment: {
@@ -704,17 +701,18 @@ export function serializeTimesheet(
       submittedAt: expense.createdAt.toISOString(),
       submittedByFullName: usersById.get(expense.submittedByUserId) ?? "Unknown user",
     })),
-    payrollEstimate: {
-      regularHours: estimate.regularMinutes / 60,
-      overtimeHours: estimate.overtimeMinutes / 60,
-      grossPay: currencyFromCents(estimate.grossPayCents),
-      reimbursements: currencyFromCents(
-        (timesheet.adjustment?.gasReimbursementCents ?? 0) + (timesheet.adjustment?.pettyCashCents ?? 0),
-      ),
-      deductions: currencyFromCents(timesheet.adjustment?.deductionCents ?? 0),
-      netCheckEstimate: currencyFromCents(estimate.netCheckEstimateCents),
-    },
-    ytdSummary,
+    ...(hidePay
+      ? {}
+      : {
+          payrollEstimate: {
+            regularHours: estimate.regularMinutes / 60,
+            overtimeHours: estimate.overtimeMinutes / 60,
+            grossPay,
+          },
+        }),
+    ytdSummary: hidePay
+      ? { calendarYear: ytdSummary.calendarYear, workerType: ytdSummary.workerType }
+      : ytdSummary,
     exportedAt: timesheet.exportedAt?.toISOString() ?? null,
     exportedByFullName: timesheet.exportedByUserId ? usersById.get(timesheet.exportedByUserId) ?? "Unknown user" : null,
     statusAuditTrail: timesheet.statusAuditEvents.map((event) => ({
@@ -770,11 +768,6 @@ export async function buildYtdSummaries(
     const estimate = livePayrollEstimate(timesheet);
     const current = fallbackSummaries.get(timesheet.employeeId) ?? createEmptyYtdSummary(asWorkerType(timesheet.employee.workerType), calendarYear);
     current.grossPayments += currencyFromCents(estimate.grossPayCents);
-    current.reimbursements += currencyFromCents(
-      (timesheet.adjustment?.gasReimbursementCents ?? 0) + (timesheet.adjustment?.pettyCashCents ?? 0),
-    );
-    current.deductions += currencyFromCents(timesheet.adjustment?.deductionCents ?? 0);
-    current.netEstimate += currencyFromCents(estimate.netCheckEstimateCents);
     fallbackSummaries.set(timesheet.employeeId, current);
   }
 
