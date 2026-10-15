@@ -47,7 +47,7 @@ const organizationLd = {
   name: "My Guys Time",
   url: canonicalHost + "/",
   logo: canonicalHost + "/images/og-myguystime.png",
-  description: "Simple time cards for contractor crews. Track crew hours, review the week, and export clean time card totals. $12/mo flat.",
+  description: "Simple time cards for contractor crews. Track crew hours and review the week. $12/mo flat.",
 };
 
 const websiteLd = {
@@ -65,7 +65,7 @@ const softwareApplicationLd = {
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   offers: { "@type": "Offer", price: "12", priceCurrency: "USD" },
-  description: "Simple time cards for contractor crews. Track crew hours, review the week, and export clean time card totals. $12/mo flat.",
+  description: "Simple time cards for contractor crews. Track crew hours and review the week. $12/mo flat.",
 };
 
 const homeFaqLd = {
@@ -167,7 +167,7 @@ const pages = [
     "index.html",
     () => ssr.renderLandingHtml(),
     "My Guys Time — Simple Time Cards for Contractor Crews | $12/mo Flat",
-    "Track crew hours, review the week, and export clean time card totals. Simple time tracking for contractors and small crews.",
+    "Track crew hours and review the week in the office. Simple time tracking for contractors and small crews.",
     [
       ["ld-softwareapplication", softwareApplicationLd],
       ["ld-faqpage", homeFaqLd],
@@ -186,7 +186,7 @@ const pages = [
     "features/index.html",
     () => ssr.renderFeaturesHtml(),
     "Timesheet App Features for Contractor Crews | My Guys Time",
-    "Weekly crew board, truck-ready hour entry, CSV exports, reimbursements, and mixed W-2/1099 crews. $12/mo flat — no per-seat fees.",
+    "Weekly crew board, truck-ready hour entry, receipt photos, and mixed W-2/1099 crews. $12/mo flat — no per-seat fees.",
     [
       ["ld-softwareapplication", softwareApplicationLd],
       ["ld-organization", organizationLd],
@@ -212,7 +212,7 @@ const pages = [
     "how-it-works/index.html",
     () => ssr.renderHowItWorksHtml(),
     "How It Works — Weekly Crew Time Cards | My Guys Time",
-    "Crew logs hours from the field, the office reviews the week, adjusts, and exports clean CSV time cards. Four steps, no bloat.",
+    "Crew logs hours from the field. The office reviews the week and adjusts. Four steps, no bloat.",
     [
       ["ld-organization", organizationLd],
       ["ld-website", websiteLd],
@@ -237,7 +237,7 @@ const pages = [
     "construction-time-tracking/index.html",
     () => ssr.renderConstructionTimeTrackingHtml(),
     "Construction Time Tracking for Small Crews | $12/mo Flat",
-    "Log crew hours from the truck, review the week in the office, export clean CSV totals. Built by a contractor. $12/mo flat for the whole crew. 7 days free.",
+    "Log crew hours from the truck and review the week in the office. Built by a contractor. $12/mo flat for the whole crew. 7 days free.",
     [
       ["ld-softwareapplication", constructionSoftwareLd],
       ["ld-faqpage", constructionFaqLd],
@@ -305,7 +305,7 @@ const vsPages = [
     "QuickBooks Time charges a monthly base fee plus a fee per user, on top of QuickBooks Online. My Guys Time is $12/mo flat for the whole company.",
     "QuickBooks Time vs My Guys Time: Per-User Fees or One Flat Price"],
   ["spreadsheets", "Spreadsheets", "Spreadsheet Time Tracking vs My Guys Time | $12/mo Flat",
-    "If your time-tracking 'system' is a spreadsheet rebuilt every Thursday at 5pm, you're paying for it in lost hours. Daily field logging, one weekly review, clean CSV export.",
+    "If your time-tracking 'system' is a spreadsheet rebuilt every Thursday at 5pm, you're paying for it in lost hours. Daily field logging and one weekly review.",
     "Kill the Thursday spreadsheet."],
 ];
 
@@ -367,7 +367,7 @@ const clocksharkSoftwareLd = {
     },
   },
   description:
-    "Simple time cards for contractor crews. Track crew hours, review the week, and export clean time card totals. $12/mo flat.",
+    "Simple time cards for contractor crews. Track crew hours and review the week. $12/mo flat.",
 };
 
 const clocksharkBreadcrumbLd = {
@@ -399,7 +399,7 @@ pages.push([
   "vs/clockshark/index.html",
   () => ssr.renderVsHtml("clockshark"),
   "ClockShark Pricing vs $12 Flat for Crews | My Guys Time",
-  "ClockShark bills a base fee plus every user. My Guys Time is $12/mo flat for the whole company: crew time cards, weekly review, CSV exports. 7 days free.",
+  "ClockShark bills a base fee plus every user. My Guys Time is $12/mo flat for the whole company: crew time cards and a weekly review. 7 days free.",
   [
     ["ld-softwareapplication", clocksharkSoftwareLd],
     ["ld-faqpage", clocksharkFaqLd],

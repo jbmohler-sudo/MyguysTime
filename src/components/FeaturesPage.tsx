@@ -3,7 +3,7 @@ import {
   LayoutDashboard,
   Users,
   Receipt,
-  FileSpreadsheet,
+  BarChart3,
   Camera,
   Link2,
   ClipboardList,
@@ -40,9 +40,9 @@ const FEATURES = [
     body: "W-2 and 1099 in the same week. Mixed crews are normal — the app doesn't care how you classify them.",
   },
   {
-    icon: FileSpreadsheet,
-    title: "CSV exports for the office",
-    body: "Weekly summary and time-detail CSVs for the office handoff. Verified labor hour logs, nothing more, nothing missing.",
+    icon: BarChart3,
+    title: "A simple gross pay estimate",
+    body: "The office sees weekly hours, hours past 40, and a simple gross pay estimate. No taxes, deductions, net pay, or payroll.",
   },
   {
     icon: Camera,
@@ -69,7 +69,7 @@ const FEATURES = [
 export function FeaturesPage() {
   usePageMeta(
     "Features: Crew Time Cards Built for Contractor Crews | My Guys Time",
-    "Field hour entry, weekly crew board, foreman review, CSV exports for payroll, mixed W-2/1099 crews. Simple time tracking for contractors, $12/mo flat.",
+    "Field hour entry, weekly crew board, foreman review, and mixed W-2/1099 crews. Simple time tracking for contractors, $12/mo flat.",
   );
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">

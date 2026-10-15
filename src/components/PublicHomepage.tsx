@@ -38,8 +38,8 @@ const workflowSteps: WorkflowStep[] = [
   },
   {
     number: 4,
-    title: 'Export time cards',
-    description: 'Export timesheets to CSV for the office handoff.',
+    title: 'Hand off the week',
+    description: 'The office reviews verified labor hour logs and hands the week to whoever needs them.',
     details: 'Just verified labor hour logs and a practical weekly handoff. The office gets exactly what it needs.',
     icon: <FileText className="w-8 h-8" />,
   },
@@ -48,7 +48,7 @@ const workflowSteps: WorkflowStep[] = [
 const features = [
   'Contractor hour tracking app built for small crews',
   'Simple construction time card workflow',
-  'Export timesheets to CSV for office handoff',
+  'The office reviews the week and hands off verified hours',
   'Manage multiple crews on different jobs seamlessly',
 ];
 
@@ -144,9 +144,9 @@ export function ProductPreview() {
         {/* Secondary Card */}
         <div className="border border-slate-200 rounded-lg p-4 bg-slate-50 hover:bg-slate-100 transition-all duration-300">
           <p className="font-semibold text-slate-900 mb-3">Office review</p>
-          <p className="text-sm text-slate-600 mb-3">Time cards, exports, and office handoff</p>
+          <p className="text-sm text-slate-600 mb-3">Time cards and office handoff</p>
           <ul className="space-y-2">
-            {['Weekly summary CSV', 'Time detail CSV', 'Reimbursements and deductions', 'Private office-only reports'].map((item) => (
+            {['Weekly hours', 'Gross pay estimate', 'Receipts', 'Private office-only reports'].map((item) => (
               <li key={item} className="flex items-center gap-2 text-sm text-slate-600">
                 <Check className="w-4 h-4 text-orange-500" />
                 {item}

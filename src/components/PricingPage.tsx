@@ -10,8 +10,8 @@ import {
 const INCLUDED = [
   "Unlimited crew members — foremen, workers, office, all of them",
   "Weekly crew board with day-by-day review",
-  "Weekly summary + time-detail CSV exports",
-  "Reimbursements, deductions, and petty cash on the time card",
+  "Weekly hours, hours past 40, and a simple gross pay estimate",
+  "Reimbursements and petty cash on the time card",
   "Receipt photo capture",
   "Mixed W-2 and 1099 crews",
   "Private office-only reports",

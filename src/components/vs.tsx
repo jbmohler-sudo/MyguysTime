@@ -140,8 +140,8 @@ export const VS_PAGES: VsConfig[] = [
         text: "Fix the day somebody left early, move hours where they belong. One pass and the week is true.",
       },
       {
-        title: "Export for payroll",
-        text: "Weekly summary and time-detail CSVs. The receipt photos and petty cash are already on the cards they belong to.",
+        title: "Hand off the week",
+        text: "The office reviews the week and hands it to whoever runs payroll. The receipt photos and petty cash are already on the cards they belong to.",
       },
     ],
     calloutTitle: "From the trade that retired the 2x6",
@@ -158,7 +158,7 @@ export const VS_PAGES: VsConfig[] = [
       },
       {
         q: "Do I have to enter everything myself?",
-        text: "No. The foreman logs from the field during the week; you just review the board once and export. Your Thursday-night data-entry session disappears.",
+        text: "No. The foreman logs from the field during the week; you just review the board once. Your Thursday-night data-entry session disappears.",
       },
     ],
   },
@@ -345,7 +345,7 @@ export const VS_PAGES: VsConfig[] = [
       {
         label: "Payroll Thursday",
         oldWay: "Rebuild the week cell by cell from memory",
-        myGuys: "Review the board — it's already filled in — and export",
+        myGuys: "Review the board — it's already filled in",
       },
       {
         label: "Mistakes",
@@ -360,7 +360,7 @@ export const VS_PAGES: VsConfig[] = [
       {
         label: "Who can run it",
         oldWay: "Whoever built the spreadsheet",
-        myGuys: "Anyone — foreman logs, office reviews, CSV exports itself",
+        myGuys: "Anyone — the foreman logs and the office reviews",
       },
     ],
     flow: [
@@ -377,21 +377,21 @@ export const VS_PAGES: VsConfig[] = [
         text: "Fix a day, move hours between crews. No formulas to protect, no cells to unmerge, no FINAL_v4.",
       },
       {
-        title: "Export the sheet",
-        text: "You still get your spreadsheet — weekly summary and time-detail CSVs, generated from real daily entries instead of reconstructed memory.",
+        title: "Hand off the week",
+        text: "The office takes the reviewed week, built from real daily entries instead of reconstructed memory, and hands it to whoever runs payroll.",
       },
     ],
-    calloutTitle: "You still get the spreadsheet",
+    calloutTitle: "Honest numbers, logged the day they happened",
     calloutText:
-      "Nobody's asking you to give up the format you trust. The CSV exports are the spreadsheet you already use — except the numbers in it were logged daily from the field instead of invented Thursday at 5pm. Same rows, honest data.",
+      "Nobody's asking you to rebuild Thursday night from memory. The hours on the board were logged daily from the field. Same week, honest data.",
     faqs: [
       {
         q: "I like my spreadsheet layout. Do I have to give it up?",
-        text: "No. The weekly summary and time-detail CSV exports drop into whatever you already use. The difference is the numbers arrive filled in from daily field entries instead of your Thursday-night memory.",
+        text: "You can keep the spreadsheet you already use outside the app. My Guys Time is the weekly board: the hours were logged daily from the field instead of reconstructed from Thursday-night memory. Hand that week to whoever runs payroll.",
       },
       {
         q: "What if a day needs fixing after it's logged?",
-        text: "The weekly review is built for exactly that — adjust any day on the board before export. One place, no formula surgery.",
+        text: "The weekly review is built for exactly that — adjust any day on the board. One place, no formula surgery.",
       },
       {
         q: "Do my guys need to learn software?",
@@ -405,7 +405,7 @@ export const VS_PAGES: VsConfig[] = [
     h1: "ClockShark vs My Guys Time: Per-User Pricing or One Flat Price",
     sub: "One bill grows every time you hire. The other stays at $12 whether you run three guys or thirty.",
     intro:
-      "ClockShark charges a monthly base fee plus a fee for every user, so the bill rises each time you add a worker. My Guys Time is $12/month flat for the whole company. ClockShark does more (GPS tracking, scheduling, payroll integrations); My Guys Time is a simpler weekly crew time card with CSV exports.",
+      "ClockShark charges a monthly base fee plus a fee for every user, so the bill rises each time you add a worker. My Guys Time is $12/month flat for the whole company. ClockShark does more (GPS tracking, scheduling, payroll integrations); My Guys Time is a simpler weekly crew time card.",
     afterIntro: [
       { text: "See " },
       { text: "what crew time apps cost", href: "/construction-time-tracking-cost" },
@@ -477,8 +477,8 @@ export const VS_PAGES: VsConfig[] = [
         text: "The office sees hours, rate and notes for each person, plus receipt photos for anything a guy paid for out of pocket. Fix what needs fixing in one place.",
       },
       {
-        title: "Hand off the CSVs",
-        text: "Export the weekly summary and time detail CSVs and hand them to whoever runs payroll. No sync to set up, nothing to reconnect.",
+        title: "Hand off the week",
+        text: "The office reviews the approved week and hands the hours to whoever runs payroll. No sync to set up, nothing to reconnect.",
       },
     ],
     fit: {
@@ -487,7 +487,7 @@ export const VS_PAGES: VsConfig[] = [
           heading: "When ClockShark is the better fit",
           points: [
             "You want GPS or geofenced clock-ins, crew scheduling, job costing or PTO tracking.",
-            "You want hours to flow straight into QuickBooks, ADP, Gusto or Sage without a CSV step.",
+            "You want hours to flow straight into QuickBooks, ADP, Gusto or Sage.",
             "You want dedicated Android and iOS apps.",
           ],
         },
@@ -532,7 +532,7 @@ export const VS_PAGES: VsConfig[] = [
       },
       {
         q: "Is ClockShark worth the investment?",
-        text: "It depends on what you'll use. If you want GPS clock-ins, scheduling, job costing and hours flowing straight into your payroll software, ClockShark covers a lot of ground. If you mainly need daily hours, a foreman sign-off and a clean weekly CSV, a flat-price crew time card may fit better.",
+        text: "It depends on what you'll use. If you want GPS clock-ins, scheduling, job costing and hours flowing straight into your payroll software, ClockShark covers a lot of ground. If you mainly need daily hours, a foreman sign-off, and a clean week for the office, a flat-price crew time card may fit better.",
       },
       {
         q: "What is the ClockShark app?",

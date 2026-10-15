@@ -1,4 +1,4 @@
-import { Truck, Eye, SlidersHorizontal, FileSpreadsheet } from "lucide-react";
+import { Truck, Eye, SlidersHorizontal, FileText } from "lucide-react";
 import { MarketingHeader, MarketingFooter, CtaBand, PageHero } from "./MarketingChrome";
 
 const STEPS = [
@@ -21,10 +21,10 @@ const STEPS = [
     body: "Review weekly hours, hours past 40, and a simple gross pay estimate. W-2 and 1099 sit on the same board. No taxes, deductions, net pay, or payroll. Receipts stay on the card as a list.",
   },
   {
-    icon: FileSpreadsheet,
+    icon: FileText,
     step: "Step 4",
-    title: "Export time cards",
-    body: "Export timesheets to CSV for the office handoff. Just verified labor hour logs and a practical weekly handoff — the office gets exactly what it needs.",
+    title: "Hand off the week",
+    body: "The office reviews verified labor hour logs and hands the week off. Just verified labor hour logs and a practical weekly handoff — the office gets exactly what it needs.",
   },
 ];
 
@@ -39,7 +39,7 @@ const ROLES = [
   },
   {
     title: "Admin / Office",
-    body: "Finalizes the week, handles adjustments, and exports clean CSVs. Private office-only reports stay private.",
+    body: "Finalizes the week and handles adjustments. Private office-only reports stay private.",
   },
 ];
 

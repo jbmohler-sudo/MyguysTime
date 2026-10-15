@@ -8,7 +8,7 @@ export const constructionFaqItems: { q: string; a: string }[] = [
   },
   {
     q: "Can QuickBooks track time for contractors?",
-    a: "Intuit sells a separate time tracking product called QuickBooks Time. My Guys Time is a different kind of tool: it doesn't connect to QuickBooks and it doesn't run payroll. It exports a weekly summary CSV and a time detail CSV that your office or bookkeeper can use when entering hours into QuickBooks or whatever you use for payroll. Compare QuickBooks Time and My Guys Time.",
+    a: "Intuit sells a separate time tracking product called QuickBooks Time. My Guys Time is a different kind of tool: it doesn't connect to QuickBooks and it doesn't run payroll. The office reviews weekly hours and hands that week to your bookkeeper for QuickBooks or whatever you use for payroll. Compare QuickBooks Time and My Guys Time.",
   },
   {
     q: "How do you keep track of hours worked as a contractor?",
@@ -85,8 +85,8 @@ const FEATURES: { title: string; body: string }[] = [
     body: "The office sees weekly hours, hours past 40, the hourly rate, and a simple gross pay estimate. It doesn't calculate taxes, deductions, net pay, or payroll.",
   },
   {
-    title: "CSV exports",
-    body: "A weekly summary and a time detail, both as CSV files.",
+    title: "Hand the week to payroll",
+    body: "When the week is right, the office hands verified hours to whoever runs payroll.",
   },
 ];
 
@@ -223,7 +223,7 @@ export function ConstructionTimeTrackingPage() {
 
           <p className="text-lg text-slate-700 leading-relaxed mt-10">
             The simplest way to track construction crew hours is to have each foreman log hours from the job every
-            day, then review the week and export clean totals from the office. Many crew apps charge per seat, so the
+            day, then review the week in the office. Many crew apps charge per seat, so the
             bill climbs with every hire. My Guys Time is $12/month flat for the whole company, however many guys you
             run.
           </p>
@@ -253,8 +253,8 @@ export function ConstructionTimeTrackingPage() {
                 before it goes up.
               </li>
               <li>
-                <strong className="text-slate-900">Hand off clean totals.</strong> The office gets numbers it can use
-                without retyping anything.
+                <strong className="text-slate-900">Hand off clean totals.</strong> The office gets the week's hours
+                to pass to whoever runs payroll.
               </li>
             </ol>
             <p>
@@ -304,12 +304,11 @@ export function ConstructionTimeTrackingPage() {
               </p>
             </div>
             <div className="bg-white rounded-2xl border border-slate-200 p-6">
-              <h3 className="text-xl font-bold text-slate-900 mb-3">4. Export weekly totals to CSV</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">4. Hand the week to whoever runs payroll</h3>
               <p className="text-slate-600 leading-relaxed">
-                When the week is right, export it. You get two CSV files: a weekly summary and a time detail. Send them
-                to your bookkeeper, or open them in whatever you use for payroll. That's the handoff. There's no
-                integration to set up and nothing to keep in sync, just a clean file of hours that were logged the day
-                they happened.
+                When the week is right, the office has the hours that were logged the day they happened. Hand that
+                week to your bookkeeper, or to whoever you use for payroll. That's the handoff. There's no
+                integration to set up and nothing to keep in sync.
               </p>
             </div>
           </div>
@@ -362,7 +361,7 @@ export function ConstructionTimeTrackingPage() {
                     "Handoff to the office",
                     "Someone retypes it",
                     "Someone rebuilds it every week",
-                    "Export a CSV",
+                    "Reviewed on one board",
                   ],
                   [
                     "Cost model",

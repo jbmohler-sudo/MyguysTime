@@ -58,8 +58,8 @@ export const TRADES: TradeConfig[] = [
         text: "Move a guy's Tuesday from the Elm Street tear-off to the Maple install. Keep sub hours apart from employee hours. Fix it once, in one place.",
       },
       {
-        title: "Export for payroll",
-        text: "Weekly summary and time-detail CSVs drop straight into whatever you use for payroll. Dump runs and supply-house receipts are already attached to the day they happened.",
+        title: "Hand off the week",
+        text: "The office reviews the week and hands it to whoever runs payroll. Dump runs and supply-house receipts are already attached to the day they happened.",
       },
     ],
     calloutTitle: "Built for the way roofing weeks actually go",
@@ -72,7 +72,7 @@ export const TRADES: TradeConfig[] = [
       },
       {
         q: "Can I track hours per job, not just per week?",
-        text: "Hours are logged per day on each guy's time card, and your weekly review shows the whole picture. For job-level costing, the CSV detail export gives you day-by-day hours to allocate however you split your jobs.",
+        text: "Hours are logged per day on each guy's time card, and your weekly review shows the whole picture. Day-by-day hours are on the board, so you can allocate them however you split your jobs.",
       },
       {
         q: "How do sub crews work?",
@@ -120,8 +120,8 @@ export const TRADES: TradeConfig[] = [
         text: "Tender spent Wednesday with the other crew? Move his hours. Supply-house run took two hours off the wall? Note it. One review, then it's done.",
       },
       {
-        title: "Export for payroll",
-        text: "Weekly summary and time-detail CSVs, ready for payroll. Petty cash and reimbursements are already on the time cards they belong to.",
+        title: "Hand off the week",
+        text: "The office reviews the week and hands it to whoever runs payroll. Petty cash and reimbursements are already on the time cards they belong to.",
       },
     ],
     calloutTitle: "From the trade that started it",
@@ -134,7 +134,7 @@ export const TRADES: TradeConfig[] = [
       },
       {
         q: "How does petty cash work?",
-        text: "Petty cash, reimbursements, and deductions can be attached right to a guy's time card for the week, so the cash that leaves the truck shows up next to the hours — no separate envelope system.",
+        text: "Petty cash and reimbursements can be attached right to a guy's time card for the week, so the cash that leaves the truck shows up next to the hours — no separate envelope system.",
       },
       {
         q: "Do my guys need smartphones?",
@@ -182,8 +182,8 @@ export const TRADES: TradeConfig[] = [
         text: "Pulled two guys off route to finish the install Thursday? Move their hours. New seasonal hire started Wednesday? He's on the board from day one.",
       },
       {
-        title: "Export for payroll",
-        text: "Weekly summary and time-detail CSVs. Copyable invite links mean a new hire is logging hours the same day he starts — no paperwork delay.",
+        title: "Hand off the week",
+        text: "The office reviews the week and hands it to whoever runs payroll. Copyable invite links mean a new hire is logging hours the same day he starts — no paperwork delay.",
       },
     ],
     calloutTitle: "New hire Monday, logging hours Monday",
@@ -192,7 +192,7 @@ export const TRADES: TradeConfig[] = [
     faqs: [
       {
         q: "Can I see route hours separate from install hours?",
-        text: "Each crew has its own board, so route and install hours stay visually separated all week. The CSV detail export gives you the day-by-day breakdown for job costing.",
+        text: "Each crew has its own board, so route and install hours stay visually separated all week. The day-by-day hours are on the board for job costing.",
       },
       {
         q: "What if a crew lead forgets to log a day?",
@@ -244,8 +244,8 @@ export const TRADES: TradeConfig[] = [
         text: "Move hours between the interior job and the exterior job. Fix the day somebody left early for the paint store. One pass and payroll's ready.",
       },
       {
-        title: "Export for payroll",
-        text: "Weekly summary and time-detail CSVs drop into payroll. Receipt photos from the paint store are already attached to the right day.",
+        title: "Hand off the week",
+        text: "The office reviews the week and hands it to whoever runs payroll. Receipt photos from the paint store are already attached to the right day.",
       },
     ],
     calloutTitle: "Callbacks count too",
@@ -306,8 +306,8 @@ export const TRADES: TradeConfig[] = [
         text: "Split the apprentice's parts-run hours, keep 1099 sub hours apart from W-2 hours, fix the day the tech left early. One review pass.",
       },
       {
-        title: "Export for payroll",
-        text: "Weekly summary and time-detail CSVs. Supply-house receipt photos are attached to the day they happened.",
+        title: "Hand off the week",
+        text: "The office reviews the week and hands it to whoever runs payroll. Supply-house receipt photos are attached to the day they happened.",
       },
     ],
     calloutTitle: "W-2 and 1099, cleanly separated",
@@ -324,7 +324,7 @@ export const TRADES: TradeConfig[] = [
       },
       {
         q: "Can I track hours against specific jobs for billing?",
-        text: "Daily hours per tech give you the labor side; the CSV detail export lets you allocate to jobs however you bill. For time-and-materials work, the weekly summary is your backup.",
+        text: "Daily hours per tech give you the labor side, and the day-by-day board lets you allocate to jobs however you bill. For time-and-materials work, the weekly totals are your backup.",
       },
     ],
   },
@@ -335,7 +335,7 @@ export const TRADES: TradeConfig[] = [
     h1: "Every hour on every job, accounted for.",
     sub: "Service trucks, new-construction crews, apprentices, and the occasional 2am emergency call. Log it from the field.",
     intro:
-      "Electrical work swings between service calls and full-day construction — trim-outs, panel upgrades, new rough-ins — with apprentices in the mix and emergency calls that don't respect business hours. Hours get logged per day from the field, reviewed once a week, and exported clean for payroll. No more reconstructing the week from a pile of work orders and memory.",
+      "Electrical work swings between service calls and full-day construction — trim-outs, panel upgrades, new rough-ins — with apprentices in the mix and emergency calls that don't respect business hours. Hours get logged per day from the field and reviewed once a week. No more reconstructing the week from a pile of work orders and memory.",
     pains: [
       {
         title: "Service and construction mix",
@@ -368,8 +368,8 @@ export const TRADES: TradeConfig[] = [
         text: "Correct the apprentice's classroom day, separate sub hours on the big commercial rough-in, approve the week.",
       },
       {
-        title: "Export for payroll",
-        text: "Weekly summary and time-detail CSVs. Receipt photos from the supply house sit on the right day's card.",
+        title: "Hand off the week",
+        text: "The office reviews the week and hands it to whoever runs payroll. Receipt photos from the supply house sit on the right day's card.",
       },
     ],
     calloutTitle: "The hours nobody writes down",
@@ -448,7 +448,7 @@ export const TRADES: TradeConfig[] = [
       },
       {
         q: "We run a lot of jobs at once. How many can it handle?",
-        text: "Crews are organized per team, and the weekly review shows the full picture. The CSV detail export gives you day-by-day hours to allocate across as many jobs as you run.",
+        text: "Crews are organized per team, and the weekly review shows the full picture. Day-by-day hours are on the board, so you can allocate them across as many jobs as you run.",
       },
     ],
   },
