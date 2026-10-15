@@ -127,6 +127,16 @@ export function MarketingFooter() {
                   Contact
                 </a>
               </li>
+              <li>
+                <a href="/privacy" className="hover:text-orange-500 transition-colors">
+                  Privacy
+                </a>
+              </li>
+              <li>
+                <a href="/terms" className="hover:text-orange-500 transition-colors">
+                  Terms
+                </a>
+              </li>
             </ul>
           </div>
         </div>

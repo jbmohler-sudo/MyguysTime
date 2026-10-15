@@ -18,6 +18,8 @@ import { BestConstructionTimeTrackingAppsPage } from "./components/BestConstruct
 import { GuidePage } from "./components/GuidePage";
 import { Do1099SubsOvertimePage } from "./components/Do1099SubsOvertimePage";
 import { GuidesHubPage } from "./components/GuidesHubPage";
+import { PrivacyPage } from "./components/PrivacyPage";
+import { TermsPage } from "./components/TermsPage";
 import { TradePage } from "./components/TradePage";
 import { VsPage } from "./components/VsPage";
 import { TRADES } from "./components/trades";
@@ -547,6 +549,8 @@ function AppContent() {
       "/guides": <GuidesHubPage />,
       "/guides/how-contractors-track-crew-hours": <GuidePage />,
       "/guides/do-1099-subs-get-overtime": <Do1099SubsOvertimePage />,
+      "/privacy": <PrivacyPage />,
+      "/terms": <TermsPage />,
     };
     const marketingPage = marketingPageMap[cleanPath];
     if (marketingPage) {
