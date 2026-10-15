@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DayEntry, EmployeeWeek, ExpenseSubmissionInput, TimesheetStatus, Viewer } from "../domain/models";
-import { adjustTimeValue, formatCurrency, formatDayCardDate } from "../domain/format";
+import { adjustTimeValue, formatCurrency, formatDayCardDate, GROSS_PAY_DISCLAIMER } from "../domain/format";
 import { compressImageToDataUrl, openReceipt } from "../lib/receipts";
 
 import {
@@ -375,6 +375,10 @@ export function EmployeeCard({
   onReopenWeek,
 }: EmployeeCardProps) {
   const showRates = uiMode === "office" && employeeWeek.hourlyRate !== null;
+  const showGrossPay =
+    uiMode === "office" &&
+    (viewer.role === "admin" || viewer.role === "foreman") &&
+    typeof employeeWeek.grossPay === "number";
   const [reopenNote, setReopenNote] = useState("");
   const [revisionNote, setRevisionNote] = useState("");
   const [approveError, setApproveError] = useState<string | null>(null);
@@ -562,6 +566,17 @@ export function EmployeeCard({
                 <span>Overtime</span>
                 <strong>{employeeWeek.overtimeHours.toFixed(2)}h</strong>
               </div>
+              {showGrossPay ? (
+                <div>
+                  <span>Gross pay</span>
+                  <strong>{formatCurrency(employeeWeek.grossPay as number)}</strong>
+                </div>
+              ) : null}
+              {showGrossPay ? (
+                <p className="field-helper" style={{ gridColumn: "1 / -1", margin: 0 }}>
+                  {GROSS_PAY_DISCLAIMER}
+                </p>
+              ) : null}
             </div>
             <div className="employee-card__workflow">
               <span className="employee-card__workflow-label">Weekly action</span>

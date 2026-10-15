@@ -438,8 +438,9 @@ export function ConstructionTimeTrackingCostPage() {
             <TextLink href="/demo/admin">open the office view</TextLink>.
           </p>
           <p className="text-slate-700 leading-relaxed mt-6">
-            <strong className="text-slate-900">What it's not:</strong> no GPS tracking, no scheduling, and no payroll or
-            pay calculation. Hours hand off cleanly to whoever runs payroll. No payroll integration.
+            <strong className="text-slate-900">What it's not:</strong> no GPS tracking, no scheduling, and no taxes,
+            deductions, net pay, or payroll. The office does see weekly hours, hours past 40, and a simple gross pay
+            estimate. No payroll integration.
           </p>
         </section>
 

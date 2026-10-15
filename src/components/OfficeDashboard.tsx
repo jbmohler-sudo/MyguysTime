@@ -1,5 +1,5 @@
 import type { CompanySettingsSummary, EmployeeWeek, TimesheetStatus } from "../domain/models";
-import { formatCurrency } from "../domain/format";
+import { formatCurrency, GROSS_PAY_DISCLAIMER } from "../domain/format";
 import { needsEmployeeConfirmation, prettyStatus, statusTone } from "../domain/permissions";
 import { StatCard } from "./StatCard";
 
@@ -99,6 +99,17 @@ export function OfficeDashboard({
                   <span>Overtime</span>
                   <strong>{week.overtimeHours.toFixed(2)}h</strong>
                 </div>
+                {typeof week.grossPay === "number" ? (
+                  <div>
+                    <span>Gross pay</span>
+                    <strong>{formatCurrency(week.grossPay)}</strong>
+                  </div>
+                ) : null}
+                {typeof week.grossPay === "number" ? (
+                  <p className="field-helper" style={{ gridColumn: "1 / -1", margin: 0 }}>
+                    {GROSS_PAY_DISCLAIMER}
+                  </p>
+                ) : null}
               </div>
 
               {week.statusAuditTrail.length > 0 ? (

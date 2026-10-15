@@ -277,8 +277,8 @@ const tradePages = [
     "Service trucks, construction crews, apprentices, and emergency call-outs — every hour accounted for. $12/mo flat.",
     "Every hour on every job, accounted for."],
   ["general-contracting", "General Contracting", "Time Tracking for General Contractors | My Guys Time",
-    "Your W-2 crew and your 1099 subs on one weekly board, cleanly separated for payroll and 1099s. $12/mo flat.",
-    "Your crew and your subs, one weekly payroll picture."],
+    "Your W-2 crew and your 1099 subs on one weekly board. The office sees weekly hours, hours past 40, and a simple gross pay estimate. $12/mo flat.",
+    "Your crew and your subs, one weekly board."],
 ];
 
 for (const [slug, trade, title, description, h1] of tradePages) {
@@ -1172,7 +1172,7 @@ pages.push([
     "The best time tracking app for a small construction crew depends on fit.",
     "free for up to 10 users",
     "caps it at a small number of users",
-    "calculate pay or taxes",
+    "taxes, deductions, net pay, or payroll",
     "construction time tracking for small crews",
     "https://www.clockshark.com/pricing/",
     "https://www.myguystime.com/best-construction-time-tracking-apps",
@@ -1495,7 +1495,7 @@ pages.push([
     "https://www.irs.gov/forms-pubs/about-form-ss-8",
     "https://www.dir.ca.gov/dlse/faq_independentcontractor.htm",
     "1-866-487-9243",
-    "calculate overtime, pay or taxes",
+    "taxes, deductions, net pay, or run payroll",
     "/trades/general-contracting",
     "/guides/how-contractors-track-crew-hours",
     ">Construction time tracking<",

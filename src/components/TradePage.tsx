@@ -7,9 +7,21 @@ import {
   PageHero,
 } from "./MarketingChrome";
 import { TRADES, getTrade, type TradeConfig } from "./trades";
+import { usePageMeta } from "../hooks/usePageMeta";
+
+
+const TRADE_SEO: Record<string, { title: string; description: string }> = {
+  painting: {
+    title: "Time Tracking for Painting Crews: Prep Days to Payday | My Guys Time",
+    description:
+      "Painting weeks are choppy: prep, spray days, touch-up callbacks. My Guys Time logs crew hours from the job site on one clean weekly time card, $12/mo flat.",
+  },
+};
 
 export function TradePage({ slug }: { slug: string }) {
   const trade: TradeConfig | undefined = getTrade(slug);
+  const seo = TRADE_SEO[slug];
+  usePageMeta(seo?.title, seo?.description);
   if (!trade) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">

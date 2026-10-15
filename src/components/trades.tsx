@@ -76,7 +76,7 @@ export const TRADES: TradeConfig[] = [
       },
       {
         q: "How do sub crews work?",
-        text: "Subs get their own role on the crew board, separate from your W-2 guys. Their hours are tracked the same way but stay cleanly separated for 1099 reporting.",
+        text: "Subs get their own role on the crew board, separate from your W-2 guys. Their hours are tracked the same way and marked so you can tell employees and subs apart. The app does not file 1099s.",
       },
     ],
   },
@@ -200,7 +200,7 @@ export const TRADES: TradeConfig[] = [
       },
       {
         q: "Does it handle overtime?",
-        text: "The weekly summary shows total hours per person per week, so overtime math is straightforward from the export. Saturday makeup days are already in the totals.",
+        text: "The weekly board shows each person's total hours and the hours past 40, plus a simple gross pay estimate for the office. It doesn't calculate taxes, deductions, net pay, or payroll. Saturday makeup days are already in the hour totals.",
       },
     ],
   },
@@ -254,7 +254,7 @@ export const TRADES: TradeConfig[] = [
     faqs: [
       {
         q: "We pay some guys hourly and some by the day. Does that work?",
-        text: "Hours are tracked per day per person, so the weekly totals work for hourly payroll. For day-rate guys, the daily log still gives you the attendance record and the CSV export to reconcile against.",
+        text: "Hours are tracked per day per person. The office sees the weekly total, hours past 40, and a simple gross estimate. For day-rate guys, the daily log is the attendance record. Payroll stays with whoever runs it.",
       },
       {
         q: "Can the foreman log for guys who don't have smartphones?",
@@ -285,7 +285,7 @@ export const TRADES: TradeConfig[] = [
       },
       {
         title: "On-call and weekend calls",
-        text: "Sunday emergency call-outs are premium hours. They're also the hours most likely to be forgotten by payroll time.",
+        text: "Sunday emergency call-outs are the hours most likely to be forgotten by the time you review the week.",
       },
       {
         title: "Subs on big rough-ins",
@@ -312,7 +312,7 @@ export const TRADES: TradeConfig[] = [
     ],
     calloutTitle: "W-2 and 1099, cleanly separated",
     calloutText:
-      "Plumbing is one of the trades most likely to run a mixed crew — your own techs plus 1099 subs on big jobs. My Guys Time keeps both on the same weekly board but in separate lanes, so payroll sees employee hours and your 1099 reporting sees sub hours, with nothing tangled between them.",
+      "Plumbing is one of the trades most likely to run a mixed crew — your own techs plus 1099 subs on big jobs. My Guys Time keeps both on the same weekly board but marked separately, so the office can see each person's hours, hours past 40, and a simple gross estimate. It doesn't file 1099s or run payroll.",
     faqs: [
       {
         q: "Do techs need to log per call or per day?",
@@ -347,7 +347,7 @@ export const TRADES: TradeConfig[] = [
       },
       {
         title: "Emergency calls",
-        text: "The 2am no-power call is overtime or premium pay — and exactly the kind of hour that slips through when the week is rebuilt from memory.",
+        text: "The 2am no-power call is easy to forget when the week is rebuilt from memory. Logged the day it happens, those hours are on the weekly board, including in the hours past 40.",
       },
       {
         title: "Material runs break up days",
@@ -394,10 +394,10 @@ export const TRADES: TradeConfig[] = [
     slug: "general-contracting",
     trade: "General Contracting",
     plural: "GC crews",
-    h1: "Your crew and your subs, one weekly payroll picture.",
-    sub: "W-2 carpenters on your payroll, 1099 subs on every job, and five sites moving at once. See the whole labor picture every week.",
+    h1: "Your crew and your subs, one weekly board.",
+    sub: "W-2 carpenters and 1099 subs on every job, and five sites moving at once. See the whole labor picture every week.",
     intro:
-      "General contracting is really two workforces: your own W-2 crew and a rotating cast of 1099 subs — framers, drywallers, painters, and everybody else. They're on different jobs, different schedules, and different tax forms, but you review labor once a week. My Guys Time puts both on one weekly board with clean separation, so payroll and 1099 reporting each get exactly what they need.",
+      "General contracting is really two workforces: your own W-2 crew and a rotating cast of 1099 subs — framers, drywallers, painters, and everybody else. They're on different jobs, different schedules, and different tax forms, but you review labor once a week. My Guys Time puts both on one weekly board, marked separately. The office sees weekly hours, hours past 40, and a simple gross pay estimate. It doesn't run payroll or file 1099s.",
     pains: [
       {
         title: "Two workforces, one week",
@@ -412,8 +412,8 @@ export const TRADES: TradeConfig[] = [
         text: "Your own guys move between sites as priorities shift. Splitting their week across five jobs from memory on Friday doesn't work.",
       },
       {
-        title: "Payroll vs. 1099 reporting",
-        text: "Employee hours go to payroll; sub hours go to 1099s. Mix them together and you've created tax-season misery for yourself.",
+        title: "Employees and subs on one week",
+        text: "Employee hours and sub hours need to stay marked apart. Mix them together and the office has to sort it out later. The board keeps the mark. Payroll and 1099 filing stay with whoever does that work.",
       },
     ],
     flow: [
@@ -427,11 +427,11 @@ export const TRADES: TradeConfig[] = [
       },
       {
         title: "Adjust across jobs",
-        text: "Move hours between jobs as the week actually went. Employee adjustments stay in the payroll lane; sub hours stay in the 1099 lane.",
+        text: "Move hours between jobs as the week actually went. W-2 and 1099 stay marked on the same board.",
       },
       {
-        title: "Export both",
-        text: "Weekly summary and time-detail CSVs — clean employee hours for payroll, clean sub hours for 1099 reporting. One export, both answers.",
+        title: "Hand off the week",
+        text: "The office gets each person's weekly hours, hours past 40, and a simple gross estimate. W-2 and 1099 stay marked separately. Payroll and 1099 filing stay with whoever does that work.",
       },
     ],
     calloutTitle: "The 1099 problem, solved by structure",

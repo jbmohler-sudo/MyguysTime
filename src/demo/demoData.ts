@@ -96,14 +96,11 @@ const COMPANY_SETTINGS = {
   subscription: { status: "active", trialEndsAt: null, hasCustomer: true, receiptSent: true, active: true },
 };
 
-function makeEstimate(gross: number, reimb = 0, deduction = 0) {
+function makeEstimate(gross: number) {
   return {
     regularHours: gross / 36,
     overtimeHours: 0,
     grossPay: gross,
-    reimbursements: reimb,
-    deductions: deduction,
-    netCheckEstimate: gross + reimb - deduction,
   };
 }
 
@@ -112,9 +109,6 @@ function makeYtd(workerType: "employee" | "contractor_1099", grossPayments: numb
     calendarYear: 2026,
     workerType,
     grossPayments,
-    reimbursements: 220,
-    deductions: 0,
-    netEstimate: grossPayments * 0.885,
   };
 }
 
@@ -180,7 +174,7 @@ const EMPLOYEE_WEEKS = [
     missingConfirmationDays: 0,
     adjustment: { gasReimbursement: 46, pettyCashReimbursement: 0, deductionAdvance: 0, notes: "" },
     expenseSubmissions: [],
-    payrollEstimate: makeEstimate(grossPay(CARLOS_DAYS, 36), 46),
+    payrollEstimate: makeEstimate(grossPay(CARLOS_DAYS, 36)),
     ytdSummary: makeYtd("employee", 21060),
     exportedAt: null,
     exportedByFullName: null,

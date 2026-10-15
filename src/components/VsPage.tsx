@@ -8,6 +8,31 @@ import {
   PageHero,
 } from "./MarketingChrome";
 import { VS_PAGES, getVs, type VsConfig, type VsFaq, type VsTextPart } from "./vs";
+import { usePageMeta } from "../hooks/usePageMeta";
+
+
+const VS_SEO: Record<string, { title: string; description: string }> = {
+  clockshark: {
+    title: "ClockShark vs My Guys Time (2026): Per-User Pricing vs $12/mo Flat",
+    description:
+      "Comparing ClockShark vs My Guys Time? ClockShark charges a base fee plus per-user; My Guys Time is $12/month flat for the whole crew. See the tradeoffs side by side.",
+  },
+  "quickbooks-time": {
+    title: "QuickBooks Time vs My Guys Time (2026): Per-Seat Fees vs $12/mo Flat",
+    description:
+      "QuickBooks Time (formerly TSheets) vs My Guys Time: per-seat pricing that grows every time you hire, or one flat $12/month for the whole company. Compare.",
+  },
+  spreadsheets: {
+    title: "Spreadsheets vs My Guys Time: Kill the Thursday Rebuild | $12/mo",
+    description:
+      "Still rebuilding the week in a spreadsheet every Thursday at 5pm? My Guys Time puts the whole crew on one weekly board. Field logs daily, office reviews once.",
+  },
+  "paper-timesheets": {
+    title: "Paper Timesheets vs My Guys Time: Retire the Paper Time Card",
+    description:
+      "Rain-soaked cards, unreadable handwriting, hours rebuilt from memory. My Guys Time replaces paper time cards with a simple weekly crew board, $12/mo flat.",
+  },
+};
 
 function VsLinkedText({ parts }: { parts: VsTextPart[] }) {
   return (
@@ -64,6 +89,8 @@ function VsFaqAnswer({ faq }: { faq: VsFaq }) {
 
 export function VsPage({ slug }: { slug: string }) {
   const vs: VsConfig | undefined = getVs(slug);
+  const seo = VS_SEO[slug];
+  usePageMeta(seo?.title, seo?.description);
   if (!vs) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">

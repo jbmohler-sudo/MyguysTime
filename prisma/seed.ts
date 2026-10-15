@@ -529,14 +529,16 @@ export async function seedDatabase() {
       const estimate = calculatePayrollEstimate({
         employee,
         dayEntries: createdTimesheet.dayEntries,
-        adjustment: createdTimesheet.adjustment,
       });
 
       await prisma.payrollEstimate.create({
         data: {
           employeeId: employee.id,
           timesheetWeekId: createdTimesheet.id,
-          ...estimate,
+          regularMinutes: estimate.regularMinutes,
+          overtimeMinutes: estimate.overtimeMinutes,
+          grossPayCents: estimate.grossPayCents,
+          netCheckEstimateCents: 0,
         },
       });
     }

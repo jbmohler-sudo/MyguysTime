@@ -1,3 +1,6 @@
+export const GROSS_PAY_DISCLAIMER =
+  "Estimate only: hours x rate plus overtime past 40 hrs/week. Overtime and pay rules vary by state and locality, so check the rules that apply to you.";
+
 export function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
