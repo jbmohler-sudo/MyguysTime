@@ -21,13 +21,15 @@
   `/vs/quickbooks-time` (2026-10-14, same URL), and `/guides/do-1099-subs-get-overtime` (2026-10-15).
   Still not live and on hold pending Jeff's CSV confirmation: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
-- **In progress:** PR #6 structure fixes is open, awaiting Jeff (drops `/demo/*` from sitemap -> 24;
-  `/privacy` and `/terms` 404 after merge).
+- **In progress:** PR #6 structure fixes is open, awaiting Jeff (`/privacy` and `/terms` 404 after merge;
+  it also drops `/demo/*` from the sitemap). A `/guides` hub is on branch `cursor/guides-hub-62ff`
+  (bb7e430), not on `main`. Until that merges, https://www.myguystime.com/guides still serves the homepage.
+  The branch sitemap has 31 URLs.
 - **App live (2026-10-11/12):** office crew management on the Team page (add/rename/remove crews, crew chiefs,
   move workers), the cross-company timesheet fence, and the deep `/api` routing fix (a7b9abd). Before a7b9abd,
   every API path two or more segments below its prefix 404'd in production, so saving day hours and week
   status changes did not work on the live site.
-- **Next:** Remaining week-three post: `/templates/construction-daily-report-template`.
+- **Next:** Jeff's review of the `/guides` hub PR. Remaining week-three post: `/templates/construction-daily-report-template`.
 - **Biggest open item:** Jeff's call on PR #6 merge, CSV-export confirmation for the QuickBooks
   guide, and two Cursor branches (Open Questions). Optional later: Auth admin on `sb_secret_`
   (then disable legacy JWT), Neon→one Supabase DB.
@@ -106,6 +108,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-15 — Guides hub page on a branch (bb7e430)
+**Did:** Added a real `/guides` hub so that URL stops falling through to the homepage. New `GuidesHubPage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Prerender title `Guides and Templates for Construction Crew Hours | My Guys Time`, self-canonical `https://www.myguystime.com/guides`, one H1, a short intro, and a link list of the two live guides and two live templates, each with a one-line description. JSON-LD is CollectionPage, ItemList, and BreadcrumbList Home / Construction Time Tracking / Guides. No link to `/guides/crew-hours-quickbooks`. Sitemap on this branch is 31 URLs. Copy says `$12/month flat for the whole company` and that each person uses his own phone. No CSV, breaks, petty cash, or payroll/tax calculation claims. `npm run build` passed. Dist HTML: one H1, canonical as above, dollar amounts are only `$12`. Not merged to `main`.
+**Decided:** The two live guide articles keep Home / Construction Time Tracking / article title. Neither breadcrumb names Guides, and the prerender still rejects a Guides crumb on those articles, so there was no unlinked Guides crumb to point at `/guides`.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase. Shipping to `main` waits on Jeff.
+**State after:** `/guides` hub is on `cursor/guides-hub-62ff` (bb7e430). Production still serves the homepage at `/guides`. Branch sitemap has 31 URLs.
+**Next:** Jeff reviews the PR. See the PR notes for conflicts with open PR #6.
+
 ### 2026-10-15 — 1099 overtime guide live (292ef07)
 **Did:** Published `/guides/do-1099-subs-get-overtime` from the approved 2026-10-15 draft (Jeff's go-live for the content-only page). New `Do1099SubsOvertimePage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Title `Do 1099 Subs Get Overtime? What Contractors Should Know`, the draft meta and OG description, self-canonical `https://www.myguystime.com/guides/do-1099-subs-get-overtime`, plus Article (Jeff Mohler, Founder, datePublished 2026-10-15), FAQPage from the 5 FAQs, and BreadcrumbList Home / Construction Time Tracking / Do 1099 Subs Get Overtime? Disclaimers are in the prerendered HTML at the top and the bottom. Jeff's first-person lines are unchanged. Sitemap is 30 URLs. Inbound links: the crew-hours guide and `/trades/general-contracting`. No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll/overtime/tax calculation claims. Re-opened the DOL overtime page, the DOL FLSA page, Fact Sheet 13, the 2026 contractor NPRM page, Fact Sheet 21, the IRS independent-contractor page, the Form SS-8 page, and the California Labor Commissioner ABC FAQ on 2026-10-15. Each claim in the draft still matches those pages, so no legal line was rewritten. The Wage and Hour helpline on those DOL pages is still 1-866-487-9243. `npm run build` passed. Dist HTML: one H1, canonical as above, dollar amounts are only `$12`.
 **Decided:** Marketing copy may mention multiple crews (see the 2026-10-15 Decisions Log row). This page does not add a multi-crew claim of its own.
@@ -129,14 +139,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset; only `.env.example`). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
 **State after:** `/templates/time-to-decimal-chart` is on `main` (85175cb). Sitemap has 29 URLs.
 **Next:** Confirm the Vercel deploy is READY and the live page and PDF return 200. Remaining week-three posts: `/vs/quickbooks-time` refresh, `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
-
-### 2026-10-12 — Crew management live; deep /api routes fixed in production (a1b7013 merged, a7b9abd)
-**Did:** Jeff said ship it: fast-forwarded `main` to `feat/crew-management` (a1b7013; code identical to the 43/43 tested build). Production deploy READY. Live check found every API path two or more segments below its prefix returned Vercel NOT_FOUND, on today's deploy and on the previous one (49dddda), so this was pre-existing: day-hour saves, week status, expenses, adjustments, crew defaults, crew member moves, invite resend/revoke all failed on the live site (the app calls same-host `/api`). Cause: `api/<prefix>/[...path].ts` matches one segment on this project (earlier sessions worked around it with explicit files such as `employees/[employeeId]/remove.ts`). Fix a7b9abd: one `vercel.json` rewrite, `/api/:path*` → `/api/[...path]`, after the Stripe rule. Verified: on previews the deep path went from NOT_FOUND to reaching the function (previews crash at boot for every route, so no further preview test was possible); `npm run build` passed natively; on production after deploy, 9 deep routes return the app's own 401 JSON, 10 previously working routes unchanged (health 200, auth/crews/employees/invites/billing 401, both Stripe webhooks 400 missing signature), `/login` and `/pricing` 200. Rebased over the Supercrew commits (marketing only).
-**Decided:** see the 2026-10-12 Decisions Log row (rewrite supersedes the per-prefix file rule).
-**Killed:** nothing.
-**Deferred:** Logged-in end-to-end test on production (needs a real login); Preview env vars; AGENTS.md rule cleanup (needs Jeff).
-**State after:** `main` = a7b9abd, production READY with crew management, the company fence, and working deep API routes. Rollback target if needed: deploy of 8b3059f.
-**Next:** Jeff logs in on app.myguystime.com, saves a day's hours and submits a week, then tries the Crews section (add a crew, pick a chief, move a guy).
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
