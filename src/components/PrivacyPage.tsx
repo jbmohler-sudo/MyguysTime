@@ -88,6 +88,35 @@ export function PrivacyPage() {
             are text someone types.
           </p>
 
+          <h2 className="text-2xl font-bold text-slate-900 mt-10 mb-3">Hours past 40 and the gross pay estimate</h2>
+          <p className="mb-4">
+            Each worker record stores an hourly rate. The company has one pay setting for the whole
+            company. Flat rate stores that worker's overtime rate as the same hourly rate, so every hour
+            uses one rate. Standard employee leaves the overtime rate empty. The estimate then uses 1.5
+            times the hourly rate for hours past 40. Marking someone as an employee or a 1099 worker does
+            not change the rate.
+          </p>
+          <p className="mb-4">
+            When a timesheet is loaded, the app adds up that week's minutes. Minutes through 40 hours are
+            regular hours. Minutes past 40 hours are overtime hours. Weekly gross is regular hours times
+            the hourly rate, plus overtime hours times the overtime rate. Expense amounts are stored on
+            the week and are not added to that gross. The app does not calculate taxes, deductions, or net
+            pay.
+          </p>
+          <p className="mb-4">
+            Admin and foreman see the hourly rate, the overtime hours, and the weekly gross. The office
+            screen shows this note: "Estimate only: hours x rate plus overtime past 40 hrs/week. Overtime
+            and pay rules vary by state and locality, so check the rules that apply to you." Their
+            year-to-date figure is the sum of those weekly gross estimates. A worker login still receives
+            his hours, including hours past 40. That response leaves out the hourly rate, sets gross pay
+            to empty, and omits the pay estimate and the year-to-date dollar total.
+          </p>
+          <p>
+            Creating a week writes a stored pay row with the pay fields at 0, including a leftover
+            net-check column set to 0. The gross number on the screen is the live calculation above. The
+            app does not return that net-check column.
+          </p>
+
           <h2 className="text-2xl font-bold text-slate-900 mt-10 mb-3">Payment and email</h2>
           <p className="mb-4">
             Billing runs through Stripe. When an admin starts checkout, Stripe receives that admin's email,
@@ -154,9 +183,10 @@ export function PrivacyPage() {
 
           <h2 className="text-2xl font-bold text-slate-900 mt-10 mb-3">Who can see a company's data</h2>
           <p>
-            Records are tied to one company. A worker sees his own week. A foreman sees the crews he leads.
-            The hourly rate is left off the timesheet payload sent to a worker login. This policy does not
-            promise a particular security certification.
+            Records are tied to one company. A worker sees his own week, including hours past 40, and does
+            not receive the hourly rate or the gross pay estimate. A foreman sees the crews he leads,
+            including the rate and the weekly gross. An admin sees the same pay fields for the company.
+            This policy does not promise a particular security certification.
           </p>
 
           <h2 className="text-2xl font-bold text-slate-900 mt-10 mb-3">Contact</h2>

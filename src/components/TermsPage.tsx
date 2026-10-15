@@ -58,20 +58,24 @@ export function TermsPage() {
           </h2>
           <p className="mb-4">
             You are responsible for your own payroll, tax, wage, and worker-classification compliance,
-            including whether each person is an employee or a contractor. My Guys Time records hours. It
-            does not withhold taxes, file taxes, or produce a paycheck, and it does not decide how a worker
-            is classified.
+            including whether each person is an employee or a contractor. My Guys Time does not withhold
+            taxes, file taxes, run payroll, or decide how a worker is classified. It does not calculate
+            deductions or net pay.
           </p>
           <p className="mb-4">
-            The office board can show an hourly rate you entered and the hours past 40 in a week. The
-            server also computes a rough pay figure from those hours and that rate and includes it in the
-            timesheet data. The office screen shows the rate and those hours. It does not show that dollar
-            figure. The figure is not a paycheck and it is not tax withholding.
+            It does calculate hours past 40 in the week, and a weekly gross pay estimate. Gross is regular
+            hours times the hourly rate, plus hours past 40 times the overtime rate. The flat-rate company
+            setting uses the hourly rate for those hours past 40. The standard-employee setting uses 1.5
+            times the hourly rate. Marking a person as an employee or a 1099 worker does not change the
+            rate. Admin and foreman see the rate, the hours past 40, and the gross amount. A worker login
+            does not receive the rate or the gross amount.
           </p>
           <p>
-            [JEFF: confirm whether the sentences above should instead say the app does not calculate pay or
-            overtime. The code shows hours past 40 on the office board, and server/payroll.ts also computes
-            a gross-pay estimate from the hours and the hourly rate.]
+            The office screen says: "Estimate only: hours x rate plus overtime past 40 hrs/week. Overtime
+            and pay rules vary by state and locality, so check the rules that apply to you." That gross
+            figure is not a paycheck. Expense amounts stay on the week as a list and are not added to it.
+            Overtime in the app is hours past 40 on that week. It is not a daily overtime rule, and it is
+            not tax withholding.
           </p>
 
           <h2 className="text-2xl font-bold text-slate-900 mt-10 mb-3">Acceptable use</h2>
