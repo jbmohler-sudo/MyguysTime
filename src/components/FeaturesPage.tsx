@@ -11,6 +11,7 @@ import {
   Layers,
 } from "lucide-react";
 import { MarketingHeader, MarketingFooter, CtaBand, PageHero } from "./MarketingChrome";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 const FEATURES = [
   {
@@ -66,6 +67,10 @@ const FEATURES = [
 ];
 
 export function FeaturesPage() {
+  usePageMeta(
+    "Features: Crew Time Cards Built for Contractor Crews | My Guys Time",
+    "Field hour entry, weekly crew board, foreman review, CSV exports for payroll, mixed W-2/1099 crews. Simple time tracking for contractors, $12/mo flat.",
+  );
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <MarketingHeader />
