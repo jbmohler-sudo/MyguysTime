@@ -17,7 +17,7 @@ export const faqPageItems: { q: string; a: string }[] = [
   },
   {
     q: "Does it do payroll?",
-    a: "No — and that's on purpose. It hands clean hour totals to whoever runs your payroll. Hours, rates, and notes; nothing pretending to be an accountant.",
+    a: "No. The office sees weekly hours, hours past 40, and a simple gross pay estimate (hours times rate). It doesn't calculate taxes, deductions, net pay, or payroll.",
   },
 ];
 

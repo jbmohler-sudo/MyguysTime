@@ -31,8 +31,8 @@ const FEATURES = [
   },
   {
     icon: Receipt,
-    title: "Adjustments right on the card",
-    body: "Reimbursements, deductions, and petty cash logged directly on the time card. Guy buys materials out of pocket? It lands in the weekly totals.",
+    title: "Receipts on the card",
+    body: "Out-of-pocket costs stay on the time card as a list, with a photo of the receipt. They are not added to weekly hours or to the gross pay estimate.",
   },
   {
     icon: Layers,

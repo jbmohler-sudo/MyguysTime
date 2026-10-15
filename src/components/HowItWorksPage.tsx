@@ -18,7 +18,7 @@ const STEPS = [
     icon: SlidersHorizontal,
     step: "Step 3",
     title: "Adjust and finalize",
-    body: "Handle reimbursements, deductions, and mixed crews — W-2 and 1099. Clean weekly review with all the details that matter to your bottom line.",
+    body: "Review weekly hours, hours past 40, and a simple gross pay estimate. W-2 and 1099 sit on the same board. No taxes, deductions, net pay, or payroll. Receipts stay on the card as a list.",
   },
   {
     icon: FileSpreadsheet,

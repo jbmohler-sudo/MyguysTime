@@ -20,7 +20,7 @@ export const overtimeGuideFaqItems: { q: string; a: string }[] = [
   },
   {
     q: "Does My Guys Time handle W-2 and 1099 guys together?",
-    a: "Yes. Both go on one weekly crew board with the foreman's approval. It doesn't calculate overtime, pay or taxes, and it doesn't classify anyone.",
+    a: "Yes. Both go on one weekly crew board with the foreman's approval. It shows weekly hours, hours past 40, and a simple gross pay estimate. It doesn't calculate taxes, deductions, net pay, or run payroll, and it doesn't classify anyone.",
   },
 ];
 
@@ -250,7 +250,8 @@ export function Do1099SubsOvertimePage() {
               That's the part My Guys Time handles. W-2 guys and 1099 subs go on the same weekly crew board, hours get
               logged daily, the foreman approves the week, and receipt photos ride on the card.{" "}
               <strong className="text-slate-900">
-                It doesn't calculate overtime, pay or taxes, and it doesn't decide who's an employee.
+                It shows weekly hours, hours past 40, and a simple gross pay estimate. It doesn't calculate taxes,
+                deductions, net pay, or run payroll, and it doesn't decide who's an employee.
               </strong>{" "}
               The office hands the approved hours to whoever runs payroll, and they take it from there. See how that
               works for a{" "}
