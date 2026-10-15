@@ -11,25 +11,26 @@
   period, 7-day no-card trial on new signups. Paid companies stay on `active`.
 - **Marketing site live:** `/features`, `/pricing`, `/how-it-works`, `/faq`, `/construction-time-tracking`,
   `/construction-time-tracking-cost`, `/best-construction-time-tracking-apps`,
-  `/guides/how-contractors-track-crew-hours`, `/guides/do-1099-subs-get-overtime`,
+  `/guides`, `/guides/how-contractors-track-crew-hours`, `/guides/do-1099-subs-get-overtime`,
   `/templates/construction-timesheet-template`, `/templates/time-to-decimal-chart`, seven `/trades/:slug` pages, and
   `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy,workyard,supercrew}` — all prerendered, in the sitemap
-  (30 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
+  (31 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
   construction timesheet template, and Connecteam vs. Week two: `/vs/busybusy` (2026-10-05), `/vs/workyard` (2026-10-06),
   `/best-construction-time-tracking-apps` (2026-10-08), and `/guides/how-contractors-track-crew-hours` (2026-10-09).
   Week three: `/vs/supercrew` (2026-10-12), `/templates/time-to-decimal-chart` (2026-10-14), a refresh of
   `/vs/quickbooks-time` (2026-10-14, same URL), and `/guides/do-1099-subs-get-overtime` (2026-10-15).
   Still not live and on hold pending Jeff's CSV confirmation: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
-- **In progress:** Gross pay is weekly hours times rate plus hours past 40 times the overtime rate, shown to admin and foreman only, on `cursor/gross-pay-estimate-d1f7` (not merged). PR #6 structure fixes is open, awaiting Jeff (`/privacy` and `/terms` 404 after merge;
-  it also drops `/demo/*` from the sitemap). A `/guides` hub is on branch `cursor/guides-hub-62ff`
-  (bb7e430), not on `main`. Until that merges, https://www.myguystime.com/guides still serves the homepage.
-  The branch sitemap has 31 URLs.
+- **In progress:** PR #6 structure fixes is open, awaiting Jeff (`/privacy` and `/terms` 404 after merge;
+  it also drops `/demo/*` from the sitemap). Gross pay estimate is live on `main` (a1aa857, PR #9): weekly
+  hours times the rate, plus hours past 40 times the overtime rate, shown to admin and foreman only.
+  Marketing copy on `main` (605e395) does not claim CSV export or that the app handles deductions.
 - **App live (2026-10-11/12):** office crew management on the Team page (add/rename/remove crews, crew chiefs,
   move workers), the cross-company timesheet fence, and the deep `/api` routing fix (a7b9abd). Before a7b9abd,
   every API path two or more segments below its prefix 404'd in production, so saving day hours and week
   status changes did not work on the live site.
-- **Next:** Jeff's review of the `/guides` hub PR. Remaining week-three post: `/templates/construction-daily-report-template`.
+- **Next:** Jeff's review of PR #6. Remaining week-three post: `/templates/construction-daily-report-template`.
+  The QuickBooks guide stays on hold until Jeff confirms CSV export.
 - **Biggest open item:** Jeff's call on PR #6 merge, CSV-export confirmation for the QuickBooks
   guide, and two Cursor branches (Open Questions). Optional later: Auth admin on `sb_secret_`
   (then disable legacy JWT), Neon→one Supabase DB.
@@ -65,6 +66,7 @@ Supabase; app rows moved to Neon.
 | 2026-09-28 | Content-only marketing pages and sitemap may ship to `main` on a passing `npm run build` when `npm test` cannot run in this cloud environment (no local fixture DB or Supabase keys). Never point tests at real Neon or Supabase. | Jeff approved. Cloud agents have no fixture database, and the safety check blocks remote fixture mutation. |
 | 2026-10-15 | Marketing copy may say a company runs more than one crew. Crews and crew chiefs are live. | Jeff confirmed it while shipping the 1099 overtime guide. CSV export, breaks, and petty cash stay unconfirmed and stay out of new copy. |
 | 2026-10-15 | The only pay figure is weekly gross: regular hours times the hourly rate, plus hours past 40 times the overtime rate. No net, deductions, or reimbursement math in that estimate. Office (admin and foreman) can see it, with a state-and-locality disclaimer. Workers do not receive the dollar fields. | Jeff approved this after the hours-and-pay audit. Expense receipts stay a list. The stored `PayrollEstimate.netCheckEstimateCents` column stays in the database and is written as 0. |
+| 2026-10-15 | Marketing pages do not claim CSV export or that the app handles deductions. | Jeff approved the content-only fix. CSV export is still unconfirmed, so `/guides/crew-hours-quickbooks` stays on hold. Lines that say the app does not calculate deductions stay. |
 
 ## System Map
 
@@ -109,6 +111,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-15 — Marketing copy drops CSV export and deduction claims (605e395)
+**Did:** Removed claims that the app exports CSV or handles deductions from the homepage office card and workflow, `/features`, `/pricing`, `/how-it-works`, `/construction-time-tracking`, the seven `/trades` pages, `/vs/paper-timesheets`, `/vs/spreadsheets`, `/vs/clockshark`, `index.html` meta, and prerender descriptions plus SoftwareApplication JSON-LD. The homepage office card now lists weekly hours, a gross pay estimate, receipts, and private office-only reports. Kept every line that says the app does not calculate taxes, deductions, net pay, or payroll, and kept competitor export lines (Workyard one-click export, Supercrew payroll exports, the best-apps Workyard card). PR #9 gross-estimate wording is unchanged. `npm run build` passed. Live check: production deploy `dpl_D2tVsiCWBAB8N6GF8mE3qrhJnJ8F` is READY, and https://www.myguystime.com/ returns 200 with no `CSV` and no `Reimbursements and deductions`. The only homepage "deduction" line is "No taxes, deductions, net pay, or payroll."
+**Decided:** Marketing pages do not claim CSV export or that the app handles deductions (Decisions Log).
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database. Jeff approved shipping this content-only change without it. `/guides/crew-hours-quickbooks` stays on hold until Jeff confirms CSV export.
+**State after:** on `main` (605e395). Sitemap still has 31 URLs.
+**Next:** Jeff's review of PR #6. Remaining week-three post: `/templates/construction-daily-report-template`.
+
 ### 2026-10-15 — Gross pay estimate only, shown to the office (branch)
 **Did:** Pay estimate is weekly gross only: regular hours times the hourly rate, plus hours past 40 times the overtime rate. Removed net check, reimbursement, and deduction math from `calculatePayrollEstimate` and from the API (`payrollEstimate` no longer has reimbursements, deductions, or `netCheckEstimate`; year-to-date no longer has net, reimbursements, or deductions). Expense and receipt logging stays a list and does not change gross. Admin and foreman see weekly gross on the office card and the admin dashboard, with the estimate disclaimer. Employee API responses omit `grossPay` dollars (`null`), omit `payrollEstimate`, and omit year-to-date dollar fields. Company setup no longer says "Compliant with FLSA". Marketing pages now say the app shows weekly hours, hours past 40, and a simple gross estimate, and that it does not calculate taxes, deductions, net pay, or payroll. `npm run build` passed. `npm test` passed.
 **Decided:** see the 2026-10-15 Decisions Log row. The database column `netCheckEstimateCents` stays; new rows store 0. No migration.
@@ -132,14 +142,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase. `/features` outbound link left out of the approved copy. Plumbing, electrical, and FAQ inbound links left to the one relevant page (general contracting).
 **State after:** `/guides/do-1099-subs-get-overtime` is on `main` (292ef07). Sitemap has 30 URLs.
 **Next:** Confirm the Vercel deploy is READY and the live page returns 200 with one H1. Remaining week-three post: `/templates/construction-daily-report-template`.
-
-### 2026-10-14 — QuickBooks Time comparison page refreshed (54da680)
-**Did:** Refreshed existing `/vs/quickbooks-time` from the approved 2026-10-13 draft (Jeff's go-live for the content-only page). Updated the quickbooks-time config in `vs.tsx` (eyebrow, h1, answer block, pain cards, comparison table, flow, callout, 6 FAQs, closing CTA). Each person joins the crew team from his own phone; he or the foreman logs the hours. Removed "one phone per crew is enough." Prerender title `QuickBooks Time Pricing vs $12 Flat for Crews | My Guys Time`, the draft meta and OG description, self-canonical `https://www.myguystime.com/vs/quickbooks-time`. Kept the existing SoftwareApplication, Organization, WebSite, and WebPage schema; WebPage `dateModified` is 2026-10-14. No new FAQPage or breadcrumb. Sitemap stays 29 URLs; this URL's `<lastmod>` is 2026-10-14. No competitor dollar figures. `$12` reads as flat for the whole company. Left out of the page: CSV export, multiple crews, breaks, petty cash, Intuit dollar amounts, and the old Support row. `npm run build` passed. Dist HTML: one H1, canonical as above, body dollar amounts are only `$12`, and "one phone per crew" is absent.
-**Decided:** nothing new.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
-**State after:** `/vs/quickbooks-time` refresh is on `main` (54da680). Sitemap has 29 URLs.
-**Next:** Confirm the Vercel deploy is READY and https://www.myguystime.com/vs/quickbooks-time returns 200 without "one phone per crew". Remaining week-three posts: `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
