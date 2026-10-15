@@ -21,7 +21,7 @@
   `/vs/quickbooks-time` (2026-10-14, same URL), and `/guides/do-1099-subs-get-overtime` (2026-10-15).
   Still not live and on hold pending Jeff's CSV confirmation: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
-- **In progress:** PR #6 structure fixes is open, awaiting Jeff (`/privacy` and `/terms` 404 after merge;
+- **In progress:** Gross pay is weekly hours times rate plus hours past 40 times the overtime rate, shown to admin and foreman only, on `cursor/gross-pay-estimate-d1f7` (not merged). PR #6 structure fixes is open, awaiting Jeff (`/privacy` and `/terms` 404 after merge;
   it also drops `/demo/*` from the sitemap). A `/guides` hub is on branch `cursor/guides-hub-62ff`
   (bb7e430), not on `main`. Until that merges, https://www.myguystime.com/guides still serves the homepage.
   The branch sitemap has 31 URLs.
@@ -64,12 +64,13 @@ Supabase; app rows moved to Neon.
 | 2026-10-12 | `vercel.json` rewrites any `/api/:path*` that no function file matched to the root `api/[...path].ts` (the Express app) | `[...path]` files on this project match one segment only, so deep routes (day hours, week status, expenses, adjustments, crew defaults and moves, invite resend/revoke) 404'd in production. Function files still match first. Verified on production: deep routes reach Express (401 unauthenticated), old routes and both Stripe webhooks unchanged. |
 | 2026-09-28 | Content-only marketing pages and sitemap may ship to `main` on a passing `npm run build` when `npm test` cannot run in this cloud environment (no local fixture DB or Supabase keys). Never point tests at real Neon or Supabase. | Jeff approved. Cloud agents have no fixture database, and the safety check blocks remote fixture mutation. |
 | 2026-10-15 | Marketing copy may say a company runs more than one crew. Crews and crew chiefs are live. | Jeff confirmed it while shipping the 1099 overtime guide. CSV export, breaks, and petty cash stay unconfirmed and stay out of new copy. |
+| 2026-10-15 | The only pay figure is weekly gross: regular hours times the hourly rate, plus hours past 40 times the overtime rate. No net, deductions, or reimbursement math in that estimate. Office (admin and foreman) can see it, with a state-and-locality disclaimer. Workers do not receive the dollar fields. | Jeff approved this after the hours-and-pay audit. Expense receipts stay a list. The stored `PayrollEstimate.netCheckEstimateCents` column stays in the database and is written as 0. |
 
 ## System Map
 
 | System | File(s) | Status | Note |
 |--------|---------|--------|------|
-| Frontend | React/TS app | live | Office view = hours + rate + notes (no payroll surface). |
+| Frontend | React/TS app | live | Office view shows hours, rate, hours past 40, and a gross pay estimate for admin and foreman. No taxes, deductions, or net pay. |
 | Backend | Node/Express on Vercel `/api` | live | Handlers per prefix (`api/billing`, `api/stripe`, `api/auth`, …) catch one segment; the `vercel.json` `/api/:path*` rewrite sends deeper paths to root `api/[...path].ts`. |
 | Auth | Supabase `ufbanjchatwkheaqafsf` | live | Publishable anon + legacy JWT `service_role` for admin. |
 | Data | Neon (`neondb`) | live | Prisma + RLS. Auth is not on this DB. |
@@ -108,6 +109,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-15 — Gross pay estimate only, shown to the office (branch)
+**Did:** Pay estimate is weekly gross only: regular hours times the hourly rate, plus hours past 40 times the overtime rate. Removed net check, reimbursement, and deduction math from `calculatePayrollEstimate` and from the API (`payrollEstimate` no longer has reimbursements, deductions, or `netCheckEstimate`; year-to-date no longer has net, reimbursements, or deductions). Expense and receipt logging stays a list and does not change gross. Admin and foreman see weekly gross on the office card and the admin dashboard, with the estimate disclaimer. Employee API responses omit `grossPay` dollars (`null`), omit `payrollEstimate`, and omit year-to-date dollar fields. Company setup no longer says "Compliant with FLSA". Marketing pages now say the app shows weekly hours, hours past 40, and a simple gross estimate, and that it does not calculate taxes, deductions, net pay, or payroll. `npm run build` passed. `npm test` passed.
+**Decided:** see the 2026-10-15 Decisions Log row. The database column `netCheckEstimateCents` stays; new rows store 0. No migration.
+**Killed:** nothing removed from the schema. Net-check math is gone from the estimate function and the API.
+**Deferred:** CSV export copy that was not part of this pass. California daily overtime. Week-start mismatches. The stored pay-estimate column was not dropped.
+**State after:** on branch `cursor/gross-pay-estimate-d1f7`, not merged.
+**Next:** Jeff reviews the PR.
+
 ### 2026-10-15 — Guides hub page on a branch (bb7e430)
 **Did:** Added a real `/guides` hub so that URL stops falling through to the homepage. New `GuidesHubPage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Prerender title `Guides and Templates for Construction Crew Hours | My Guys Time`, self-canonical `https://www.myguystime.com/guides`, one H1, a short intro, and a link list of the two live guides and two live templates, each with a one-line description. JSON-LD is CollectionPage, ItemList, and BreadcrumbList Home / Construction Time Tracking / Guides. No link to `/guides/crew-hours-quickbooks`. Sitemap on this branch is 31 URLs. Copy says `$12/month flat for the whole company` and that each person uses his own phone. No CSV, breaks, petty cash, or payroll/tax calculation claims. `npm run build` passed. Dist HTML: one H1, canonical as above, dollar amounts are only `$12`. Not merged to `main`.
 **Decided:** The two live guide articles keep Home / Construction Time Tracking / article title. Neither breadcrumb names Guides, and the prerender still rejects a Guides crumb on those articles, so there was no unlinked Guides crumb to point at `/guides`.
@@ -131,14 +140,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
 **State after:** `/vs/quickbooks-time` refresh is on `main` (54da680). Sitemap has 29 URLs.
 **Next:** Confirm the Vercel deploy is READY and https://www.myguystime.com/vs/quickbooks-time returns 200 without "one phone per crew". Remaining week-three posts: `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
-
-### 2026-10-14 — Time to decimal chart template page live (85175cb)
-**Did:** Published `/templates/time-to-decimal-chart` from the approved 2026-10-14 draft (Jeff's go-live for the content-only page). New `TimeToDecimalChartPage` with the minutes-to-decimal chart (60 values in prerendered HTML), reverse decimal-to-minutes table, worked week, rounding caveat with no rule or threshold, print links, soft CTA, and 5 FAQs. Each person joins the crew team from his own phone; he or the foreman logs the hours. Prerender title `Time to Decimal Chart: Minutes to Decimal Hours (Printable)`, the draft meta and OG description, self-canonical `https://www.myguystime.com/templates/time-to-decimal-chart`, plus Article (Jeff Mohler, Founder, datePublished 2026-10-14), WebPage, FAQPage from the 5 FAQs, and BreadcrumbList Home / Free Construction Timesheet Template / Time to Decimal Chart. PDF and XLSX are in `public/templates/` and are not in the sitemap. Sitemap is 29 URLs. Inbound links: timesheet template page ("convert minutes to decimal hours") and `/vs/spreadsheets` (Excel totals line). No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll-calculation claims. `npm run build` passed. Dist HTML: one H1, canonical as above, 60 chart rows, dollar amounts are only `$12`.
-**Decided:** nothing new.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset; only `.env.example`). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
-**State after:** `/templates/time-to-decimal-chart` is on `main` (85175cb). Sitemap has 29 URLs.
-**Next:** Confirm the Vercel deploy is READY and the live page and PDF return 200. Remaining week-three posts: `/vs/quickbooks-time` refresh, `/guides/do-1099-subs-get-overtime`, `/templates/construction-daily-report-template`.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
