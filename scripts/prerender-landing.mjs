@@ -1182,6 +1182,102 @@ pages.push([
   ],
 ]);
 
+const guidesHubRoute = "/guides";
+const guidesHubTitle = "Guides and Templates for Construction Crew Hours | My Guys Time";
+const guidesHubDescription =
+  "Guides and free templates for construction crew hours: paper versus a crew app, 1099 overtime, a weekly timesheet, and a minutes-to-decimal chart.";
+const guidesHubHeadline = "Guides and Templates for Construction Crew Hours";
+
+const guidesHubHrefs = [
+  "/guides/how-contractors-track-crew-hours",
+  "/guides/do-1099-subs-get-overtime",
+  "/templates/construction-timesheet-template",
+  "/templates/time-to-decimal-chart",
+];
+
+if (
+  !Array.isArray(ssr.guidesHubItems) ||
+  ssr.guidesHubItems.length !== guidesHubHrefs.length ||
+  ssr.guidesHubItems.some((item, index) => item.href !== guidesHubHrefs[index] || !item.title || !item.description)
+) {
+  console.error("[prerender] guides hub list missing or drifted from the live guide and template pages.");
+  process.exit(1);
+}
+if (ssr.guidesHubItems.some((item) => item.href === "/guides/crew-hours-quickbooks")) {
+  console.error("[prerender] guides hub links the unpublished QuickBooks guide.");
+  process.exit(1);
+}
+
+const guidesHubItemListLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "@id": canonicalHost + guidesHubRoute + "#list",
+  name: guidesHubHeadline,
+  itemListElement: ssr.guidesHubItems.map((item, index) => ({
+    "@type": "ListItem",
+    position: index + 1,
+    name: item.title,
+    url: canonicalHost + item.href,
+    description: item.description,
+  })),
+};
+
+const guidesHubCollectionLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: guidesHubHeadline,
+  url: canonicalHost + guidesHubRoute,
+  description: guidesHubDescription,
+  isPartOf: { "@type": "WebSite", name: "My Guys Time", url: canonicalHost + "/" },
+  mainEntity: { "@id": canonicalHost + guidesHubRoute + "#list" },
+};
+
+const guidesHubBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Construction Time Tracking",
+      item: canonicalHost + constructionRoute,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Guides",
+      item: canonicalHost + guidesHubRoute,
+    },
+  ],
+};
+
+pages.push([
+  guidesHubRoute,
+  "guides/index.html",
+  () => ssr.renderGuidesHubHtml(),
+  guidesHubTitle,
+  guidesHubDescription,
+  [
+    ["ld-webpage", guidesHubCollectionLd],
+    ["ld-itemlist", guidesHubItemListLd],
+    ["ld-breadcrumb", guidesHubBreadcrumbLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    guidesHubHeadline,
+    "$12/month flat for the whole company",
+    "each person uses his own phone",
+    ...ssr.guidesHubItems.flatMap((item) => [item.href, item.title, item.description]),
+  ],
+]);
+
 const guideRoute = "/guides/how-contractors-track-crew-hours";
 const guideTitle = "How Contractors Track Crew Hours: Paper, Sheet, or App";
 const guideDescription =
@@ -1478,7 +1574,9 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
   // so structured data and visible copy cannot drift.
   const wanted = new Map(ldBlocks);
   // Every sub-page also gets a WebPage block naming its own URL.
-  if (routePath !== "/") {
+  if (routePath === "/guides") {
+    wanted.set("ld-webpage", guidesHubCollectionLd);
+  } else if (routePath !== "/") {
     wanted.set("ld-webpage", webPageLd(title, routePath, description));
   }
   const appendableJsonLd = new Set([
@@ -1617,6 +1715,53 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     if (hit.length > 0 || /csv/i.test(markup)) {
       console.error("[prerender] cost page contains banned copy:", hit, /csv/i.test(markup) ? "CSV" : "");
       process.exit(1);
+    }
+  }
+
+  if (routePath === "/guides") {
+    const lower = markup.toLowerCase();
+    const banned = [
+      "csv",
+      "petty cash",
+      "/guides/crew-hours-quickbooks",
+      "calculates payroll",
+      "calculates tax",
+      "one phone per crew",
+    ];
+    const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    if (hit.length > 0 || badDollars.length > 0) {
+      console.error("[prerender] guides hub contains banned copy:", hit, badDollars);
+      process.exit(1);
+    }
+    if ((markup.match(/<h1[\s>]/g) || []).length !== 1) {
+      console.error("[prerender] guides hub must have exactly one H1.");
+      process.exit(1);
+    }
+    if (
+      !finalHtml.includes('"@type":"CollectionPage"') ||
+      !finalHtml.includes('"@type":"ItemList"') ||
+      !finalHtml.includes('"@type":"BreadcrumbList"')
+    ) {
+      console.error("[prerender] guides hub missing CollectionPage, ItemList, or BreadcrumbList JSON-LD.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('<link rel="canonical" href="https://www.myguystime.com/guides" />')) {
+      console.error("[prerender] guides hub canonical is not its own URL.");
+      process.exit(1);
+    }
+    const crumbNames = ['"name":"Home"', '"name":"Construction Time Tracking"', '"name":"Guides"'];
+    if (crumbNames.some((name) => !finalHtml.includes(name)) || !finalHtml.includes('"item":"https://www.myguystime.com/guides"')) {
+      console.error("[prerender] guides hub breadcrumb is not Home > Construction Time Tracking > Guides.");
+      process.exit(1);
+    }
+    for (const item of ssr.guidesHubItems) {
+      if (!markup.includes(`href="${item.href}"`) || markup.includes("/guides/crew-hours-quickbooks")) {
+        console.error("[prerender] guides hub link list is wrong:", item.href);
+        process.exit(1);
+      }
     }
   }
 
