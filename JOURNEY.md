@@ -22,7 +22,7 @@
   Still not live and on hold pending Jeff's CSV confirmation: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
 - **Live pay figure:** weekly gross for admin and foreman (a1aa857). Regular hours times the hourly rate, plus hours past 40 times the overtime rate. No taxes, deductions, or net pay. Workers do not receive the dollar fields.
-- **In progress:** `/privacy` and `/terms` are on `cursor/privacy-terms-pages-0543`, not on `main`. The branch sitemap has 33 URLs. PR #6 still expects those URLs to 404 until this change merges. `/guides` is on `main` (fad0670).
+- **In progress:** `/privacy` and `/terms` are on `cursor/privacy-terms-pages-0543` (pay wording updated in 02b3bfe to match a1aa857), not on `main`. The branch sitemap has 33 URLs. PR #6 still expects those URLs to 404 until this change merges. `/guides` is on `main` (fad0670).
 - **App live (2026-10-11/12):** office crew management on the Team page (add/rename/remove crews, crew chiefs,
   move workers), the cross-company timesheet fence, and the deep `/api` routing fix (a7b9abd). Before a7b9abd,
   every API path two or more segments below its prefix 404'd in production, so saving day hours and week
@@ -107,6 +107,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-15 — Privacy and terms match the weekly gross estimate (02b3bfe)
+**Did:** Merged `main` (including #9, a1aa857) into `cursor/privacy-terms-pages-0543`. Rewrote the pay, overtime, gross, and tax sentences on `/privacy` and `/terms` to the live formula: regular hours times the hourly rate, plus hours past 40 times the overtime rate. Flat rate uses the hourly rate for those hours. Standard employee uses 1.5 times the hourly rate. Admin and foreman see the rate, the hours past 40, and the gross, with the office disclaimer. A worker login does not receive the rate or the gross. Expenses are not added to gross. The app does not calculate taxes, deductions, or net pay. Removed Terms placeholder #2. The other `[JEFF: confirm]` placeholders stay. `npm run build` passed. Sitemap on this branch is 33 URLs. Not merged to `main`.
+**Decided:** nothing new. The 2026-10-15 gross-pay decision is already on `main`.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database. Live homepage still lists "Reimbursements and deductions" on the sample office card, and still mentions CSV export. #9 left that CSV copy alone.
+**State after:** `/privacy` and `/terms` on this branch describe the same gross estimate that is live in the app. Production still does not have these two pages.
+**Next:** Jeff reviews the PR and has an attorney skim both pages.
+
 ### 2026-10-15 — Privacy and terms pages on a branch (4153dba)
 **Did:** Added plain-English `/privacy` and `/terms`. New `PrivacyPage` and `TermsPage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Titles `Privacy Policy | My Guys Time` and `Terms of Use | My Guys Time`. Each page has one H1, effective date 2026-10-15, a self-canonical (`https://www.myguystime.com/privacy` and `https://www.myguystime.com/terms`), and BreadcrumbList JSON-LD Home / Privacy and Home / Terms. Links are in `MarketingFooter` and the homepage footer. Sitemap on this branch is 33 URLs. Copy follows the code: Supabase auth, Neon app data, Stripe $12/month checkout and billing portal, 7-day no-card trial, Resend email, Vercel hosting, Google Analytics tag G-EEFB8F86YM, optional PostHog and Sentry, receipt photos in the private Supabase `receipts` bucket, no GPS. The privacy page says we do not sell data. Placeholders are marked `[JEFF: confirm]`. No CSV, breaks, or petty cash. A company can run more than one crew, and each worker uses his own phone. `npm run build` passed. Dist HTML: one H1 and the self-canonical on each page. Not merged to `main`.
 **Decided:** nothing new.
@@ -130,14 +138,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase. Shipping to `main` waits on Jeff.
 **State after:** `/guides` hub is on `cursor/guides-hub-62ff` (bb7e430). Production still serves the homepage at `/guides`. Branch sitemap has 31 URLs.
 **Next:** Jeff reviews the PR. See the PR notes for conflicts with open PR #6.
-
-### 2026-10-15 — 1099 overtime guide live (292ef07)
-**Did:** Published `/guides/do-1099-subs-get-overtime` from the approved 2026-10-15 draft (Jeff's go-live for the content-only page). New `Do1099SubsOvertimePage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Title `Do 1099 Subs Get Overtime? What Contractors Should Know`, the draft meta and OG description, self-canonical `https://www.myguystime.com/guides/do-1099-subs-get-overtime`, plus Article (Jeff Mohler, Founder, datePublished 2026-10-15), FAQPage from the 5 FAQs, and BreadcrumbList Home / Construction Time Tracking / Do 1099 Subs Get Overtime? Disclaimers are in the prerendered HTML at the top and the bottom. Jeff's first-person lines are unchanged. Sitemap is 30 URLs. Inbound links: the crew-hours guide and `/trades/general-contracting`. No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll/overtime/tax calculation claims. Re-opened the DOL overtime page, the DOL FLSA page, Fact Sheet 13, the 2026 contractor NPRM page, Fact Sheet 21, the IRS independent-contractor page, the Form SS-8 page, and the California Labor Commissioner ABC FAQ on 2026-10-15. Each claim in the draft still matches those pages, so no legal line was rewritten. The Wage and Hour helpline on those DOL pages is still 1-866-487-9243. `npm run build` passed. Dist HTML: one H1, canonical as above, dollar amounts are only `$12`.
-**Decided:** Marketing copy may mention multiple crews (see the 2026-10-15 Decisions Log row). This page does not add a multi-crew claim of its own.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase. `/features` outbound link left out of the approved copy. Plumbing, electrical, and FAQ inbound links left to the one relevant page (general contracting).
-**State after:** `/guides/do-1099-subs-get-overtime` is on `main` (292ef07). Sitemap has 30 URLs.
-**Next:** Confirm the Vercel deploy is READY and the live page returns 200 with one H1. Remaining week-three post: `/templates/construction-daily-report-template`.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
