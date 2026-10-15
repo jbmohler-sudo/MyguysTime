@@ -30,12 +30,19 @@ import {
   templateFaqItems,
 } from "../src/components/ConstructionTimesheetTemplatePage";
 import {
+  TimeToDecimalChartPage,
+  decimalChartFaqItems,
+  decimalMinuteRows,
+} from "../src/components/TimeToDecimalChartPage";
+import {
   BestConstructionTimeTrackingAppsPage,
   bestAppsFaqItems,
 } from "../src/components/BestConstructionTimeTrackingAppsPage";
 import { GuidePage, guideFaqItems } from "../src/components/GuidePage";
+import { Do1099SubsOvertimePage, overtimeGuideFaqItems } from "../src/components/Do1099SubsOvertimePage";
+import { GuidesHubPage, guidesHubItems } from "../src/components/GuidesHubPage";
 
-export { faqItems, faqPageItems, constructionFaqItems, costFaqItems, templateFaqItems, bestAppsFaqItems, guideFaqItems };
+export { faqItems, faqPageItems, constructionFaqItems, costFaqItems, templateFaqItems, bestAppsFaqItems, guideFaqItems, overtimeGuideFaqItems, decimalChartFaqItems, decimalMinuteRows, guidesHubItems };
 
 export function vsPageFaqs(slug: string): { q: string; a: string }[] {
   const page = getVs(slug);
@@ -81,12 +88,24 @@ export function renderConstructionTimesheetTemplateHtml(): string {
   return renderToStaticMarkup(createElement(ConstructionTimesheetTemplatePage));
 }
 
+export function renderTimeToDecimalChartHtml(): string {
+  return renderToStaticMarkup(createElement(TimeToDecimalChartPage));
+}
+
 export function renderBestConstructionTimeTrackingAppsHtml(): string {
   return renderToStaticMarkup(createElement(BestConstructionTimeTrackingAppsPage));
 }
 
+export function renderGuidesHubHtml(): string {
+  return renderToStaticMarkup(createElement(GuidesHubPage));
+}
+
 export function renderGuideHtml(): string {
   return renderToStaticMarkup(createElement(GuidePage));
+}
+
+export function renderOvertimeGuideHtml(): string {
+  return renderToStaticMarkup(createElement(Do1099SubsOvertimePage));
 }
 
 export function renderTradeHtml(slug: string): string {

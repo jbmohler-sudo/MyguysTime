@@ -281,7 +281,9 @@ export function GuidePage() {
 
         <p className="max-w-3xl mx-auto px-6 mt-16 text-slate-600 leading-relaxed">
           The full picture for small crews:{" "}
-          <TextLink href="/construction-time-tracking">construction time tracking</TextLink>.
+          <TextLink href="/construction-time-tracking">construction time tracking</TextLink>. Running W-2 guys and
+          1099 subs on the same job? Read{" "}
+          <TextLink href="/guides/do-1099-subs-get-overtime">do 1099 subs get overtime</TextLink>.
         </p>
 
         <section className="max-w-6xl mx-auto px-6 mt-8">

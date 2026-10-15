@@ -14,8 +14,11 @@ import { FaqPage } from "./components/FaqPage";
 import { ConstructionTimeTrackingPage } from "./components/ConstructionTimeTrackingPage";
 import { ConstructionTimeTrackingCostPage } from "./components/ConstructionTimeTrackingCostPage";
 import { ConstructionTimesheetTemplatePage } from "./components/ConstructionTimesheetTemplatePage";
+import { TimeToDecimalChartPage } from "./components/TimeToDecimalChartPage";
 import { BestConstructionTimeTrackingAppsPage } from "./components/BestConstructionTimeTrackingAppsPage";
 import { GuidePage } from "./components/GuidePage";
+import { Do1099SubsOvertimePage } from "./components/Do1099SubsOvertimePage";
+import { GuidesHubPage } from "./components/GuidesHubPage";
 import { TradePage } from "./components/TradePage";
 import { VsPage } from "./components/VsPage";
 import { TRADES } from "./components/trades";
@@ -540,8 +543,11 @@ function AppContent() {
       "/construction-time-tracking": <ConstructionTimeTrackingPage />,
       "/construction-time-tracking-cost": <ConstructionTimeTrackingCostPage />,
       "/templates/construction-timesheet-template": <ConstructionTimesheetTemplatePage />,
+      "/templates/time-to-decimal-chart": <TimeToDecimalChartPage />,
       "/best-construction-time-tracking-apps": <BestConstructionTimeTrackingAppsPage />,
+      "/guides": <GuidesHubPage />,
       "/guides/how-contractors-track-crew-hours": <GuidePage />,
+      "/guides/do-1099-subs-get-overtime": <Do1099SubsOvertimePage />,
     };
     const marketingPage = marketingPageMap[cleanPath];
     if (marketingPage) {

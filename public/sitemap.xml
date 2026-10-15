@@ -49,9 +49,24 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
-  <!-- Guide spoke under the construction time tracking pillar. -->
+  <url>
+    <loc>https://www.myguystime.com/templates/time-to-decimal-chart</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Guides hub and spokes under the construction time tracking pillar. -->
+  <url>
+    <loc>https://www.myguystime.com/guides</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://www.myguystime.com/guides/how-contractors-track-crew-hours</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.myguystime.com/guides/do-1099-subs-get-overtime</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -99,6 +114,7 @@
   </url>
   <url>
     <loc>https://www.myguystime.com/vs/quickbooks-time</loc>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

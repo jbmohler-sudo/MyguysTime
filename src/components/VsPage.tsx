@@ -208,6 +208,11 @@ export function VsPage({ slug }: { slug: string }) {
               </a>
             </p>
           )}
+          {vs.compareFooter && (
+            <p className="text-center mt-6">
+              <VsLinkedText parts={vs.compareFooter} />
+            </p>
+          )}
           {vs.compareCta && (
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
               <a

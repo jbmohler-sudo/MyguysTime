@@ -171,7 +171,7 @@ const constructionBreadcrumbLd = {
 };
 
 function webPageLd(title, routePath, description) {
-  return {
+  const page = {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: title,
@@ -179,6 +179,10 @@ function webPageLd(title, routePath, description) {
     description,
     isPartOf: { "@type": "WebSite", name: "My Guys Time", url: canonicalHost + "/" },
   };
+  if (routePath === "/vs/quickbooks-time") {
+    page.dateModified = "2026-10-14";
+  }
+  return page;
 }
 
 // [pageRoute, outFile, renderFn, title, description, ldBlocks, requiredSnippets]
@@ -207,6 +211,9 @@ const pages = [
       "What crew time apps cost",
       "How contractors track crew hours",
       "vs Workyard",
+      'href="/guides"',
+      'href="/guides/do-1099-subs-get-overtime"',
+      'href="/templates/time-to-decimal-chart"',
     ],
   ],
   [
@@ -352,9 +359,9 @@ const vsPages = [
   ["paper-timesheets", "Paper Timesheets", "Paper Timesheets vs My Guys Time | Contractor Time Cards",
     "Still running crew hours on paper time cards? Lost hours, Thursday-night reconstruction, unreadable handwriting — see what changes with $12/mo flat time cards.",
     "Retire the paper time card."],
-  ["quickbooks-time", "QuickBooks Time", "QuickBooks Time Alternative for Contractors | My Guys Time",
-    "QuickBooks Time charges per user — every hire raises the bill. My Guys Time is $12/mo flat for the whole company. Contractor time tracking without per-seat pricing.",
-    "Stop paying per head."],
+  ["quickbooks-time", "QuickBooks Time", "QuickBooks Time Pricing vs $12 Flat for Crews | My Guys Time",
+    "QuickBooks Time charges a monthly base fee plus a fee per user, on top of QuickBooks Online. My Guys Time is $12/mo flat for the whole company.",
+    "QuickBooks Time vs My Guys Time: Per-User Fees or One Flat Price"],
   ["spreadsheets", "Spreadsheets", "Spreadsheet Time Tracking vs My Guys Time | $12/mo Flat",
     "If your time-tracking 'system' is a spreadsheet rebuilt every Thursday at 5pm, you're paying for it in lost hours. Daily field logging, one weekly review, clean CSV export.",
     "Kill the Thursday spreadsheet."],
@@ -362,8 +369,9 @@ const vsPages = [
 
 for (const [slug, name, title, description, h1] of vsPages) {
   const legacyFaqs = typeof ssr.vsPageFaqs === "function" ? ssr.vsPageFaqs(slug) : [];
-  if (!Array.isArray(legacyFaqs) || legacyFaqs.length !== 3) {
-    console.error(`[prerender] ${slug} FAQ array missing or not 3 items — refusing to ship drifted JSON-LD.`);
+  const expectedFaqCount = slug === "quickbooks-time" ? 6 : 3;
+  if (!Array.isArray(legacyFaqs) || legacyFaqs.length !== expectedFaqCount) {
+    console.error(`[prerender] ${slug} FAQ array missing or not ${expectedFaqCount} items — refusing to ship drifted JSON-LD.`);
     process.exit(1);
   }
   const vsRoute = `/vs/${slug}`;
@@ -1049,6 +1057,115 @@ pages.push([
   ],
 ]);
 
+const decimalChartRoute = "/templates/time-to-decimal-chart";
+const decimalChartTitle = "Time to Decimal Chart: Minutes to Decimal Hours (Printable)";
+const decimalChartDescription =
+  "Free minutes-to-decimal hours chart for time cards: 1 to 60 minutes, decimal back to minutes, and a printable PDF. From a contractor, not a payroll firm.";
+const decimalChartHeadline = "Time to Decimal Chart: Convert Minutes to Decimal Hours";
+
+if (!Array.isArray(ssr.decimalChartFaqItems) || ssr.decimalChartFaqItems.length !== 5) {
+  console.error("[prerender] decimal chart FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+if (!Array.isArray(ssr.decimalMinuteRows) || ssr.decimalMinuteRows.length !== 60) {
+  console.error("[prerender] decimal chart minute rows missing or not 60 — refusing to ship.");
+  process.exit(1);
+}
+
+const decimalChartFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: ssr.decimalChartFaqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const decimalChartArticleLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: decimalChartHeadline,
+  description: decimalChartDescription,
+  datePublished: "2026-10-14",
+  author: {
+    "@type": "Person",
+    name: "Jeff Mohler",
+    jobTitle: "Founder",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "My Guys Time",
+    url: canonicalHost + "/",
+    logo: {
+      "@type": "ImageObject",
+      url: canonicalHost + "/images/og-myguystime.png",
+    },
+  },
+  mainEntityOfPage: canonicalHost + decimalChartRoute,
+};
+
+const decimalChartBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Free Construction Timesheet Template",
+      item: canonicalHost + templateRoute,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Time to Decimal Chart",
+      item: canonicalHost + decimalChartRoute,
+    },
+  ],
+};
+
+pages.push([
+  decimalChartRoute,
+  "templates/time-to-decimal-chart/index.html",
+  () => ssr.renderTimeToDecimalChartHtml(),
+  decimalChartTitle,
+  decimalChartDescription,
+  [
+    ["ld-article", decimalChartArticleLd],
+    ["ld-faqpage", decimalChartFaqLd],
+    ["ld-breadcrumb", decimalChartBreadcrumbLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    decimalChartHeadline,
+    "15 minutes is 0.25 hours",
+    "Decimal hours rounded to two places (minutes divided by 60).",
+    "decimal time chart, minutes to decimal hours 1 to 60",
+    "/templates/time-to-decimal-chart.pdf",
+    "/templates/time-to-decimal-chart.xlsx",
+    "How do I calculate decimal hours?",
+    "What is .26 of an hour?",
+    "Is 7.30 the same as 7 hours 30 minutes?",
+    "Tired of converting?",
+    "$12/month flat for the whole company",
+    "/demo/foreman",
+    "/pricing",
+    "/templates/construction-timesheet-template",
+    "/guides/how-contractors-track-crew-hours",
+    'href="/guides"',
+    "/vs/paper-timesheets",
+    "38.58",
+    "each guy joins the crew team from his own phone",
+  ],
+]);
+
 const bestAppsRoute = "/best-construction-time-tracking-apps";
 const bestAppsTitle = "Best Time Tracking Apps for Small Construction Crews";
 const bestAppsDescription =
@@ -1158,6 +1275,102 @@ pages.push([
     "$12/month",
     "/guides/how-contractors-track-crew-hours",
     "how contractors track crew hours",
+  ],
+]);
+
+const guidesHubRoute = "/guides";
+const guidesHubTitle = "Guides and Templates for Construction Crew Hours | My Guys Time";
+const guidesHubDescription =
+  "Guides and free templates for construction crew hours: paper versus a crew app, 1099 overtime, a weekly timesheet, and a minutes-to-decimal chart.";
+const guidesHubHeadline = "Guides and Templates for Construction Crew Hours";
+
+const guidesHubHrefs = [
+  "/guides/how-contractors-track-crew-hours",
+  "/guides/do-1099-subs-get-overtime",
+  "/templates/construction-timesheet-template",
+  "/templates/time-to-decimal-chart",
+];
+
+if (
+  !Array.isArray(ssr.guidesHubItems) ||
+  ssr.guidesHubItems.length !== guidesHubHrefs.length ||
+  ssr.guidesHubItems.some((item, index) => item.href !== guidesHubHrefs[index] || !item.title || !item.description)
+) {
+  console.error("[prerender] guides hub list missing or drifted from the live guide and template pages.");
+  process.exit(1);
+}
+if (ssr.guidesHubItems.some((item) => item.href === "/guides/crew-hours-quickbooks")) {
+  console.error("[prerender] guides hub links the unpublished QuickBooks guide.");
+  process.exit(1);
+}
+
+const guidesHubItemListLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "@id": canonicalHost + guidesHubRoute + "#list",
+  name: guidesHubHeadline,
+  itemListElement: ssr.guidesHubItems.map((item, index) => ({
+    "@type": "ListItem",
+    position: index + 1,
+    name: item.title,
+    url: canonicalHost + item.href,
+    description: item.description,
+  })),
+};
+
+const guidesHubCollectionLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: guidesHubHeadline,
+  url: canonicalHost + guidesHubRoute,
+  description: guidesHubDescription,
+  isPartOf: { "@type": "WebSite", name: "My Guys Time", url: canonicalHost + "/" },
+  mainEntity: { "@id": canonicalHost + guidesHubRoute + "#list" },
+};
+
+const guidesHubBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Construction Time Tracking",
+      item: canonicalHost + constructionRoute,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Guides",
+      item: canonicalHost + guidesHubRoute,
+    },
+  ],
+};
+
+pages.push([
+  guidesHubRoute,
+  "guides/index.html",
+  () => ssr.renderGuidesHubHtml(),
+  guidesHubTitle,
+  guidesHubDescription,
+  [
+    ["ld-webpage", guidesHubCollectionLd],
+    ["ld-itemlist", guidesHubItemListLd],
+    ["ld-breadcrumb", guidesHubBreadcrumbLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    guidesHubHeadline,
+    "$12/month flat for the whole company",
+    "each person uses his own phone",
+    ...ssr.guidesHubItems.flatMap((item) => [item.href, item.title, item.description]),
   ],
 ]);
 
@@ -1285,6 +1498,109 @@ pages.push([
   ],
 ]);
 
+const overtimeGuideRoute = "/guides/do-1099-subs-get-overtime";
+const overtimeGuideTitle = "Do 1099 Subs Get Overtime? What Contractors Should Know";
+const overtimeGuideDescription =
+  "Independent contractors aren't owed FLSA overtime, but the label doesn't decide it. A crew owner's guide to mixed W-2 and 1099 crews. Not legal advice.";
+const overtimeGuideHeadline = "Do 1099 Subs Get Overtime? A Crew Owner's Plain Answer";
+
+if (!Array.isArray(ssr.overtimeGuideFaqItems) || ssr.overtimeGuideFaqItems.length !== 5) {
+  console.error("[prerender] overtime guide FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+
+const overtimeGuideFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: ssr.overtimeGuideFaqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const overtimeGuideArticleLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: overtimeGuideHeadline,
+  description: overtimeGuideDescription,
+  datePublished: "2026-10-15",
+  author: {
+    "@type": "Person",
+    name: "Jeff Mohler",
+    jobTitle: "Founder",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "My Guys Time",
+    url: canonicalHost + "/",
+    logo: {
+      "@type": "ImageObject",
+      url: canonicalHost + "/images/og-myguystime.png",
+    },
+  },
+  mainEntityOfPage: canonicalHost + overtimeGuideRoute,
+};
+
+const overtimeGuideBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Construction Time Tracking",
+      item: canonicalHost + constructionRoute,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Do 1099 Subs Get Overtime?",
+      item: canonicalHost + overtimeGuideRoute,
+    },
+  ],
+};
+
+pages.push([
+  overtimeGuideRoute,
+  "guides/do-1099-subs-get-overtime/index.html",
+  () => ssr.renderOvertimeGuideHtml(),
+  overtimeGuideTitle,
+  overtimeGuideDescription,
+  [
+    ["ld-article", overtimeGuideArticleLd],
+    ["ld-faqpage", overtimeGuideFaqLd],
+    ["ld-breadcrumb", overtimeGuideBreadcrumbLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    overtimeGuideTitle,
+    "By Jeff Mohler, founder of My Guys Time",
+    "not legal or tax advice",
+    "https://www.dol.gov/agencies/whd/overtime",
+    "https://www.dol.gov/agencies/whd/fact-sheets/13-flsa-employment-relationship",
+    "https://www.dol.gov/agencies/whd/fact-sheets/21-flsa-recordkeeping",
+    "https://www.irs.gov/businesses/small-businesses-self-employed/independent-contractor-self-employed-or-employee",
+    "https://www.irs.gov/forms-pubs/about-form-ss-8",
+    "https://www.dir.ca.gov/dlse/faq_independentcontractor.htm",
+    "1-866-487-9243",
+    "calculate overtime, pay or taxes",
+    "/trades/general-contracting",
+    "/guides/how-contractors-track-crew-hours",
+    'href="/guides"',
+    ">Construction time tracking<",
+    "$12/month",
+    "https://www.myguystime.com/guides/do-1099-subs-get-overtime",
+  ],
+]);
+
 const template = fs.readFileSync(templatePath, "utf8");
 const rootMarker = '<div id="root">';
 const hydrationFlag = '<div id="root" data-prerendered="true">';
@@ -1355,7 +1671,9 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
   // so structured data and visible copy cannot drift.
   const wanted = new Map(ldBlocks);
   // Every sub-page also gets a WebPage block naming its own URL.
-  if (routePath !== "/") {
+  if (routePath === "/guides") {
+    wanted.set("ld-webpage", guidesHubCollectionLd);
+  } else if (routePath !== "/") {
     wanted.set("ld-webpage", webPageLd(title, routePath, description));
   }
   const appendableJsonLd = new Set([
@@ -1413,9 +1731,10 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
   }
 
   if (routePath === "/vs/connecteam") {
-    const lower = markup.toLowerCase();
-    const banned = ["csv", "export", "petty cash", "break"];
+    const lower = markup.toLowerCase().replace(/breadcrumb/g, "");
+    const banned = ["csv", "export", "petty cash"];
     const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
     const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
     const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
     if (hit.length > 0 || badDollars.length > 0) {
@@ -1450,6 +1769,31 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     }
   }
 
+  if (routePath === "/vs/quickbooks-time") {
+    const lower = markup.toLowerCase();
+    const banned = ["csv", "petty cash", "one phone per crew", "own boards", "multi-crew", "shared phone"];
+    const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    if (hit.length > 0 || badDollars.length > 0) {
+      console.error("[prerender] quickbooks-time page contains banned copy:", hit, badDollars);
+      process.exit(1);
+    }
+    if ((markup.match(/<h1[\s>]/g) || []).length !== 1) {
+      console.error("[prerender] quickbooks-time page must have exactly one H1.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"dateModified":"2026-10-14"')) {
+      console.error("[prerender] quickbooks-time WebPage JSON-LD missing dateModified.");
+      process.exit(1);
+    }
+    if (!markup.includes("Each guy joins the crew team from his own phone")) {
+      console.error("[prerender] quickbooks-time page missing own-phone crew join line.");
+      process.exit(1);
+    }
+  }
+
   if (routePath === "/vs/supercrew") {
     const withoutBreadcrumb = markup.toLowerCase().replace(/breadcrumb/g, "");
     const banned = ["csv", "petty cash", "one phone per crew", "multi-crew"];
@@ -1469,6 +1813,53 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     if (hit.length > 0 || /csv/i.test(markup)) {
       console.error("[prerender] cost page contains banned copy:", hit, /csv/i.test(markup) ? "CSV" : "");
       process.exit(1);
+    }
+  }
+
+  if (routePath === "/guides") {
+    const lower = markup.toLowerCase();
+    const banned = [
+      "csv",
+      "petty cash",
+      "/guides/crew-hours-quickbooks",
+      "calculates payroll",
+      "calculates tax",
+      "one phone per crew",
+    ];
+    const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    if (hit.length > 0 || badDollars.length > 0) {
+      console.error("[prerender] guides hub contains banned copy:", hit, badDollars);
+      process.exit(1);
+    }
+    if ((markup.match(/<h1[\s>]/g) || []).length !== 1) {
+      console.error("[prerender] guides hub must have exactly one H1.");
+      process.exit(1);
+    }
+    if (
+      !finalHtml.includes('"@type":"CollectionPage"') ||
+      !finalHtml.includes('"@type":"ItemList"') ||
+      !finalHtml.includes('"@type":"BreadcrumbList"')
+    ) {
+      console.error("[prerender] guides hub missing CollectionPage, ItemList, or BreadcrumbList JSON-LD.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('<link rel="canonical" href="https://www.myguystime.com/guides" />')) {
+      console.error("[prerender] guides hub canonical is not its own URL.");
+      process.exit(1);
+    }
+    const crumbNames = ['"name":"Home"', '"name":"Construction Time Tracking"', '"name":"Guides"'];
+    if (crumbNames.some((name) => !finalHtml.includes(name)) || !finalHtml.includes('"item":"https://www.myguystime.com/guides"')) {
+      console.error("[prerender] guides hub breadcrumb is not Home > Construction Time Tracking > Guides.");
+      process.exit(1);
+    }
+    for (const item of ssr.guidesHubItems) {
+      if (!markup.includes(`href="${item.href}"`) || markup.includes("/guides/crew-hours-quickbooks")) {
+        console.error("[prerender] guides hub link list is wrong:", item.href);
+        process.exit(1);
+      }
     }
   }
 
@@ -1497,6 +1888,70 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     }
     if (finalHtml.includes('"name":"Guides"')) {
       console.error("[prerender] crew-hours guide breadcrumb includes a Guides crumb.");
+      process.exit(1);
+    }
+  }
+
+  if (routePath === "/guides/do-1099-subs-get-overtime") {
+    const visible = markup
+      .replace(/&#x27;/g, "'")
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"');
+    const lower = visible.toLowerCase();
+    const banned = [
+      "csv",
+      "petty cash",
+      "one phone per crew",
+      "/guides/crew-hours-quickbooks",
+      "calculates payroll",
+      "calculates tax",
+      "break tracking",
+    ];
+    const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
+    const dollars = visible.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    const exactLines = [
+      "I've had mixed crews like that.",
+      "Here's what I learned, in plain words, with links to where the government says it.",
+      "I'm a contractor, not a lawyer, so read this as a starting point, not the final word.",
+      "Here's what I'd keep:",
+    ];
+    const missingLines = exactLines.filter((line) => !visible.includes(line));
+    if (hit.length > 0 || badDollars.length > 0 || missingLines.length > 0) {
+      console.error("[prerender] overtime guide failed copy check:", hit, badDollars, missingLines);
+      process.exit(1);
+    }
+    if ((markup.match(/<h1[\s>]/g) || []).length !== 1) {
+      console.error("[prerender] overtime guide must have exactly one H1.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"@type":"Article"') || !finalHtml.includes('"@type":"FAQPage"') || !finalHtml.includes('"@type":"BreadcrumbList"')) {
+      console.error("[prerender] overtime guide missing Article, FAQPage, or BreadcrumbList JSON-LD.");
+      process.exit(1);
+    }
+    if (finalHtml.includes('"reviewedBy"') || finalHtml.includes('"name":"Guides"')) {
+      console.error("[prerender] overtime guide has reviewedBy or a Guides breadcrumb.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"datePublished":"2026-10-15"') || !finalHtml.includes('"name":"Jeff Mohler"') || !finalHtml.includes('"jobTitle":"Founder"')) {
+      console.error("[prerender] overtime guide Article JSON-LD missing author or date.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"name":"Construction Time Tracking"') || !finalHtml.includes('"name":"Do 1099 Subs Get Overtime?"')) {
+      console.error("[prerender] overtime guide breadcrumb names are wrong.");
+      process.exit(1);
+    }
+    const faqMismatch = ssr.overtimeGuideFaqItems.filter(
+      (item) => !visible.includes(item.q) || !visible.includes(item.a),
+    );
+    if (faqMismatch.length > 0) {
+      console.error("[prerender] overtime guide FAQ text drifted from JSON-LD source:", faqMismatch.map((item) => item.q));
+      process.exit(1);
+    }
+    const disclaimerCount = (visible.match(/not legal or tax advice/g) || []).length;
+    if (disclaimerCount < 2) {
+      console.error("[prerender] overtime guide disclaimer must appear at the top and the bottom.");
       process.exit(1);
     }
   }
@@ -1537,6 +1992,54 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     }
   }
 
+  if (routePath === "/templates/time-to-decimal-chart") {
+    const lower = markup.toLowerCase();
+    const banned = [
+      "csv",
+      "petty cash",
+      "google sheets",
+      "one phone per crew",
+      "/guides/crew-hours-quickbooks",
+      "calculates payroll",
+      "calculates tax",
+    ];
+    const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    const missingRows = (ssr.decimalMinuteRows || []).filter(
+      (row) => !markup.includes(`>${row.minutes}</td><td class="p-4 text-slate-600">${row.decimal}</td>`),
+    );
+    if (hit.length > 0 || badDollars.length > 0 || missingRows.length > 0) {
+      console.error("[prerender] decimal chart page failed copy or table check:", hit, badDollars, missingRows.slice(0, 5));
+      process.exit(1);
+    }
+    if ((markup.match(/<h1[\s>]/g) || []).length !== 1) {
+      console.error("[prerender] decimal chart page must have exactly one H1.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"@type":"Article"') || !finalHtml.includes('"@type":"FAQPage"') || !finalHtml.includes('"@type":"WebPage"') || !finalHtml.includes('"@type":"BreadcrumbList"')) {
+      console.error("[prerender] decimal chart page missing Article, WebPage, FAQPage, or BreadcrumbList JSON-LD.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"datePublished":"2026-10-14"') || !finalHtml.includes('"name":"Jeff Mohler"') || !finalHtml.includes('"jobTitle":"Founder"')) {
+      console.error("[prerender] decimal chart Article JSON-LD missing author or date.");
+      process.exit(1);
+    }
+    if (finalHtml.includes('"name":"Templates"') || !finalHtml.includes("https://www.myguystime.com/templates/time-to-decimal-chart")) {
+      console.error("[prerender] decimal chart canonical or breadcrumb is wrong.");
+      process.exit(1);
+    }
+    const visible = markup.replace(/&#x27;/g, "'").replace(/&amp;/g, "&").replace(/&quot;/g, '"');
+    const faqMismatch = ssr.decimalChartFaqItems.filter(
+      (item) => !visible.includes(item.q) || !visible.includes(item.a),
+    );
+    if (faqMismatch.length > 0) {
+      console.error("[prerender] decimal chart FAQ text drifted from JSON-LD source:", faqMismatch.map((item) => item.q));
+      process.exit(1);
+    }
+  }
+
   // JSON-LD must parse — validate all injected blocks before writing.
   for (const [id] of wanted) {
     const match = finalHtml.match(new RegExp(`<script type="application/ld\\+json" id="${id}">([\\s\\S]*?)<`));
@@ -1558,7 +2061,8 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
           console.error(`[prerender] ${routePath} breadcrumb crumb is missing a name or URL.`, crumb);
           process.exit(1);
         }
-        if (crumb.name === "Comparisons" || crumb.name === "Templates" || crumb.name === "Guides") {
+        const guidesHubCrumb = routePath === "/guides" && crumb.name === "Guides" && crumb.item === canonicalHost + "/guides";
+        if (crumb.name === "Comparisons" || crumb.name === "Templates" || (crumb.name === "Guides" && !guidesHubCrumb)) {
           console.error(`[prerender] ${routePath} breadcrumb still uses a folder name with no page: ${crumb.name}`);
           process.exit(1);
         }

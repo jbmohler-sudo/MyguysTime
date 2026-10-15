@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/stripe/webhook", "destination": "/api/billing/webhook" },
+    { "source": "/api/:path*", "destination": "/api/[...path]" },
     { "source": "/demo/admin", "destination": "/index.html" },
     { "source": "/demo/foreman", "destination": "/index.html" },
     { "source": "/demo/employee", "destination": "/index.html" },
@@ -19,6 +20,8 @@
       "has": [{ "type": "host", "value": { "re": "\\.vercel\\.app$" } }],
       "destination": "/index.html"
     },
+    { "source": "/guides", "destination": "/guides/index.html" },
+    { "source": "/guides/", "destination": "/guides/index.html" },
     { "source": "/((?!api/).*)", "destination": "/api/not-found" }
   ]
 }

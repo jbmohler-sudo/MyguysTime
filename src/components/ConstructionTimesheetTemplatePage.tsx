@@ -170,6 +170,10 @@ export function ConstructionTimesheetTemplatePage() {
             What's not on it: pay rates or pay totals. It's an hours sheet. Whoever runs your payroll takes it from
             there.
           </p>
+          <p className="text-slate-600 leading-relaxed mt-6">
+            Daily and weekly totals on the sheet are decimal hours. Use the chart to{" "}
+            <TextLink href="/templates/time-to-decimal-chart">convert minutes to decimal hours</TextLink>.
+          </p>
         </section>
 
         <section className="max-w-3xl mx-auto px-6 mt-16">

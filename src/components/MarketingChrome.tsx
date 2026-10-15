@@ -136,10 +136,13 @@ export function MarketingFooter() {
           <div>
             <h4 className="font-semibold text-slate-900 mb-4">Guides & tools</h4>
             <ul className="space-y-2 text-sm text-slate-600">
-              <li><a href="/construction-time-tracking-cost" className="hover:text-orange-500 transition-colors">What crew time apps cost</a></li>
-              <li><a href="/templates/construction-timesheet-template" className="hover:text-orange-500 transition-colors">Free timesheet template</a></li>
-              <li><a href="/best-construction-time-tracking-apps" className="hover:text-orange-500 transition-colors">Best apps for small crews</a></li>
+              <li><a href="/guides" className="hover:text-orange-500 transition-colors">Guides</a></li>
               <li><a href="/guides/how-contractors-track-crew-hours" className="hover:text-orange-500 transition-colors">How contractors track crew hours</a></li>
+              <li><a href="/guides/do-1099-subs-get-overtime" className="hover:text-orange-500 transition-colors">Do 1099 subs get overtime</a></li>
+              <li><a href="/templates/construction-timesheet-template" className="hover:text-orange-500 transition-colors">Free timesheet template</a></li>
+              <li><a href="/templates/time-to-decimal-chart" className="hover:text-orange-500 transition-colors">Time to decimal chart</a></li>
+              <li><a href="/construction-time-tracking-cost" className="hover:text-orange-500 transition-colors">What crew time apps cost</a></li>
+              <li><a href="/best-construction-time-tracking-apps" className="hover:text-orange-500 transition-colors">Best apps for small crews</a></li>
             </ul>
           </div>
           <div>
