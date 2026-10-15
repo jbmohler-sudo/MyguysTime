@@ -1306,6 +1306,108 @@ pages.push([
   ],
 ]);
 
+const overtimeGuideRoute = "/guides/do-1099-subs-get-overtime";
+const overtimeGuideTitle = "Do 1099 Subs Get Overtime? What Contractors Should Know";
+const overtimeGuideDescription =
+  "Independent contractors aren't owed FLSA overtime, but the label doesn't decide it. A crew owner's guide to mixed W-2 and 1099 crews. Not legal advice.";
+const overtimeGuideHeadline = "Do 1099 Subs Get Overtime? A Crew Owner's Plain Answer";
+
+if (!Array.isArray(ssr.overtimeGuideFaqItems) || ssr.overtimeGuideFaqItems.length !== 5) {
+  console.error("[prerender] overtime guide FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+
+const overtimeGuideFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: ssr.overtimeGuideFaqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const overtimeGuideArticleLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: overtimeGuideHeadline,
+  description: overtimeGuideDescription,
+  datePublished: "2026-10-15",
+  author: {
+    "@type": "Person",
+    name: "Jeff Mohler",
+    jobTitle: "Founder",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "My Guys Time",
+    url: canonicalHost + "/",
+    logo: {
+      "@type": "ImageObject",
+      url: canonicalHost + "/images/og-myguystime.png",
+    },
+  },
+  mainEntityOfPage: canonicalHost + overtimeGuideRoute,
+};
+
+const overtimeGuideBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Construction Time Tracking",
+      item: canonicalHost + constructionRoute,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Do 1099 Subs Get Overtime?",
+      item: canonicalHost + overtimeGuideRoute,
+    },
+  ],
+};
+
+pages.push([
+  overtimeGuideRoute,
+  "guides/do-1099-subs-get-overtime/index.html",
+  () => ssr.renderOvertimeGuideHtml(),
+  overtimeGuideTitle,
+  overtimeGuideDescription,
+  [
+    ["ld-article", overtimeGuideArticleLd],
+    ["ld-faqpage", overtimeGuideFaqLd],
+    ["ld-breadcrumb", overtimeGuideBreadcrumbLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    overtimeGuideTitle,
+    "By Jeff Mohler, founder of My Guys Time",
+    "not legal or tax advice",
+    "https://www.dol.gov/agencies/whd/overtime",
+    "https://www.dol.gov/agencies/whd/fact-sheets/13-flsa-employment-relationship",
+    "https://www.dol.gov/agencies/whd/fact-sheets/21-flsa-recordkeeping",
+    "https://www.irs.gov/businesses/small-businesses-self-employed/independent-contractor-self-employed-or-employee",
+    "https://www.irs.gov/forms-pubs/about-form-ss-8",
+    "https://www.dir.ca.gov/dlse/faq_independentcontractor.htm",
+    "1-866-487-9243",
+    "calculate overtime, pay or taxes",
+    "/trades/general-contracting",
+    "/guides/how-contractors-track-crew-hours",
+    ">Construction time tracking<",
+    "$12/month",
+    "https://www.myguystime.com/guides/do-1099-subs-get-overtime",
+  ],
+]);
+
 const template = fs.readFileSync(templatePath, "utf8");
 const rootMarker = '<div id="root">';
 const hydrationFlag = '<div id="root" data-prerendered="true">';
@@ -1543,6 +1645,70 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     }
     if (finalHtml.includes('"name":"Guides"')) {
       console.error("[prerender] crew-hours guide breadcrumb includes a Guides crumb.");
+      process.exit(1);
+    }
+  }
+
+  if (routePath === "/guides/do-1099-subs-get-overtime") {
+    const visible = markup
+      .replace(/&#x27;/g, "'")
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"');
+    const lower = visible.toLowerCase();
+    const banned = [
+      "csv",
+      "petty cash",
+      "one phone per crew",
+      "/guides/crew-hours-quickbooks",
+      "calculates payroll",
+      "calculates tax",
+      "break tracking",
+    ];
+    const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
+    const dollars = visible.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    const exactLines = [
+      "I've had mixed crews like that.",
+      "Here's what I learned, in plain words, with links to where the government says it.",
+      "I'm a contractor, not a lawyer, so read this as a starting point, not the final word.",
+      "Here's what I'd keep:",
+    ];
+    const missingLines = exactLines.filter((line) => !visible.includes(line));
+    if (hit.length > 0 || badDollars.length > 0 || missingLines.length > 0) {
+      console.error("[prerender] overtime guide failed copy check:", hit, badDollars, missingLines);
+      process.exit(1);
+    }
+    if ((markup.match(/<h1[\s>]/g) || []).length !== 1) {
+      console.error("[prerender] overtime guide must have exactly one H1.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"@type":"Article"') || !finalHtml.includes('"@type":"FAQPage"') || !finalHtml.includes('"@type":"BreadcrumbList"')) {
+      console.error("[prerender] overtime guide missing Article, FAQPage, or BreadcrumbList JSON-LD.");
+      process.exit(1);
+    }
+    if (finalHtml.includes('"reviewedBy"') || finalHtml.includes('"name":"Guides"')) {
+      console.error("[prerender] overtime guide has reviewedBy or a Guides breadcrumb.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"datePublished":"2026-10-15"') || !finalHtml.includes('"name":"Jeff Mohler"') || !finalHtml.includes('"jobTitle":"Founder"')) {
+      console.error("[prerender] overtime guide Article JSON-LD missing author or date.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"name":"Construction Time Tracking"') || !finalHtml.includes('"name":"Do 1099 Subs Get Overtime?"')) {
+      console.error("[prerender] overtime guide breadcrumb names are wrong.");
+      process.exit(1);
+    }
+    const faqMismatch = ssr.overtimeGuideFaqItems.filter(
+      (item) => !visible.includes(item.q) || !visible.includes(item.a),
+    );
+    if (faqMismatch.length > 0) {
+      console.error("[prerender] overtime guide FAQ text drifted from JSON-LD source:", faqMismatch.map((item) => item.q));
+      process.exit(1);
+    }
+    const disclaimerCount = (visible.match(/not legal or tax advice/g) || []).length;
+    if (disclaimerCount < 2) {
+      console.error("[prerender] overtime guide disclaimer must appear at the top and the bottom.");
       process.exit(1);
     }
   }

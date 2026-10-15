@@ -38,8 +38,9 @@ import {
   bestAppsFaqItems,
 } from "../src/components/BestConstructionTimeTrackingAppsPage";
 import { GuidePage, guideFaqItems } from "../src/components/GuidePage";
+import { Do1099SubsOvertimePage, overtimeGuideFaqItems } from "../src/components/Do1099SubsOvertimePage";
 
-export { faqItems, faqPageItems, constructionFaqItems, costFaqItems, templateFaqItems, bestAppsFaqItems, guideFaqItems, decimalChartFaqItems, decimalMinuteRows };
+export { faqItems, faqPageItems, constructionFaqItems, costFaqItems, templateFaqItems, bestAppsFaqItems, guideFaqItems, overtimeGuideFaqItems, decimalChartFaqItems, decimalMinuteRows };
 
 export function vsPageFaqs(slug: string): { q: string; a: string }[] {
   const page = getVs(slug);
@@ -89,6 +90,10 @@ export function renderBestConstructionTimeTrackingAppsHtml(): string {
 
 export function renderGuideHtml(): string {
   return renderToStaticMarkup(createElement(GuidePage));
+}
+
+export function renderOvertimeGuideHtml(): string {
+  return renderToStaticMarkup(createElement(Do1099SubsOvertimePage));
 }
 
 export function renderTradeHtml(slug: string): string {

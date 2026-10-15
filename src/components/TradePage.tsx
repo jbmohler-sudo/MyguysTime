@@ -121,6 +121,18 @@ export function TradePage({ slug }: { slug: string }) {
               <div>
                 <h2 className="text-2xl font-bold text-slate-900 mb-3">{trade.calloutTitle}</h2>
                 <p className="text-slate-700 leading-relaxed">{trade.calloutText}</p>
+                {slug === "general-contracting" ? (
+                  <p className="text-slate-700 leading-relaxed mt-4">
+                    For whether those 1099 subs are owed overtime, see{" "}
+                    <a
+                      href="/guides/do-1099-subs-get-overtime"
+                      className="text-orange-600 font-semibold hover:underline"
+                    >
+                      do 1099 subs get overtime
+                    </a>
+                    . It's a contractor's overview, not legal advice.
+                  </p>
+                ) : null}
               </div>
             </div>
           </div>

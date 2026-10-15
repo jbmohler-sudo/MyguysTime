@@ -75,6 +75,11 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://www.myguystime.com/guides/do-1099-subs-get-overtime</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <!-- Trade pages — prerendered static HTML. -->
   <url>
     <loc>https://www.myguystime.com/trades/roofing</loc>

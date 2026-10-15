@@ -16,6 +16,7 @@ import { ConstructionTimesheetTemplatePage } from "./components/ConstructionTime
 import { TimeToDecimalChartPage } from "./components/TimeToDecimalChartPage";
 import { BestConstructionTimeTrackingAppsPage } from "./components/BestConstructionTimeTrackingAppsPage";
 import { GuidePage } from "./components/GuidePage";
+import { Do1099SubsOvertimePage } from "./components/Do1099SubsOvertimePage";
 import { TradePage } from "./components/TradePage";
 import { VsPage } from "./components/VsPage";
 import { TRADES } from "./components/trades";
@@ -543,6 +544,7 @@ function AppContent() {
       "/templates/time-to-decimal-chart": <TimeToDecimalChartPage />,
       "/best-construction-time-tracking-apps": <BestConstructionTimeTrackingAppsPage />,
       "/guides/how-contractors-track-crew-hours": <GuidePage />,
+      "/guides/do-1099-subs-get-overtime": <Do1099SubsOvertimePage />,
     };
     const marketingPage = marketingPageMap[cleanPath];
     if (marketingPage) {
