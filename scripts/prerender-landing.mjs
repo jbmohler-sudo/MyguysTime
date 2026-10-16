@@ -1071,6 +1071,130 @@ pages.push([
   ],
 ]);
 
+const dailyReportRoute = "/templates/construction-daily-report-template";
+const dailyReportTitle = "Free Construction Daily Report Template (PDF + Excel)";
+const dailyReportDescription =
+  "A one-page construction daily report and foreman daily log: crew hours, work done, deliveries, delays and incidents. Free PDF and Excel. No signup.";
+const dailyReportHeadline = "Free Construction Daily Report Template for Small Crews";
+
+if (!Array.isArray(ssr.dailyReportFaqItems) || ssr.dailyReportFaqItems.length !== 5) {
+  console.error("[prerender] daily report FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+
+const dailyReportFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: ssr.dailyReportFaqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const dailyReportArticleLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: dailyReportHeadline,
+  description: dailyReportDescription,
+  datePublished: "2026-10-16",
+  author: {
+    "@type": "Person",
+    name: "Jeff Mohler",
+    jobTitle: "Founder",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "My Guys Time",
+    url: canonicalHost + "/",
+    logo: {
+      "@type": "ImageObject",
+      url: canonicalHost + "/images/og-myguystime.png",
+    },
+  },
+  mainEntityOfPage: canonicalHost + dailyReportRoute,
+};
+
+const dailyReportBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Free Construction Timesheet Template",
+      item: canonicalHost + templateRoute,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Construction Daily Report Template",
+      item: canonicalHost + dailyReportRoute,
+    },
+  ],
+};
+
+const dailyReportPdfLd = digitalDocumentLd(
+  "Free Construction Daily Report Template (PDF)",
+  "application/pdf",
+  "/templates/construction-daily-report-template.pdf",
+);
+
+const dailyReportXlsxLd = digitalDocumentLd(
+  "Free Construction Daily Report Template (Excel)",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "/templates/construction-daily-report-template.xlsx",
+);
+
+pages.push([
+  dailyReportRoute,
+  "templates/construction-daily-report-template/index.html",
+  () => ssr.renderConstructionDailyReportTemplateHtml(),
+  dailyReportTitle,
+  dailyReportDescription,
+  [
+    ["ld-article", dailyReportArticleLd],
+    ["ld-faqpage", dailyReportFaqLd],
+    ["ld-breadcrumb", dailyReportBreadcrumbLd],
+    ["ld-digitaldocument-pdf", dailyReportPdfLd],
+    ["ld-digitaldocument-xlsx", dailyReportXlsxLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    dailyReportHeadline,
+    "Foreman daily log · PDF + Excel",
+    "A construction daily report is a one-page record",
+    "/templates/construction-daily-report-template.pdf",
+    "/templates/construction-daily-report-template.xlsx",
+    "construction daily report template, one page",
+    "What goes in a construction daily report",
+    "Example: a filled-in day",
+    "Daily report vs time card vs daily log",
+    "Tips that keep it from turning into paperwork nobody reads",
+    "Where My Guys Time fits",
+    "Construction daily reports: common questions",
+    "What should be included in a construction daily report?",
+    "Do I need a daily report on small residential jobs?",
+    "/templates/construction-timesheet-template",
+    "/templates/time-to-decimal-chart",
+    "/guides/how-contractors-track-crew-hours",
+    "/construction-time-tracking",
+    "/demo/foreman",
+    "/pricing",
+    "$12/month flat for the whole company",
+    "Each guy joins the crew team from his own phone",
+    "he or the foreman logs the hours",
+    "not a full daily-report app",
+  ],
+]);
+
 const bestAppsRoute = "/best-construction-time-tracking-apps";
 const bestAppsTitle = "Best Time Tracking Apps for Small Construction Crews";
 const bestAppsDescription =
@@ -1185,13 +1309,14 @@ pages.push([
 const guidesHubRoute = "/guides";
 const guidesHubTitle = "Guides and Templates for Construction Crew Hours | My Guys Time";
 const guidesHubDescription =
-  "Guides and free templates for construction crew hours: paper versus a crew app, 1099 overtime, a weekly timesheet, and a minutes-to-decimal chart.";
+  "Guides and free templates for construction crew hours: paper versus a crew app, 1099 overtime, a weekly timesheet, a daily report, and a minutes-to-decimal chart.";
 const guidesHubHeadline = "Guides and Templates for Construction Crew Hours";
 
 const guidesHubHrefs = [
   "/guides/how-contractors-track-crew-hours",
   "/guides/do-1099-subs-get-overtime",
   "/templates/construction-timesheet-template",
+  "/templates/construction-daily-report-template",
   "/templates/time-to-decimal-chart",
 ];
 
@@ -1938,6 +2063,79 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     );
     if (faqMismatch.length > 0) {
       console.error("[prerender] decimal chart FAQ text drifted from JSON-LD source:", faqMismatch.map((item) => item.q));
+      process.exit(1);
+    }
+  }
+
+  if (routePath === "/templates/construction-daily-report-template") {
+    const lower = markup.toLowerCase();
+    const banned = [
+      "csv",
+      "petty cash",
+      "google sheets",
+      "one phone per crew",
+      "/guides/crew-hours-quickbooks",
+      "calculates payroll",
+      "calculates tax",
+      "payroll",
+    ];
+    const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    if (hit.length > 0 || badDollars.length > 0) {
+      console.error("[prerender] daily report page failed copy check:", hit, badDollars);
+      process.exit(1);
+    }
+    if ((markup.match(/<h1[\s>]/g) || []).length !== 1) {
+      console.error("[prerender] daily report page must have exactly one H1.");
+      process.exit(1);
+    }
+    const trackingLinks = markup.match(/href="\/construction-time-tracking"/g) || [];
+    // One link in the page body, plus the shared footer link.
+    if (trackingLinks.length !== 2) {
+      console.error("[prerender] daily report page must link /construction-time-tracking once in the body.");
+      process.exit(1);
+    }
+    if (
+      !finalHtml.includes('"@type":"Article"') ||
+      !finalHtml.includes('"@type":"FAQPage"') ||
+      !finalHtml.includes('"@type":"WebPage"') ||
+      !finalHtml.includes('"@type":"BreadcrumbList"')
+    ) {
+      console.error("[prerender] daily report page missing Article, WebPage, FAQPage, or BreadcrumbList JSON-LD.");
+      process.exit(1);
+    }
+    if (
+      !finalHtml.includes('"datePublished":"2026-10-16"') ||
+      !finalHtml.includes('"name":"Jeff Mohler"') ||
+      !finalHtml.includes('"jobTitle":"Founder"')
+    ) {
+      console.error("[prerender] daily report Article JSON-LD missing author or date.");
+      process.exit(1);
+    }
+    if (
+      finalHtml.includes('"name":"Templates"') ||
+      !finalHtml.includes("https://www.myguystime.com/templates/construction-daily-report-template") ||
+      !finalHtml.includes('"name":"Free Construction Timesheet Template"') ||
+      !finalHtml.includes('"name":"Construction Daily Report Template"')
+    ) {
+      console.error("[prerender] daily report canonical or breadcrumb is wrong.");
+      process.exit(1);
+    }
+    if (
+      !markup.includes('href="/templates/construction-daily-report-template.pdf"') ||
+      !markup.includes('href="/templates/construction-daily-report-template.xlsx"')
+    ) {
+      console.error("[prerender] daily report download links missing from prerendered HTML.");
+      process.exit(1);
+    }
+    const visible = markup.replace(/&#x27;/g, "'").replace(/&amp;/g, "&").replace(/&quot;/g, '"');
+    const faqMismatch = ssr.dailyReportFaqItems.filter(
+      (item) => !visible.includes(item.q) || !visible.includes(item.a),
+    );
+    if (faqMismatch.length > 0) {
+      console.error("[prerender] daily report FAQ text drifted from JSON-LD source:", faqMismatch.map((item) => item.q));
       process.exit(1);
     }
   }

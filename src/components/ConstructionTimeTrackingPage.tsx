@@ -386,7 +386,12 @@ export function ConstructionTimeTrackingPage() {
             If paper's working for you, make it work better with a{" "}
             <TextLink href="/templates/construction-timesheet-template">
               free printable construction timesheet template
-            </TextLink>. If it isn't, here's <TextLink href="/vs/paper-timesheets">why paper time cards leak hours</TextLink> and{" "}
+            </TextLink>{" "}
+            or a{" "}
+            <TextLink href="/templates/construction-daily-report-template">
+              construction daily report template
+            </TextLink>{" "}
+            for the day's job record. If it isn't, here's <TextLink href="/vs/paper-timesheets">why paper time cards leak hours</TextLink> and{" "}
             <TextLink href="/vs/spreadsheets">the Thursday spreadsheet problem</TextLink>. For the longer look at the
             tradeoffs, see <TextLink href="/guides/how-contractors-track-crew-hours">how contractors track crew hours</TextLink>.
           </p>

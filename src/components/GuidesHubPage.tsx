@@ -20,6 +20,12 @@ export const guidesHubItems: { href: string; title: string; description: string 
       "A weekly crew time card for the truck: the job, start and end, daily and weekly hours, and a foreman sign-off. PDF or Excel.",
   },
   {
+    href: "/templates/construction-daily-report-template",
+    title: "Free Construction Daily Report Template",
+    description:
+      "A one-page foreman daily log: crew hours, work done, deliveries, delays, and incidents. PDF or Excel.",
+  },
+  {
     href: "/templates/time-to-decimal-chart",
     title: "Time to Decimal Chart",
     description:

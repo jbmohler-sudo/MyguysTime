@@ -179,6 +179,10 @@ export function ConstructionTimesheetTemplatePage() {
             Daily and weekly totals on the sheet are decimal hours. Use the chart to{" "}
             <TextLink href="/templates/time-to-decimal-chart">convert minutes to decimal hours</TextLink>.
           </p>
+          <p className="text-slate-600 leading-relaxed mt-6">
+            For the job's day, weather, work done, and delays, use the{" "}
+            <TextLink href="/templates/construction-daily-report-template">construction daily report template</TextLink>.
+          </p>
         </section>
 
         <section className="max-w-3xl mx-auto px-6 mt-16">

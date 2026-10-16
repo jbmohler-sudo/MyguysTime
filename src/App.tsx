@@ -14,6 +14,7 @@ import { ConstructionTimeTrackingPage } from "./components/ConstructionTimeTrack
 import { ConstructionTimeTrackingCostPage } from "./components/ConstructionTimeTrackingCostPage";
 import { ConstructionTimesheetTemplatePage } from "./components/ConstructionTimesheetTemplatePage";
 import { TimeToDecimalChartPage } from "./components/TimeToDecimalChartPage";
+import { ConstructionDailyReportTemplatePage } from "./components/ConstructionDailyReportTemplatePage";
 import { BestConstructionTimeTrackingAppsPage } from "./components/BestConstructionTimeTrackingAppsPage";
 import { GuidePage } from "./components/GuidePage";
 import { Do1099SubsOvertimePage } from "./components/Do1099SubsOvertimePage";
@@ -543,6 +544,7 @@ function AppContent() {
       "/construction-time-tracking-cost": <ConstructionTimeTrackingCostPage />,
       "/templates/construction-timesheet-template": <ConstructionTimesheetTemplatePage />,
       "/templates/time-to-decimal-chart": <TimeToDecimalChartPage />,
+      "/templates/construction-daily-report-template": <ConstructionDailyReportTemplatePage />,
       "/best-construction-time-tracking-apps": <BestConstructionTimeTrackingAppsPage />,
       "/guides": <GuidesHubPage />,
       "/guides/how-contractors-track-crew-hours": <GuidePage />,
