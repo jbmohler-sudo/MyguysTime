@@ -12,13 +12,14 @@
 - **Marketing site live:** `/features`, `/pricing`, `/how-it-works`, `/faq`, `/construction-time-tracking`,
   `/construction-time-tracking-cost`, `/best-construction-time-tracking-apps`,
   `/guides`, `/guides/how-contractors-track-crew-hours`, `/guides/do-1099-subs-get-overtime`,
-  `/templates/construction-timesheet-template`, `/templates/time-to-decimal-chart`, seven `/trades/:slug` pages, and
+  `/templates/construction-timesheet-template`, `/templates/time-to-decimal-chart`, `/templates/construction-daily-report-template`, seven `/trades/:slug` pages, and
   `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy,workyard,supercrew}` — all prerendered, in the sitemap
-  (31 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
+  (32 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
   construction timesheet template, and Connecteam vs. Week two: `/vs/busybusy` (2026-10-05), `/vs/workyard` (2026-10-06),
   `/best-construction-time-tracking-apps` (2026-10-08), and `/guides/how-contractors-track-crew-hours` (2026-10-09).
   Week three: `/vs/supercrew` (2026-10-12), `/templates/time-to-decimal-chart` (2026-10-14), a refresh of
-  `/vs/quickbooks-time` (2026-10-14, same URL), and `/guides/do-1099-subs-get-overtime` (2026-10-15).
+  `/vs/quickbooks-time` (2026-10-14, same URL), `/guides/do-1099-subs-get-overtime` (2026-10-15), and
+  `/templates/construction-daily-report-template` (2026-10-16).
   Still not live and on hold pending Jeff's CSV confirmation: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
 - **In progress:** PR #6 structure fixes is open, awaiting Jeff (`/privacy` and `/terms` 404 after merge;
@@ -29,8 +30,7 @@
   move workers), the cross-company timesheet fence, and the deep `/api` routing fix (a7b9abd). Before a7b9abd,
   every API path two or more segments below its prefix 404'd in production, so saving day hours and week
   status changes did not work on the live site.
-- **Next:** Jeff's review of PR #6. Remaining week-three post: `/templates/construction-daily-report-template`.
-  The QuickBooks guide stays on hold until Jeff confirms CSV export.
+- **Next:** Jeff's review of PR #6. The QuickBooks guide stays on hold until Jeff confirms CSV export.
 - **Biggest open item:** Jeff's call on PR #6 merge, CSV-export confirmation for the QuickBooks
   guide, and two Cursor branches (Open Questions). Optional later: Auth admin on `sb_secret_`
   (then disable legacy JWT), Neon→one Supabase DB.
@@ -111,6 +111,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-16 — Construction daily report template live (17d05f3)
+**Did:** Published `/templates/construction-daily-report-template` from the approved 2026-10-16 draft (Jeff's standing content-only ship rule). New `ConstructionDailyReportTemplatePage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Title `Free Construction Daily Report Template (PDF + Excel)`, the draft meta and OG description, self-canonical `https://www.myguystime.com/templates/construction-daily-report-template`, plus Article (Jeff Mohler, Founder, datePublished 2026-10-16), WebPage, FAQPage from the 5 FAQs, BreadcrumbList Home / Free Construction Timesheet Template / Construction Daily Report Template, and DigitalDocument for the PDF and Excel files. PDF, XLSX, and a page-1 thumbnail are in `public/templates/` and are not in the sitemap. Sitemap is 32 URLs. Inbound links: the timesheet template ("construction daily report template"), the construction time tracking pillar, and the guides hub. Outbound: timesheet template, time-to-decimal chart, the crew-hours guide, `/construction-time-tracking` once in the body, `/pricing`, and `/demo/foreman`. No link to `/guides/crew-hours-quickbooks`. Each guy joins the crew team from his own phone, and he or the foreman logs the hours. The page says the app is a time card and does not do weather, deliveries, or job logs. Lunch stays on the paper form. No CSV, breaks, petty cash, Google Sheets, competitor prices, or payroll/tax claims. `npm run build` passed. Dist HTML: one H1, both download hrefs, canonical as above, dollar amounts are only `$12`.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
+**State after:** `/templates/construction-daily-report-template` is on `main` (17d05f3). Sitemap has 32 URLs.
+**Next:** Confirm the Vercel deploy is READY and the live page plus both file URLs return 200.
+
 ### 2026-10-15 — Marketing copy drops CSV export and deduction claims (605e395)
 **Did:** Removed claims that the app exports CSV or handles deductions from the homepage office card and workflow, `/features`, `/pricing`, `/how-it-works`, `/construction-time-tracking`, the seven `/trades` pages, `/vs/paper-timesheets`, `/vs/spreadsheets`, `/vs/clockshark`, `index.html` meta, and prerender descriptions plus SoftwareApplication JSON-LD. The homepage office card now lists weekly hours, a gross pay estimate, receipts, and private office-only reports. Kept every line that says the app does not calculate taxes, deductions, net pay, or payroll, and kept competitor export lines (Workyard one-click export, Supercrew payroll exports, the best-apps Workyard card). PR #9 gross-estimate wording is unchanged. `npm run build` passed. Live check: production deploy `dpl_D2tVsiCWBAB8N6GF8mE3qrhJnJ8F` is READY, and https://www.myguystime.com/ returns 200 with no `CSV` and no `Reimbursements and deductions`. The only homepage "deduction" line is "No taxes, deductions, net pay, or payroll."
 **Decided:** Marketing pages do not claim CSV export or that the app handles deductions (Decisions Log).
@@ -134,14 +142,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase. Shipping to `main` waits on Jeff.
 **State after:** `/guides` hub is on `cursor/guides-hub-62ff` (bb7e430). Production still serves the homepage at `/guides`. Branch sitemap has 31 URLs.
 **Next:** Jeff reviews the PR. See the PR notes for conflicts with open PR #6.
-
-### 2026-10-15 — 1099 overtime guide live (292ef07)
-**Did:** Published `/guides/do-1099-subs-get-overtime` from the approved 2026-10-15 draft (Jeff's go-live for the content-only page). New `Do1099SubsOvertimePage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Title `Do 1099 Subs Get Overtime? What Contractors Should Know`, the draft meta and OG description, self-canonical `https://www.myguystime.com/guides/do-1099-subs-get-overtime`, plus Article (Jeff Mohler, Founder, datePublished 2026-10-15), FAQPage from the 5 FAQs, and BreadcrumbList Home / Construction Time Tracking / Do 1099 Subs Get Overtime? Disclaimers are in the prerendered HTML at the top and the bottom. Jeff's first-person lines are unchanged. Sitemap is 30 URLs. Inbound links: the crew-hours guide and `/trades/general-contracting`. No link to `/guides/crew-hours-quickbooks`. No CSV, breaks, petty cash, competitor prices, or payroll/overtime/tax calculation claims. Re-opened the DOL overtime page, the DOL FLSA page, Fact Sheet 13, the 2026 contractor NPRM page, Fact Sheet 21, the IRS independent-contractor page, the Form SS-8 page, and the California Labor Commissioner ABC FAQ on 2026-10-15. Each claim in the draft still matches those pages, so no legal line was rewritten. The Wage and Hour helpline on those DOL pages is still 1-866-487-9243. `npm run build` passed. Dist HTML: one H1, canonical as above, dollar amounts are only `$12`.
-**Decided:** Marketing copy may mention multiple crews (see the 2026-10-15 Decisions Log row). This page does not add a multi-crew claim of its own.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase. `/features` outbound link left out of the approved copy. Plumbing, electrical, and FAQ inbound links left to the one relevant page (general contracting).
-**State after:** `/guides/do-1099-subs-get-overtime` is on `main` (292ef07). Sitemap has 30 URLs.
-**Next:** Confirm the Vercel deploy is READY and the live page returns 200 with one H1. Remaining week-three post: `/templates/construction-daily-report-template`.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
