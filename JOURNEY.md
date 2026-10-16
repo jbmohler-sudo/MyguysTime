@@ -23,14 +23,17 @@
   Still not live and on hold pending Jeff's CSV confirmation: `/guides/crew-hours-quickbooks`.
   (`feat/landing-audit` has no commits since 9/13; see Open Questions.)
 - **In progress:** PR #6 structure fixes is open, awaiting Jeff (`/privacy` and `/terms` 404 after merge;
-  it also drops `/demo/*` from the sitemap). Gross pay estimate is live on `main` (a1aa857, PR #9): weekly
+  it also drops `/demo/*` from the sitemap). PR #6 is behind main and needs a re-sync before merge.
+  PR #8 (`/privacy` and `/terms` pages, adds 2 sitemap URLs) is open alongside PR #6; both wait on Jeff.
+  Gross pay estimate is live on `main` (a1aa857, PR #9): weekly
   hours times the rate, plus hours past 40 times the overtime rate, shown to admin and foreman only.
   Marketing copy on `main` (605e395) does not claim CSV export or that the app handles deductions.
+- Week four (2026-10-19 to 10-23) is briefed, not approved: /vs/clockify, /trades/landscaping refresh, /templates/military-time-chart, /guides/how-to-calculate-hours-worked, /guides/how-to-calculate-overtime.
 - **App live (2026-10-11/12):** office crew management on the Team page (add/rename/remove crews, crew chiefs,
   move workers), the cross-company timesheet fence, and the deep `/api` routing fix (a7b9abd). Before a7b9abd,
   every API path two or more segments below its prefix 404'd in production, so saving day hours and week
   status changes did not work on the live site.
-- **Next:** Jeff's review of PR #6. The QuickBooks guide stays on hold until Jeff confirms CSV export.
+- **Next:** Jeff's review of PR #6/#8 and week-four go-live approvals. The QuickBooks guide stays on hold until Jeff confirms CSV export.
 - **Biggest open item:** Jeff's call on PR #6 merge, CSV-export confirmation for the QuickBooks
   guide, and two Cursor branches (Open Questions). Optional later: Auth admin on `sb_secret_`
   (then disable legacy JWT), Neon→one Supabase DB.
@@ -111,6 +114,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-16 — Week three wrap + week four plan (planning only, no code)
+**Did:** Week three (2026-10-12 to 10-16) shipped: `/vs/supercrew` (2026-10-12, 3a5b900), `/templates/time-to-decimal-chart` with PDF + Excel downloads (2026-10-14, 85175cb), `/vs/quickbooks-time` refresh, same URL (2026-10-14, 54da680), `/guides/do-1099-subs-get-overtime` (2026-10-15, 292ef07), the `/guides` hub (2026-10-15, fad0670, PR #7), and `/templates/construction-daily-report-template` (2026-10-16, 17d05f3). Also on main this week: CTR title/meta rewrites on /vs and /trades (a080baa), weekly gross pay estimate (a1aa857, PR #9), and marketing copy without CSV/deduction claims (605e395). Verified 2026-10-16 ~9:15 AM ET: live `https://www.myguystime.com/sitemap.xml` lists 32 URLs and matches `public/sitemap.xml` on main exactly; every week-three page returns 200 with its own title, a self-canonical and one H1; both decimal-chart download files return 200. OpenSEO audit 0cccd745 (38 pages) has one warning: `/guides` is an orphan (no prerendered page links to it; PR #6's footer change would add the link). The OpenSEO rank check was skipped this week (estimate 323 credits, over the 300 ceiling; 0 spent).
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `/guides/crew-hours-quickbooks` (still on hold until Jeff confirms CSV export). The subcontractor-vs-employee guide (DOL's final independent-contractor rule has been at OIRA review since 2026-09-28; wait for it). `npm test` not run: no local fixture database in this environment; doc-only change shipped on a passing build per Jeff's 2026-09-28 rule.
+**State after:** sitemap 32 URLs (live = main). PR #6 (structure fixes) and PR #8 (/privacy and /terms) are open and wait on Jeff. Week four is planned and briefed, not approved.
+**Next:** Week four, each pending Jeff's go-live yes: Mon 2026-10-19 `/vs/clockify`; Tue 2026-10-20 `/trades/landscaping` refresh (same URL); Wed 2026-10-21 `/templates/military-time-chart` (ships only if PDF + Excel are built); Thu 2026-10-22 `/guides/how-to-calculate-hours-worked`; Fri 2026-10-23 `/guides/how-to-calculate-overtime`. Fix the `/guides` orphan (PR #6 footer, or body links).
+
 ### 2026-10-16 — Construction daily report template live (17d05f3)
 **Did:** Published `/templates/construction-daily-report-template` from the approved 2026-10-16 draft (Jeff's standing content-only ship rule). New `ConstructionDailyReportTemplatePage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Title `Free Construction Daily Report Template (PDF + Excel)`, the draft meta and OG description, self-canonical `https://www.myguystime.com/templates/construction-daily-report-template`, plus Article (Jeff Mohler, Founder, datePublished 2026-10-16), WebPage, FAQPage from the 5 FAQs, BreadcrumbList Home / Free Construction Timesheet Template / Construction Daily Report Template, and DigitalDocument for the PDF and Excel files. PDF, XLSX, and a page-1 thumbnail are in `public/templates/` and are not in the sitemap. Sitemap is 32 URLs. Inbound links: the timesheet template ("construction daily report template"), the construction time tracking pillar, and the guides hub. Outbound: timesheet template, time-to-decimal chart, the crew-hours guide, `/construction-time-tracking` once in the body, `/pricing`, and `/demo/foreman`. No link to `/guides/crew-hours-quickbooks`. Each guy joins the crew team from his own phone, and he or the foreman logs the hours. The page says the app is a time card and does not do weather, deliveries, or job logs. Lunch stays on the paper form. No CSV, breaks, petty cash, Google Sheets, competitor prices, or payroll/tax claims. `npm run build` passed. Dist HTML: one H1, both download hrefs, canonical as above, dollar amounts are only `$12`.
 **Decided:** nothing new.
@@ -134,14 +145,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** CSV export copy that was not part of this pass. California daily overtime. Week-start mismatches. The stored pay-estimate column was not dropped.
 **State after:** on branch `cursor/gross-pay-estimate-d1f7`, not merged.
 **Next:** Jeff reviews the PR.
-
-### 2026-10-15 — Guides hub page on a branch (bb7e430)
-**Did:** Added a real `/guides` hub so that URL stops falling through to the homepage. New `GuidesHubPage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Prerender title `Guides and Templates for Construction Crew Hours | My Guys Time`, self-canonical `https://www.myguystime.com/guides`, one H1, a short intro, and a link list of the two live guides and two live templates, each with a one-line description. JSON-LD is CollectionPage, ItemList, and BreadcrumbList Home / Construction Time Tracking / Guides. No link to `/guides/crew-hours-quickbooks`. Sitemap on this branch is 31 URLs. Copy says `$12/month flat for the whole company` and that each person uses his own phone. No CSV, breaks, petty cash, or payroll/tax calculation claims. `npm run build` passed. Dist HTML: one H1, canonical as above, dollar amounts are only `$12`. Not merged to `main`.
-**Decided:** The two live guide articles keep Home / Construction Time Tracking / article title. Neither breadcrumb names Guides, and the prerender still rejects a Guides crumb on those articles, so there was no unlinked Guides crumb to point at `/guides`.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase. Shipping to `main` waits on Jeff.
-**State after:** `/guides` hub is on `cursor/guides-hub-62ff` (bb7e430). Production still serves the homepage at `/guides`. Branch sitemap has 31 URLs.
-**Next:** Jeff reviews the PR. See the PR notes for conflicts with open PR #6.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
