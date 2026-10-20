@@ -763,6 +763,100 @@ pages.push([
   ],
 ]);
 
+const clockifyRoute = "/vs/clockify";
+const clockifyFaqs = typeof ssr.vsPageFaqs === "function" ? ssr.vsPageFaqs("clockify") : [];
+if (!Array.isArray(clockifyFaqs) || clockifyFaqs.length !== 5) {
+  console.error("[prerender] clockify FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+
+const clockifyFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: clockifyFaqs.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const clockifySoftwareLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "My Guys Time",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: canonicalHost + clockifyRoute,
+  offers: {
+    "@type": "Offer",
+    price: "12",
+    priceCurrency: "USD",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: "12",
+      priceCurrency: "USD",
+      billingDuration: "P1M",
+      unitText: "per company per month",
+    },
+  },
+  description:
+    "A weekly crew time card. $12/mo flat for the whole company.",
+};
+
+const clockifyBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Comparisons",
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Clockify",
+      item: canonicalHost + clockifyRoute,
+    },
+  ],
+};
+
+pages.push([
+  clockifyRoute,
+  "vs/clockify/index.html",
+  () => ssr.renderVsHtml("clockify"),
+  "Clockify Pricing vs $12 Flat for Crews | My Guys Time",
+  "Clockify has a free plan, then charges per seat, owner included. My Guys Time is $12/mo flat for the whole company. Compare for crews.",
+  [
+    ["ld-softwareapplication", clockifySoftwareLd],
+    ["ld-faqpage", clockifyFaqLd],
+    ["ld-breadcrumb", clockifyBreadcrumbLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    "Clockify vs My Guys Time: Per-Seat Timer or One Flat Price for the Crew",
+    "My Guys Time vs Clockify",
+    "from his own phone",
+    "https://clockify.me/pricing",
+    "what crew time apps cost",
+    "$12/month flat for the whole company",
+    "Add time for others",
+    "No GPS, no location tracking",
+    "/trades/landscaping",
+    "/guides",
+    "/demo/foreman",
+    "Jeff Mohler, founder",
+    "Is Clockify free?",
+  ],
+]);
+
 const costRoute = "/construction-time-tracking-cost";
 const costTitle = "Construction Time Tracking Cost: Per-Seat vs Flat Pricing";
 const costDescription =
@@ -1295,7 +1389,8 @@ pages.push([
     "Best Time Tracking Apps for Small Construction Crews",
     "The best time tracking app for a small construction crew depends on fit.",
     "free for up to 10 users",
-    "caps it at a small number of users",
+    "Clockify has a free plan, and paid plans are per seat",
+    "/vs/clockify",
     "taxes, deductions, net pay, or payroll",
     "construction time tracking for small crews",
     "https://www.clockshark.com/pricing/",
@@ -1859,6 +1954,36 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
     if (hit.length > 0 || badDollars.length > 0) {
       console.error("[prerender] supercrew page contains banned copy:", hit, badDollars);
+      process.exit(1);
+    }
+  }
+
+  if (routePath === "/vs/clockify") {
+    const withoutBreadcrumb = markup.toLowerCase().replace(/breadcrumb/g, "");
+    const banned = ["csv", "petty cash", "one phone per crew", "5 users", "up to 4", "handful of users"];
+    const hit = banned.filter((token) => withoutBreadcrumb.includes(token));
+    if (/\bbreaks?\b/.test(withoutBreadcrumb)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    if (hit.length > 0 || badDollars.length > 0) {
+      console.error("[prerender] clockify page contains banned copy:", hit, badDollars);
+      process.exit(1);
+    }
+    if ((markup.match(/<h1[\s>]/g) || []).length !== 1) {
+      console.error("[prerender] clockify page must have exactly one H1.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('<link rel="canonical" href="https://www.myguystime.com/vs/clockify" />')) {
+      console.error("[prerender] clockify canonical is not its own URL.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"@type":"FAQPage"') || !finalHtml.includes('"@type":"BreadcrumbList"')) {
+      console.error("[prerender] clockify page missing FAQPage or BreadcrumbList JSON-LD.");
+      process.exit(1);
+    }
+    const crumbNames = ['"name":"Home"', '"name":"Comparisons"', '"name":"Clockify"'];
+    if (crumbNames.some((name) => !finalHtml.includes(name))) {
+      console.error("[prerender] clockify breadcrumb is not Home > Comparisons > Clockify.");
       process.exit(1);
     }
   }

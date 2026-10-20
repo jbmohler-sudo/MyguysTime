@@ -9,7 +9,7 @@ export const bestAppsFaqItems: { q: string; a: string }[] = [
   },
   {
     q: "Is Clockify really free?",
-    a: "Clockify has a free plan, but its pricing page caps it at a small number of users, and paid plans are per seat. It's a general timer for many kinds of work, not built around a crew and a foreman. My Guys Time isn't free either: it's a 7-day trial, then $12/month flat for the whole company.",
+    a: "Clockify has a free plan, and paid plans are per seat. It's a general timer for many kinds of work, not built around a crew and a foreman. My Guys Time isn't free either: it's a 7-day trial, then $12/month flat for the whole company.",
   },
   {
     q: "What is the best app for contractors to track job progress?",
@@ -346,11 +346,12 @@ export function BestConstructionTimeTrackingAppsPage() {
             </li>
             <li>
               <strong className="text-slate-900">Clockify:</strong> a general-purpose time tracker used across many
-              industries. Its free plan is capped at a handful of users, and paid plans are priced per seat (
+              industries. It has a free plan, then charges per seat (
               <TextLink href="https://clockify.me/pricing" external>
                 Clockify pricing
               </TextLink>
-              ). It&apos;s built around tracking time, not around a crew and a foreman.
+              ). See <TextLink href="/vs/clockify">Clockify vs My Guys Time</TextLink>. It&apos;s built around
+              tracking time, not around a crew and a foreman.
             </li>
           </ul>
         </section>

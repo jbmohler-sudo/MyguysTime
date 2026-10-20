@@ -32,6 +32,11 @@ const VS_SEO: Record<string, { title: string; description: string }> = {
     description:
       "Rain-soaked cards, unreadable handwriting, hours rebuilt from memory. My Guys Time replaces paper time cards with a simple weekly crew board, $12/mo flat.",
   },
+  clockify: {
+    title: "Clockify Pricing vs $12 Flat for Crews | My Guys Time",
+    description:
+      "Clockify has a free plan, then charges per seat, owner included. My Guys Time is $12/mo flat for the whole company. Compare for crews.",
+  },
 };
 
 function VsLinkedText({ parts }: { parts: VsTextPart[] }) {
@@ -266,8 +271,10 @@ export function VsPage({ slug }: { slug: string }) {
                 <div key={column.heading} className="bg-white border border-slate-200 rounded-2xl p-8">
                   <h2 className="text-2xl font-bold text-slate-900 mb-4">{column.heading}</h2>
                   <ul className="list-disc pl-5 space-y-3 text-slate-600">
-                    {column.points.map((point) => (
-                      <li key={point}>{point}</li>
+                    {column.points.map((point, index) => (
+                      <li key={typeof point === "string" ? point : index}>
+                        {typeof point === "string" ? point : <VsLinkedText parts={point} />}
+                      </li>
                     ))}
                   </ul>
                 </div>

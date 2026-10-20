@@ -468,6 +468,10 @@ export function ConstructionTimeTrackingCostPage() {
               for the whole company.
             </li>
             <li>
+              <TextLink href="/vs/clockify">Clockify pricing</TextLink>: a free plan, then paid per seat, next to one
+              flat price for the whole company.
+            </li>
+            <li>
               <TextLink href="/vs/quickbooks-time">QuickBooks Time vs My Guys Time</TextLink>: keep your accounting,
               change how hours come in.
             </li>

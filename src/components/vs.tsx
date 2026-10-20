@@ -48,7 +48,7 @@ export interface VsConfig {
   flowHeading?: string;
   flowLink?: { label: string; href: string };
   fit?: {
-    columns: { heading: string; points: string[] }[];
+    columns: { heading: string; points: (string | VsTextPart[])[] }[];
     footer?: VsTextPart[];
   };
   /** Sentence under the intro, used to link the cost hub from live comparison pages. */
@@ -1151,6 +1151,174 @@ export const VS_PAGES: VsConfig[] = [
     ],
     closingHeading: "Don't need the GPS? Try it free for 7 days.",
     closingSub: "One flat price for the whole company. Cancel anytime.",
+  },
+  {
+    slug: "clockify",
+    name: "Clockify",
+    eyebrow: "My Guys Time vs Clockify",
+    h1: "Clockify vs My Guys Time: Per-Seat Timer or One Flat Price for the Crew",
+    sub: "Clockify has a free plan. Once your crew grows, or when you need crew features like approvals, kiosk clock-in, or adding time for someone else, you pay per seat, and every active or invited user takes a seat, the owner included. My Guys Time is $12/month flat for the whole company, however many guys you run.",
+    intro:
+      "Clockify is a popular time tracker with a real free plan. Freelancers, agencies and office teams use it to time projects, and it does that well.",
+    afterIntro: [
+      {
+        text: "The difference for a crew is how the bill works. Once you're past the free plan, or you want the features a foreman leans on, Clockify counts seats. We don't count anybody. Here's ",
+      },
+      { text: "what crew time apps cost", href: "/construction-time-tracking-cost" },
+      { text: " if you want the bigger picture." },
+    ],
+    painHeading: "Where a per-seat timer gets awkward for a crew",
+    painSub: "None of this makes Clockify a bad tool. It's built for a different kind of work.",
+    pains: [
+      {
+        title: "Growing past the free plan means paying per seat.",
+        text: "Clockify has a free plan, but once you're on a paid plan every active or invited user takes a seat, the owner included. Every guy you hire adds to the bill.",
+      },
+      {
+        title: "The crew features sit on paid plans.",
+        text: "Adding time for someone else, which is what a foreman does all day, is on Basic. Approval and locking time are on Standard. On My Guys Time, foreman approval is just how the week works.",
+      },
+      {
+        title: "It's built around a timer and projects.",
+        text: "Start and stop timers, projects, invoicing. Great for office and agency work. A crew mostly needs each guy's hours for the day and a sign-off at the end of the week.",
+      },
+      {
+        title: "Seasonal hiring moves the bill.",
+        text: "Every active or invited user on a paid plan is a seat. You can deactivate guys to free one up, but now you're managing seats. With us you send the new guy an invite and the price stays $12/month flat.",
+      },
+    ],
+    compareCta: true,
+    compareSecondaryLabel: "See the foreman view",
+    compareFooter: [
+      { text: "Clockify details from " },
+      { text: "clockify.me/pricing", href: "https://clockify.me/pricing", external: true },
+      {
+        text: ", checked October 20, 2026. Plans change, so check their page for today's details.",
+      },
+    ],
+    compare: [
+      {
+        label: "Pricing model",
+        oldWay:
+          "Free plan. Paid plans (Basic, Standard, Pro, Enterprise) are priced per seat, billed monthly or yearly. Every active or invited user, owner included, takes a seat.",
+        myGuys: "$12/month flat for the whole company. One plan.",
+      },
+      {
+        label: "Adding time for others",
+        oldWay: 'Paid plan (Basic: "Add time for others")',
+        myGuys: "Each guy joins his crew's team from his own phone. He or the foreman logs the hours.",
+      },
+      {
+        label: "Approvals",
+        oldWay: 'Paid plan (Standard: "Approval", "Lock time")',
+        myGuys: "Foreman approves the week. One-person crews auto-approve.",
+      },
+      {
+        label: "Overtime view",
+        oldWay: 'Standard lists "Attendance & overtime"',
+        myGuys: "Weekly hours, hours past 40, and a simple gross pay estimate, for the admin and foreman",
+      },
+      {
+        label: "Location",
+        oldWay: "Pro lists GPS tracking (optional)",
+        myGuys: "No GPS, no location tracking",
+      },
+      {
+        label: "Getting hours to the office",
+        oldWay: "Standard lists a QuickBooks integration",
+        myGuys: "Hand the week's hours to whoever runs payroll",
+      },
+      {
+        label: "App",
+        oldWay: "Web, desktop and mobile apps",
+        myGuys: "Runs in the phone's browser. Add it to the home screen, nothing to download.",
+      },
+      {
+        label: "Trying it",
+        oldWay: "Free plan, plus a 7-day trial of paid features",
+        myGuys: "7-day free trial, no card. Demos without signing up.",
+      },
+    ],
+    flowHeading: "A week on My Guys Time",
+    flow: [
+      {
+        title: "Monday",
+        text: "Each guy joins his crew's team from his own phone with the invite link. He or the foreman logs the day's hours.",
+      },
+      {
+        title: "During the week",
+        text: "The hours land on the crew's weekly board as they're logged. A missing day shows up as an empty day.",
+      },
+      {
+        title: "Friday",
+        text: "The foreman looks over the week and approves it.",
+      },
+      {
+        title: "The office",
+        text: "Sees weekly hours, hours past 40, and a simple gross pay estimate, and hands the week to whoever runs payroll.",
+      },
+    ],
+    fit: {
+      columns: [
+        {
+          heading: "When Clockify fits",
+          points: [
+            "You time projects for office or remote work, you want a start and stop timer, invoicing or detailed reports, or your team is small enough that the free plan covers you.",
+          ],
+        },
+        {
+          heading: "When we fit",
+          points: [
+            [
+              { text: "Small crews (masonry, roofing, " },
+              { text: "landscaping crews", href: "/trades/landscaping" },
+              {
+                text: ", painting) who want one flat price, daily hours from each guy's phone, foreman sign-off, receipt photos, and W-2 and 1099 guys on the same board. Running more than one crew? Same price.",
+              },
+            ],
+          ],
+        },
+      ],
+      footer: [
+        { text: "$12/month flat for the whole crew", href: "/pricing" },
+        { text: ". Try it for 7 days, no card. " },
+        { text: "Guides and templates for crew hours", href: "/guides" },
+        { text: "." },
+      ],
+    },
+    calloutTitle: "Jeff Mohler, founder",
+    calloutText:
+      "I built this after a Thursday night rebuilding a week of hours from scraps of paper, one of them a note on a 2x6. I didn't need a timer. I needed every guy's day on one card and a price that didn't go up every time I hired somebody. That's still the whole idea.",
+    faqHeading: "Clockify vs My Guys Time: common questions",
+    faqs: [
+      {
+        q: "Is Clockify free?",
+        text: "Clockify has a free plan. Crew features like approvals and adding time for others are on its paid per-seat plans. See clockify.me/pricing for the current plans.",
+        link: {
+          phrase: "clockify.me/pricing",
+          href: "https://clockify.me/pricing",
+          external: true,
+        },
+      },
+      {
+        q: "Does the owner count as a Clockify seat?",
+        text: "Yes, on paid plans. Clockify's pricing page says every active or invited user on your Team page takes a paid seat, including the owner, admins, managers and members.",
+      },
+      {
+        q: "Is there a free alternative to Clockify for a crew?",
+        text: "There are free plans out there, Clockify's included. My Guys Time isn't free. It's $12/month flat for the whole company, with a 7-day trial and no card to start.",
+      },
+      {
+        q: "Does My Guys Time have a timer like Clockify?",
+        text: "No. The crew logs the day's hours, each guy from his own phone or the foreman for him, and the foreman approves the week.",
+      },
+      {
+        q: "Do I pay per user with My Guys Time?",
+        text: "No. $12/month flat for the whole company, every crew, every guy.",
+      },
+    ],
+    closingHeading: "One price for the whole crew",
+    closingSub: "$12/month flat for the whole crew. Try it for 7 days, no card.",
   },
 ];
 
