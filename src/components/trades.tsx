@@ -242,6 +242,11 @@ export const TRADES: TradeConfig[] = [
           {
             title: "General time trackers with a free tier.",
             text: "Good for a couple of people. They're usually built around a timer and priced per seat once you grow.",
+            link: {
+              lead: "See how ",
+              phrase: "Clockify compares",
+              href: "/vs/clockify",
+            },
           },
           {
             title: "Per-seat crew apps.",
