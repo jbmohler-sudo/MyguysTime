@@ -13,8 +13,8 @@
   `/construction-time-tracking-cost`, `/best-construction-time-tracking-apps`,
   `/guides`, `/guides/how-contractors-track-crew-hours`, `/guides/do-1099-subs-get-overtime`,
   `/templates/construction-timesheet-template`, `/templates/time-to-decimal-chart`, `/templates/construction-daily-report-template`, seven `/trades/:slug` pages, and
-  `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy,workyard,supercrew}` — all prerendered, in the sitemap
-  (32 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
+  `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy,workyard,supercrew,clockify}` — all prerendered, in the sitemap
+  (33 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
   construction timesheet template, and Connecteam vs. Week two: `/vs/busybusy` (2026-10-05), `/vs/workyard` (2026-10-06),
   `/best-construction-time-tracking-apps` (2026-10-08), and `/guides/how-contractors-track-crew-hours` (2026-10-09).
   Week three: `/vs/supercrew` (2026-10-12), `/templates/time-to-decimal-chart` (2026-10-14), a refresh of
@@ -28,12 +28,12 @@
   Gross pay estimate is live on `main` (a1aa857, PR #9): weekly
   hours times the rate, plus hours past 40 times the overtime rate, shown to admin and foreman only.
   Marketing copy on `main` (605e395) does not claim CSV export or that the app handles deductions.
-- Week four (2026-10-19 to 10-23) is briefed, not approved: /vs/clockify, /trades/landscaping refresh, /templates/military-time-chart, /guides/how-to-calculate-hours-worked, /guides/how-to-calculate-overtime.
+- Week four: `/vs/clockify` is live (2026-10-20, 50f3705). `/trades/landscaping` refresh is live, same URL (2026-10-20, c9a722b; sitemap lastmod 2026-10-20). Still briefed, not approved: `/templates/military-time-chart`, `/guides/how-to-calculate-hours-worked`, `/guides/how-to-calculate-overtime`.
 - **App live (2026-10-11/12):** office crew management on the Team page (add/rename/remove crews, crew chiefs,
   move workers), the cross-company timesheet fence, and the deep `/api` routing fix (a7b9abd). Before a7b9abd,
   every API path two or more segments below its prefix 404'd in production, so saving day hours and week
   status changes did not work on the live site.
-- **Next:** Jeff's review of PR #6/#8 and week-four go-live approvals. The QuickBooks guide stays on hold until Jeff confirms CSV export.
+- **Next:** Jeff's review of PR #6/#8. Remaining week-four posts still need a go-live yes: `/templates/military-time-chart`, `/guides/how-to-calculate-hours-worked`, `/guides/how-to-calculate-overtime`. The QuickBooks guide stays on hold until Jeff confirms CSV export.
 - **Biggest open item:** Jeff's call on PR #6 merge, CSV-export confirmation for the QuickBooks
   guide, and two Cursor branches (Open Questions). Optional later: Auth admin on `sb_secret_`
   (then disable legacy JWT), Neon→one Supabase DB.
@@ -114,6 +114,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-20 — Clockify comparison page live (50f3705)
+**Did:** Published `/vs/clockify` from the approved 2026-10-19 draft (Jeff's go-live). Added the clockify config in `vs.tsx` (hero, answer block, pain cards, comparison table, flow, fit, callout, 5 FAQs, pills, closing CTA). Each guy joins his crew's team from his own phone; he or the foreman logs the hours. Prerender title `Clockify Pricing vs $12 Flat for Crews | My Guys Time`, the draft meta and OG description, self-canonical `https://www.myguystime.com/vs/clockify`, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Clockify. Sitemap is 33 URLs. Inbound links: Clockify pill on the other `/vs` pages, footer Comparisons column, cost hub compare list ("Clockify pricing", free plan then per seat), a one-line link in best-apps "Also worth a look", and the landscaping trade page (3775728). Rechecked https://clockify.me/pricing on 2026-10-20: free plan, then paid per seat (Basic, Standard, Pro, Enterprise), and every active or invited user takes a seat, owner included. Feature placements still match (Basic: Add time for others and Kiosk; Standard: Approval, Lock time, Attendance & overtime, QuickBooks integration; Pro: optional GPS). Comparison note date updated from October 16 to October 20, 2026. No Clockify dollar figures or user counts. Reviewer notes and the change log were not published. Best-apps Clockify lines no longer say the free plan is capped at a handful or a small number of users. No CSV, breaks, petty cash, one phone per crew, or payroll/tax claims. `npm run build` passed. Live: Vercel deploy for 50f3705 completed; https://www.myguystime.com/vs/clockify returns 200 with one H1, its own canonical, dollar amounts only `$12`, and no "5 users". Live sitemap has 33 URLs, including `/vs/clockify`.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database. Jeff approved shipping this content-only page without it.
+**State after:** `/vs/clockify` is on `main` (50f3705). Sitemap has 33 URLs. `/trades/landscaping` refresh (c9a722b, same URL) was already on main when this shipped, and that page links to `/vs/clockify` (3775728).
+**Next:** Remaining week-four posts, each pending Jeff's go-live: `/templates/military-time-chart`, `/guides/how-to-calculate-hours-worked`, `/guides/how-to-calculate-overtime`.
+
 ### 2026-10-16 — Week three wrap + week four plan (planning only, no code)
 **Did:** Week three (2026-10-12 to 10-16) shipped: `/vs/supercrew` (2026-10-12, 3a5b900), `/templates/time-to-decimal-chart` with PDF + Excel downloads (2026-10-14, 85175cb), `/vs/quickbooks-time` refresh, same URL (2026-10-14, 54da680), `/guides/do-1099-subs-get-overtime` (2026-10-15, 292ef07), the `/guides` hub (2026-10-15, fad0670, PR #7), and `/templates/construction-daily-report-template` (2026-10-16, 17d05f3). Also on main this week: CTR title/meta rewrites on /vs and /trades (a080baa), weekly gross pay estimate (a1aa857, PR #9), and marketing copy without CSV/deduction claims (605e395). Verified 2026-10-16 ~9:15 AM ET: live `https://www.myguystime.com/sitemap.xml` lists 32 URLs and matches `public/sitemap.xml` on main exactly; every week-three page returns 200 with its own title, a self-canonical and one H1; both decimal-chart download files return 200. OpenSEO audit 0cccd745 (38 pages) has one warning: `/guides` is an orphan (no prerendered page links to it; PR #6's footer change would add the link). The OpenSEO rank check was skipped this week (estimate 323 credits, over the 300 ceiling; 0 spent).
 **Decided:** nothing new.
@@ -137,14 +145,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no local fixture database. Jeff approved shipping this content-only change without it. `/guides/crew-hours-quickbooks` stays on hold until Jeff confirms CSV export.
 **State after:** on `main` (605e395). Sitemap still has 31 URLs.
 **Next:** Jeff's review of PR #6. Remaining week-three post: `/templates/construction-daily-report-template`.
-
-### 2026-10-15 — Gross pay estimate only, shown to the office (branch)
-**Did:** Pay estimate is weekly gross only: regular hours times the hourly rate, plus hours past 40 times the overtime rate. Removed net check, reimbursement, and deduction math from `calculatePayrollEstimate` and from the API (`payrollEstimate` no longer has reimbursements, deductions, or `netCheckEstimate`; year-to-date no longer has net, reimbursements, or deductions). Expense and receipt logging stays a list and does not change gross. Admin and foreman see weekly gross on the office card and the admin dashboard, with the estimate disclaimer. Employee API responses omit `grossPay` dollars (`null`), omit `payrollEstimate`, and omit year-to-date dollar fields. Company setup no longer says "Compliant with FLSA". Marketing pages now say the app shows weekly hours, hours past 40, and a simple gross estimate, and that it does not calculate taxes, deductions, net pay, or payroll. `npm run build` passed. `npm test` passed.
-**Decided:** see the 2026-10-15 Decisions Log row. The database column `netCheckEstimateCents` stays; new rows store 0. No migration.
-**Killed:** nothing removed from the schema. Net-check math is gone from the estimate function and the API.
-**Deferred:** CSV export copy that was not part of this pass. California daily overtime. Week-start mismatches. The stored pay-estimate column was not dropped.
-**State after:** on branch `cursor/gross-pay-estimate-d1f7`, not merged.
-**Next:** Jeff reviews the PR.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 

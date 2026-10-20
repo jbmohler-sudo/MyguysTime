@@ -2,6 +2,14 @@
 
 > Older Session Log entries rolled out of [JOURNEY.md](JOURNEY.md). Newest of these first.
 
+### 2026-10-15 — Gross pay estimate only, shown to the office (branch)
+**Did:** Pay estimate is weekly gross only: regular hours times the hourly rate, plus hours past 40 times the overtime rate. Removed net check, reimbursement, and deduction math from `calculatePayrollEstimate` and from the API (`payrollEstimate` no longer has reimbursements, deductions, or `netCheckEstimate`; year-to-date no longer has net, reimbursements, or deductions). Expense and receipt logging stays a list and does not change gross. Admin and foreman see weekly gross on the office card and the admin dashboard, with the estimate disclaimer. Employee API responses omit `grossPay` dollars (`null`), omit `payrollEstimate`, and omit year-to-date dollar fields. Company setup no longer says "Compliant with FLSA". Marketing pages now say the app shows weekly hours, hours past 40, and a simple gross estimate, and that it does not calculate taxes, deductions, net pay, or payroll. `npm run build` passed. `npm test` passed.
+**Decided:** see the 2026-10-15 Decisions Log row. The database column `netCheckEstimateCents` stays; new rows store 0. No migration.
+**Killed:** nothing removed from the schema. Net-check math is gone from the estimate function and the API.
+**Deferred:** CSV export copy that was not part of this pass. California daily overtime. Week-start mismatches. The stored pay-estimate column was not dropped.
+**State after:** on branch `cursor/gross-pay-estimate-d1f7`, not merged.
+**Next:** Jeff reviews the PR.
+
 ### 2026-10-15 — Guides hub page on a branch (bb7e430)
 **Did:** Added a real `/guides` hub so that URL stops falling through to the homepage. New `GuidesHubPage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Prerender title `Guides and Templates for Construction Crew Hours | My Guys Time`, self-canonical `https://www.myguystime.com/guides`, one H1, a short intro, and a link list of the two live guides and two live templates, each with a one-line description. JSON-LD is CollectionPage, ItemList, and BreadcrumbList Home / Construction Time Tracking / Guides. No link to `/guides/crew-hours-quickbooks`. Sitemap on this branch is 31 URLs. Copy says `$12/month flat for the whole company` and that each person uses his own phone. No CSV, breaks, petty cash, or payroll/tax calculation claims. `npm run build` passed. Dist HTML: one H1, canonical as above, dollar amounts are only `$12`. Not merged to `main`.
 **Decided:** The two live guide articles keep Home / Construction Time Tracking / article title. Neither breadcrumb names Guides, and the prerender still rejects a Guides crumb on those articles, so there was no unlinked Guides crumb to point at `/guides`.
