@@ -28,7 +28,7 @@
   Gross pay estimate is live on `main` (a1aa857, PR #9): weekly
   hours times the rate, plus hours past 40 times the overtime rate, shown to admin and foreman only.
   Marketing copy on `main` (605e395) does not claim CSV export or that the app handles deductions.
-- Week four: `/vs/clockify` is live (2026-10-20, 50f3705). `/trades/landscaping` refresh is live, same URL (2026-10-20, c9a722b; sitemap lastmod 2026-10-20). Still briefed, not approved: `/templates/military-time-chart`, `/guides/how-to-calculate-hours-worked`, `/guides/how-to-calculate-overtime`.
+- Week four: `/vs/clockify` is live (2026-10-20, 50f3705). `/trades/landscaping` was refreshed in place (2026-10-20, c9a722b and 3775728; sitemap lastmod 2026-10-20). Still briefed, not approved: `/templates/military-time-chart`, `/guides/how-to-calculate-hours-worked`, `/guides/how-to-calculate-overtime`.
 - **App live (2026-10-11/12):** office crew management on the Team page (add/rename/remove crews, crew chiefs,
   move workers), the cross-company timesheet fence, and the deep `/api` routing fix (a7b9abd). Before a7b9abd,
   every API path two or more segments below its prefix 404'd in production, so saving day hours and week
@@ -114,6 +114,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-20 — Landscaping trade page refresh live (c9a722b, 3775728)
+**Did:** Refreshed `/trades/landscaping` in place from the approved 2026-10-20 draft (Jeff's go-live for the content-only page). H1 is `Landscaping Time Tracking for Route and Install Crews`; the old H1 is the kicker. Title `Landscaping Time Tracking for Crews | My Guys Time` and the draft meta. Each guy logs from his own phone. Step 3 says the office moves a guy to the other crew on the Team page and his open weeks go with him. Removed "Move their hours" and "for job costing". Added the multiple-crews section, the apps section, two FAQs, the timesheet-template link, and the guides link. The Clockify bullet link shipped in 3775728 once `/vs/clockify` was on main (50f3705). Kept the route, the live free-week CTA, and the WebPage + SoftwareApplication schema. No new FAQPage or breadcrumb. This refresh did not add a sitemap URL; this URL's `<lastmod>` is 2026-10-20. After the Clockify page, the sitemap has 33 URLs. No crew map, CSV, breaks, petty cash, competitor prices, or claims that the app does taxes, deductions, net pay, or payroll. Reviewer notes and the change log were not published. `npm run build` passed. Dist HTML: one H1, canonical `https://www.myguystime.com/trades/landscaping`, dollar amounts are only `$12`. Live check: production deploy `dpl_61ovfvqoyok6dre8K2giQGkqo3Ym` is READY. https://www.myguystime.com/trades/landscaping returns 200 with the new H1 and without "Move their hours", "job costing", or "crew map". Live sitemap returns 200 with 33 URLs and this page's lastmod 2026-10-20.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database. Jeff approved shipping this content-only page without it.
+**State after:** `/trades/landscaping` refresh is on `main` (c9a722b, Clockify link 3775728). Sitemap has 33 URLs.
+**Next:** Remaining week-four pages still need Jeff's go-live: `/templates/military-time-chart`, `/guides/how-to-calculate-hours-worked`, `/guides/how-to-calculate-overtime`.
+
 ### 2026-10-20 — Clockify comparison page live (50f3705)
 **Did:** Published `/vs/clockify` from the approved 2026-10-19 draft (Jeff's go-live). Added the clockify config in `vs.tsx` (hero, answer block, pain cards, comparison table, flow, fit, callout, 5 FAQs, pills, closing CTA). Each guy joins his crew's team from his own phone; he or the foreman logs the hours. Prerender title `Clockify Pricing vs $12 Flat for Crews | My Guys Time`, the draft meta and OG description, self-canonical `https://www.myguystime.com/vs/clockify`, plus SoftwareApplication for My Guys Time only (`price` "12", USD, P1M, per company per month), FAQPage from the 5 FAQs, and BreadcrumbList Home › Comparisons › Clockify. Sitemap is 33 URLs. Inbound links: Clockify pill on the other `/vs` pages, footer Comparisons column, cost hub compare list ("Clockify pricing", free plan then per seat), a one-line link in best-apps "Also worth a look", and the landscaping trade page (3775728). Rechecked https://clockify.me/pricing on 2026-10-20: free plan, then paid per seat (Basic, Standard, Pro, Enterprise), and every active or invited user takes a seat, owner included. Feature placements still match (Basic: Add time for others and Kiosk; Standard: Approval, Lock time, Attendance & overtime, QuickBooks integration; Pro: optional GPS). Comparison note date updated from October 16 to October 20, 2026. No Clockify dollar figures or user counts. Reviewer notes and the change log were not published. Best-apps Clockify lines no longer say the free plan is capped at a handful or a small number of users. No CSV, breaks, petty cash, one phone per crew, or payroll/tax claims. `npm run build` passed. Live: Vercel deploy for 50f3705 completed; https://www.myguystime.com/vs/clockify returns 200 with one H1, its own canonical, dollar amounts only `$12`, and no "5 users". Live sitemap has 33 URLs, including `/vs/clockify`.
 **Decided:** nothing new.
@@ -137,14 +145,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
 **State after:** `/templates/construction-daily-report-template` is on `main` (17d05f3). Sitemap has 32 URLs.
 **Next:** Confirm the Vercel deploy is READY and the live page plus both file URLs return 200.
-
-### 2026-10-15 — Marketing copy drops CSV export and deduction claims (605e395)
-**Did:** Removed claims that the app exports CSV or handles deductions from the homepage office card and workflow, `/features`, `/pricing`, `/how-it-works`, `/construction-time-tracking`, the seven `/trades` pages, `/vs/paper-timesheets`, `/vs/spreadsheets`, `/vs/clockshark`, `index.html` meta, and prerender descriptions plus SoftwareApplication JSON-LD. The homepage office card now lists weekly hours, a gross pay estimate, receipts, and private office-only reports. Kept every line that says the app does not calculate taxes, deductions, net pay, or payroll, and kept competitor export lines (Workyard one-click export, Supercrew payroll exports, the best-apps Workyard card). PR #9 gross-estimate wording is unchanged. `npm run build` passed. Live check: production deploy `dpl_D2tVsiCWBAB8N6GF8mE3qrhJnJ8F` is READY, and https://www.myguystime.com/ returns 200 with no `CSV` and no `Reimbursements and deductions`. The only homepage "deduction" line is "No taxes, deductions, net pay, or payroll."
-**Decided:** Marketing pages do not claim CSV export or that the app handles deductions (Decisions Log).
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no local fixture database. Jeff approved shipping this content-only change without it. `/guides/crew-hours-quickbooks` stays on hold until Jeff confirms CSV export.
-**State after:** on `main` (605e395). Sitemap still has 31 URLs.
-**Next:** Jeff's review of PR #6. Remaining week-three post: `/templates/construction-daily-report-template`.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 

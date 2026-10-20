@@ -2,6 +2,14 @@
 
 > Older Session Log entries rolled out of [JOURNEY.md](JOURNEY.md). Newest of these first.
 
+### 2026-10-15 — Marketing copy drops CSV export and deduction claims (605e395)
+**Did:** Removed claims that the app exports CSV or handles deductions from the homepage office card and workflow, `/features`, `/pricing`, `/how-it-works`, `/construction-time-tracking`, the seven `/trades` pages, `/vs/paper-timesheets`, `/vs/spreadsheets`, `/vs/clockshark`, `index.html` meta, and prerender descriptions plus SoftwareApplication JSON-LD. The homepage office card now lists weekly hours, a gross pay estimate, receipts, and private office-only reports. Kept every line that says the app does not calculate taxes, deductions, net pay, or payroll, and kept competitor export lines (Workyard one-click export, Supercrew payroll exports, the best-apps Workyard card). PR #9 gross-estimate wording is unchanged. `npm run build` passed. Live check: production deploy `dpl_D2tVsiCWBAB8N6GF8mE3qrhJnJ8F` is READY, and https://www.myguystime.com/ returns 200 with no `CSV` and no `Reimbursements and deductions`. The only homepage "deduction" line is "No taxes, deductions, net pay, or payroll."
+**Decided:** Marketing pages do not claim CSV export or that the app handles deductions (Decisions Log).
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database. Jeff approved shipping this content-only change without it. `/guides/crew-hours-quickbooks` stays on hold until Jeff confirms CSV export.
+**State after:** on `main` (605e395). Sitemap still has 31 URLs.
+**Next:** Jeff's review of PR #6. Remaining week-three post: `/templates/construction-daily-report-template`.
+
 ### 2026-10-15 — Gross pay estimate only, shown to the office (branch)
 **Did:** Pay estimate is weekly gross only: regular hours times the hourly rate, plus hours past 40 times the overtime rate. Removed net check, reimbursement, and deduction math from `calculatePayrollEstimate` and from the API (`payrollEstimate` no longer has reimbursements, deductions, or `netCheckEstimate`; year-to-date no longer has net, reimbursements, or deductions). Expense and receipt logging stays a list and does not change gross. Admin and foreman see weekly gross on the office card and the admin dashboard, with the estimate disclaimer. Employee API responses omit `grossPay` dollars (`null`), omit `payrollEstimate`, and omit year-to-date dollar fields. Company setup no longer says "Compliant with FLSA". Marketing pages now say the app shows weekly hours, hours past 40, and a simple gross estimate, and that it does not calculate taxes, deductions, net pay, or payroll. `npm run build` passed. `npm test` passed.
 **Decided:** see the 2026-10-15 Decisions Log row. The database column `netCheckEstimateCents` stays; new rows store 0. No migration.
