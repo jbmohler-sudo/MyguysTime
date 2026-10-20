@@ -264,9 +264,9 @@ const tradePages = [
   ["masonry", "Masonry", "Masonry Time Tracking for Masonry Crews | My Guys Time",
     "Block, brick, stone, and hardscapes — daily hour logging from the field for masonry crews. $12/mo flat, no per-seat fees.",
     "Masonry hours without the Thursday scramble."],
-  ["landscaping", "Landscaping", "Landscaping Time Tracking for Landscaping Crews | My Guys Time",
-    "Mowing routes and install crews on one weekly board. Seasonal hires logging day one. $12/mo flat, no per-seat fees.",
-    "Mowing routes and install crews, one weekly review."],
+  ["landscaping", "Landscaping", "Landscaping Time Tracking for Crews | My Guys Time",
+    "Route crews, install crews and seasonal hires on one weekly board. Each guy logs hours from his own phone. $12/month flat for the whole company.",
+    "Landscaping Time Tracking for Route and Install Crews"],
   ["painting", "Painting", "Time Tracking for Painting Crews | My Guys Time",
     "Prep days, paint days, and touch-up callbacks — log painting hours the day they're worked. $12/mo flat, no per-seat fees.",
     "Prep days, paint days, one clean time card."],
@@ -1756,6 +1756,35 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
   if (missing.length > 0) {
     console.error(`[prerender] ${routePath} injected markup missing required content:`, missing);
     process.exit(1);
+  }
+
+  if (routePath === "/trades/landscaping") {
+    const lower = markup.toLowerCase();
+    const banned = ["move their hours", "job costing", "crew map", "csv", "export", "petty cash"];
+    const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    if (hit.length > 0 || badDollars.length > 0) {
+      console.error("[prerender] landscaping page contains banned copy:", hit, badDollars);
+      process.exit(1);
+    }
+    if ((markup.match(/<h1[\s>]/g) || []).length !== 1) {
+      console.error("[prerender] landscaping page must have exactly one H1.");
+      process.exit(1);
+    }
+    if (!markup.includes("his open weeks go with him")) {
+      console.error("[prerender] landscaping page missing the crew-move line.");
+      process.exit(1);
+    }
+    if (!finalHtml.includes('"@type":"WebPage"') || !finalHtml.includes('"@type":"SoftwareApplication"')) {
+      console.error("[prerender] landscaping page missing WebPage or SoftwareApplication JSON-LD.");
+      process.exit(1);
+    }
+    if (finalHtml.includes('"@type":"FAQPage"') || finalHtml.includes('"@type":"BreadcrumbList"')) {
+      console.error("[prerender] landscaping page schema changed; keep the live WebPage and SoftwareApplication blocks.");
+      process.exit(1);
+    }
   }
 
   if (routePath === "/vs/connecteam") {

@@ -6,17 +6,67 @@ import {
   MarketingHeader,
   PageHero,
 } from "./MarketingChrome";
-import { TRADES, getTrade, type TradeConfig } from "./trades";
+import { TRADES, getTrade, type TradeConfig, type TradeSection, type TradeTextLink } from "./trades";
 import { usePageMeta } from "../hooks/usePageMeta";
 
 
 const TRADE_SEO: Record<string, { title: string; description: string }> = {
+  landscaping: {
+    title: "Landscaping Time Tracking for Crews | My Guys Time",
+    description:
+      "Route crews, install crews and seasonal hires on one weekly board. Each guy logs hours from his own phone. $12/month flat for the whole company.",
+  },
   painting: {
     title: "Time Tracking for Painting Crews: Prep Days to Payday | My Guys Time",
     description:
       "Painting weeks are choppy: prep, spray days, touch-up callbacks. My Guys Time logs crew hours from the job site on one clean weekly time card, $12/mo flat.",
   },
 };
+
+function TradeTextLinkView({ link }: { link: TradeTextLink }) {
+  return (
+    <>
+      {link.before}
+      <a href={link.href} className="text-orange-600 font-semibold hover:underline">
+        {link.phrase}
+      </a>
+      {link.after}
+    </>
+  );
+}
+
+function TradeSectionBlock({ section }: { section: TradeSection }) {
+  return (
+    <section className="max-w-3xl mx-auto px-6 mt-20">
+      <h2 className="text-3xl font-bold text-slate-900 mb-4 text-center">{section.title}</h2>
+      {section.body ? <p className="text-slate-600 leading-relaxed">{section.body}</p> : null}
+      {section.bullets ? (
+        <ul className="list-disc pl-6 space-y-3 text-slate-600 leading-relaxed mt-6">
+          {section.bullets.map((item) => (
+            <li key={item.title}>
+              <strong className="text-slate-900">{item.title}</strong> {item.text}
+              {item.link ? (
+                <>
+                  {" "}
+                  {item.link.lead}
+                  <a href={item.link.href} className="text-orange-600 font-semibold hover:underline">
+                    {item.link.phrase}
+                  </a>
+                  .
+                </>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {section.footer ? (
+        <p className="text-slate-600 leading-relaxed mt-6">
+          <TradeTextLinkView link={section.footer} />
+        </p>
+      ) : null}
+    </section>
+  );
+}
 
 export function TradePage({ slug }: { slug: string }) {
   const trade: TradeConfig | undefined = getTrade(slug);
@@ -50,12 +100,14 @@ export function TradePage({ slug }: { slug: string }) {
       <main>
         <PageHero
           eyebrow={`For ${trade.plural}`}
+          kicker={trade.kicker}
           title={trade.h1}
           sub={trade.sub}
         />
 
         <section className="max-w-3xl mx-auto px-6 mt-4 text-center">
-          <p className="text-slate-600 leading-relaxed">{trade.intro}</p>
+          {trade.answer ? <p className="text-slate-700 leading-relaxed">{trade.answer}</p> : null}
+          <p className={`text-slate-600 leading-relaxed${trade.answer ? " mt-4" : ""}`}>{trade.intro}</p>
           <p className="text-slate-600 leading-relaxed mt-4">
             More on{" "}
             <a href="/construction-time-tracking" className="text-orange-600 font-semibold hover:underline">
@@ -125,6 +177,10 @@ export function TradePage({ slug }: { slug: string }) {
           </div>
         </section>
 
+        {trade.afterFlow?.map((section) => (
+          <TradeSectionBlock key={section.title} section={section} />
+        ))}
+
         {/* Callout */}
         <section className="max-w-3xl mx-auto px-6 mt-20">
           <div className="bg-orange-50 border border-orange-200 rounded-2xl p-8">
@@ -133,6 +189,11 @@ export function TradePage({ slug }: { slug: string }) {
               <div>
                 <h2 className="text-2xl font-bold text-slate-900 mb-3">{trade.calloutTitle}</h2>
                 <p className="text-slate-700 leading-relaxed">{trade.calloutText}</p>
+                {trade.calloutExtra ? (
+                  <p className="text-slate-700 leading-relaxed mt-4">
+                    <TradeTextLinkView link={trade.calloutExtra} />
+                  </p>
+                ) : null}
                 {slug === "general-contracting" ? (
                   <p className="text-slate-700 leading-relaxed mt-4">
                     For whether those 1099 subs are owed overtime, see{" "}
@@ -150,6 +211,10 @@ export function TradePage({ slug }: { slug: string }) {
           </div>
         </section>
 
+        {trade.afterCallout?.map((section) => (
+          <TradeSectionBlock key={section.title} section={section} />
+        ))}
+
         {/* FAQ */}
         <section className="max-w-3xl mx-auto px-6 mt-20">
           <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">
@@ -166,7 +231,14 @@ export function TradePage({ slug }: { slug: string }) {
               </details>
             ))}
           </div>
-          <div className="text-center mt-8">
+          {trade.faqFooter ? (
+            <p className="text-center mt-8">
+              <a href={trade.faqFooter.href} className="text-orange-600 hover:underline font-medium">
+                {trade.faqFooter.phrase}
+              </a>
+            </p>
+          ) : null}
+          <div className={`text-center ${trade.faqFooter ? "mt-4" : "mt-8"}`}>
             <a href="/faq" className="text-orange-600 hover:underline font-medium inline-flex items-center gap-1">
               <ClipboardList className="w-4 h-4" /> All frequently asked questions <ArrowRight className="w-4 h-4" />
             </a>

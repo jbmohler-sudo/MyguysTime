@@ -164,16 +164,19 @@ export function CtaBand({
 
 export function PageHero({
   eyebrow,
+  kicker,
   title,
   sub,
 }: {
   eyebrow: string;
+  kicker?: string;
   title: string;
   sub: string;
 }) {
   return (
     <section className="max-w-6xl mx-auto px-6 pt-16 pb-8 text-center">
       <p className="text-orange-600 font-semibold text-sm uppercase tracking-widest mb-4">{eyebrow}</p>
+      {kicker ? <p className="text-lg text-slate-700 mb-4">{kicker}</p> : null}
       <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">{title}</h1>
       <p className="text-xl text-slate-600 max-w-3xl mx-auto">{sub}</p>
     </section>

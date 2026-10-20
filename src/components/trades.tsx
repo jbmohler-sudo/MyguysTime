@@ -3,17 +3,47 @@ export interface TradeFaq {
   text: string;
 }
 
+export interface TradeTextLink {
+  before: string;
+  phrase: string;
+  href: string;
+  after?: string;
+}
+
+export interface TradeBullet {
+  title: string;
+  text: string;
+  link?: { lead: string; phrase: string; href: string };
+}
+
+export interface TradeSection {
+  title: string;
+  body?: string;
+  bullets?: TradeBullet[];
+  footer?: TradeTextLink;
+}
+
 export interface TradeConfig {
   slug: string;
   trade: string;
   plural: string;
   h1: string;
+  /** Sentence above the H1. The category eyebrow stays. */
+  kicker?: string;
   sub: string;
+  /** Short answer under the hero, before the intro. */
+  answer?: string;
   intro: string;
   pains: { title: string; text: string }[];
   flow: { title: string; text: string }[];
+  /** Extra H2 blocks between the weekly flow and the callout. */
+  afterFlow?: TradeSection[];
   calloutTitle: string;
   calloutText: string;
+  calloutExtra?: TradeTextLink;
+  /** Extra H2 blocks between the callout and the FAQs. */
+  afterCallout?: TradeSection[];
+  faqFooter?: TradeTextLink;
   faqs: TradeFaq[];
 }
 
@@ -146,61 +176,124 @@ export const TRADES: TradeConfig[] = [
     slug: "landscaping",
     trade: "Landscaping",
     plural: "landscaping crews",
-    h1: "Mowing routes and install crews, one weekly review.",
+    h1: "Landscaping Time Tracking for Route and Install Crews",
+    kicker: "Mowing routes and install crews, one weekly review.",
     sub: "Route crews hitting twelve properties a day, install crews on a patio job, and seasonal help that turns over by July. Track it all without the paperwork.",
+    answer:
+      "Landscaping time tracking for a small outfit means getting each guy's daily hours from route days and install jobs onto one weekly card, without chasing paper on Friday. With My Guys Time each worker joins his crew's team from his own phone, he or the crew lead logs the day, and the foreman approves the week. $12/month flat for the whole company.",
     intro:
-      "Landscaping runs two different businesses at once: route work where a crew touches a dozen properties before lunch, and install work where the same guys spend three days on one hardscape. Add seasonal crew turnover and Saturday cleanups, and the weekly hours become a blur. My Guys Time lets each crew lead log the day from the truck — and gives you one board where routes and installs add up together.",
+      "Landscaping is two businesses at once. Route work, where a crew touches a dozen properties before lunch. Install work, where the same guys spend three days on one hardscape. Add spring hiring, guys who are gone by August, and Saturday rain makeup days, and the weekly hours turn into a guess. My Guys Time puts every crew's week on one board.",
     pains: [
       {
         title: "Route days are a blur",
-        text: "Twelve properties, one crew, one day. Nobody's writing down hours per stop — but you still need the week's total to be right, not guessed.",
+        text: "Twelve properties, one crew, one day. Nobody writes down hours per stop, but the week's total still has to be right, not guessed.",
       },
       {
-        title: "Install crews vs. route crews",
-        text: "Different work, different pace, sometimes different guys mid-week. Hours get lumped together and you lose sight of which side is actually making money.",
+        title: "Install crews vs route crews",
+        text: "Different work, different pace, sometimes different guys by Wednesday. Lump the hours together and you can't tell which side of the business ate the week.",
       },
       {
         title: "Seasonal turnover",
-        text: "New faces every spring, some gone by August. Getting a new hire onto paper time cards — and off them cleanly — is a hassle you don't need.",
+        text: "New faces every spring, some gone by August. Getting a new hire onto paper time cards, and off them cleanly, is a hassle you don't need.",
       },
       {
-        title: "Saturday and weather makeup days",
-        text: "Rain pushes the route to Saturday. Those odd days are the first ones forgotten when payroll comes around.",
+        title: "Rain makeup days",
+        text: "Rain pushes the route to Saturday. Those odd days are the first ones forgotten when the week gets totaled up.",
       },
     ],
     flow: [
       {
-        title: "Crew lead logs from the truck",
-        text: "Route done, tailgate down, hours tapped in. Takes less time than fueling up. The install foreman does the same from the patio job.",
+        title: "Log the day from the truck",
+        text: "Each guy logs his hours from his own phone, or the crew lead logs them for the crew. Route done, tailgate down, hours in. The install crew does the same from the patio job.",
       },
       {
-        title: "You review the week",
-        text: "One board: route crew, install crew, every day. Saturday makeup hours are already there — no Monday-morning detective work.",
+        title: "The foreman approves the week",
+        text: "One board per crew, every day of the week. Saturday makeup hours are already there. No Monday morning detective work.",
       },
       {
-        title: "Adjust for the shuffles",
-        text: "Pulled two guys off route to finish the install Thursday? Move their hours. New seasonal hire started Wednesday? He's on the board from day one.",
+        title: "Crews change, the board keeps up",
+        text: "A guy moving from the route crew to installs for the season? The office moves him to the other crew on the Team page, and his open weeks go with him. New seasonal hire started Wednesday? He's on the board from his first day.",
       },
       {
         title: "Hand off the week",
-        text: "The office reviews the week and hands it to whoever runs payroll. Copyable invite links mean a new hire is logging hours the same day he starts — no paperwork delay.",
+        text: "The office sees weekly hours, hours past 40, and a simple gross pay estimate, then hands the week to whoever runs payroll.",
+      },
+    ],
+    afterFlow: [
+      {
+        title: "More than one crew?",
+        body: "Run your route crew and your install crew as separate crews, each with its own crew chief and its own weekly board. Same company, same login, same price. Two crews or five, it's $12/month flat for the whole company. You see every crew's week on one screen.",
       },
     ],
     calloutTitle: "New hire Monday, logging hours Monday",
     calloutText:
-      "Landscaping hires fast and loses people faster. There's no onboarding packet for a time card here — you send the new guy a copyable invite link, he opens it in his phone browser, and he's on the crew board. When he leaves in August, he's just off the board. Nothing to collect, nothing to file.",
+      "Landscaping hires fast and loses people faster. There's no onboarding packet for a time card here. Send the new guy a copyable invite link, he opens it in his phone's browser, joins his crew, and he's logging hours that day. When he leaves in August, he's off the board. Nothing to collect, nothing to file.",
+    calloutExtra: {
+      before: "Need a paper backup for the first day? Grab the ",
+      phrase: "free crew timesheet template",
+      href: "/templates/construction-timesheet-template",
+      after: ".",
+    },
+    afterCallout: [
+      {
+        title: "What apps do landscapers use for crew hours?",
+        body: "Most small landscaping outfits end up in one of four places:",
+        bullets: [
+          {
+            title: "General time trackers with a free tier.",
+            text: "Good for a couple of people. They're usually built around a timer and priced per seat once you grow.",
+          },
+          {
+            title: "Per-seat crew apps.",
+            text: "Built for field crews, often with location tracking, priced per user.",
+            link: {
+              lead: "See ",
+              phrase: "ClockShark vs My Guys Time",
+              href: "/vs/clockshark",
+            },
+          },
+          {
+            title: "Full landscaping business software.",
+            text: "Scheduling, estimates, invoicing and more, at full business software prices. A lot to learn if you just need hours.",
+          },
+          {
+            title: "A flat-price crew time card.",
+            text: "That's us: daily hours, foreman approval, one price for the whole company.",
+          },
+        ],
+        footer: {
+          before: "More side by side: ",
+          phrase: "construction time tracking app comparisons",
+          href: "/best-construction-time-tracking-apps",
+          after: ".",
+        },
+      },
+    ],
+    faqFooter: {
+      before: "",
+      phrase: "Guides and templates for crew hours",
+      href: "/guides",
+    },
     faqs: [
       {
         q: "Can I see route hours separate from install hours?",
-        text: "Each crew has its own board, so route and install hours stay visually separated all week. The day-by-day hours are on the board for job costing.",
+        text: "Yes. Run them as separate crews and each crew gets its own weekly board, so route hours and install hours stay apart all week.",
       },
       {
         q: "What if a crew lead forgets to log a day?",
-        text: "You'll see the gap on the weekly board — an empty day is obvious. And a solo crew can auto-approve, so a one-man route operation barely touches the system at all.",
+        text: "The empty day shows on the weekly board, so it's hard to miss. Each guy can log his own hours from his phone too. A one-man route crew auto-approves.",
       },
       {
         q: "Does it handle overtime?",
-        text: "The weekly board shows each person's total hours and the hours past 40, plus a simple gross pay estimate for the office. It doesn't calculate taxes, deductions, net pay, or payroll. Saturday makeup days are already in the hour totals.",
+        text: "The weekly board shows each person's weekly hours, hours past 40, and a simple gross pay estimate for the office. It doesn't calculate taxes, deductions, net pay, or payroll. Saturday makeup days are already in the totals. Hand the week to whoever runs payroll.",
+      },
+      {
+        q: "Do seasonal guys need to download an app?",
+        text: "No. They open the invite link in the phone's browser and add it to the home screen.",
+      },
+      {
+        q: "What does it cost for a landscaping company?",
+        text: "$12/month flat for the whole company, every crew, every seasonal hire. Try it for 7 days, no card.",
       },
     ],
   },
