@@ -12,9 +12,9 @@
 - **Marketing site live:** `/features`, `/pricing`, `/how-it-works`, `/faq`, `/construction-time-tracking`,
   `/construction-time-tracking-cost`, `/best-construction-time-tracking-apps`,
   `/guides`, `/guides/how-contractors-track-crew-hours`, `/guides/do-1099-subs-get-overtime`,
-  `/templates/construction-timesheet-template`, `/templates/time-to-decimal-chart`, `/templates/construction-daily-report-template`, seven `/trades/:slug` pages, and
+  `/templates/construction-timesheet-template`, `/templates/time-to-decimal-chart`, `/templates/construction-daily-report-template`, `/templates/military-time-chart`, seven `/trades/:slug` pages, and
   `/vs/{paper-timesheets,quickbooks-time,spreadsheets,clockshark,connecteam,busybusy,workyard,supercrew,clockify}` — all prerendered, in the sitemap
-  (33 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
+  (34 URLs). Week one (2026-09-28–10-02) is live: construction time tracking pillar, ClockShark vs, cost hub,
   construction timesheet template, and Connecteam vs. Week two: `/vs/busybusy` (2026-10-05), `/vs/workyard` (2026-10-06),
   `/best-construction-time-tracking-apps` (2026-10-08), and `/guides/how-contractors-track-crew-hours` (2026-10-09).
   Week three: `/vs/supercrew` (2026-10-12), `/templates/time-to-decimal-chart` (2026-10-14), a refresh of
@@ -28,12 +28,12 @@
   Gross pay estimate is live on `main` (a1aa857, PR #9): weekly
   hours times the rate, plus hours past 40 times the overtime rate, shown to admin and foreman only.
   Marketing copy on `main` (605e395) does not claim CSV export or that the app handles deductions.
-- Week four: `/vs/clockify` is live (2026-10-20, 50f3705). `/trades/landscaping` was refreshed in place (2026-10-20, c9a722b and 3775728; sitemap lastmod 2026-10-20). Still briefed, not approved: `/templates/military-time-chart`, `/guides/how-to-calculate-hours-worked`, `/guides/how-to-calculate-overtime`.
+- Week four: `/vs/clockify` is live (2026-10-20, 50f3705). `/trades/landscaping` was refreshed in place (2026-10-20, c9a722b and 3775728; sitemap lastmod 2026-10-20). `/templates/military-time-chart` is live (2026-10-21, 00d2ee9) with PDF and Excel downloads. Still briefed, not approved: `/guides/how-to-calculate-hours-worked`, `/guides/how-to-calculate-overtime`.
 - **App live (2026-10-11/12):** office crew management on the Team page (add/rename/remove crews, crew chiefs,
   move workers), the cross-company timesheet fence, and the deep `/api` routing fix (a7b9abd). Before a7b9abd,
   every API path two or more segments below its prefix 404'd in production, so saving day hours and week
   status changes did not work on the live site.
-- **Next:** Jeff's review of PR #6/#8. Remaining week-four posts still need a go-live yes: `/templates/military-time-chart`, `/guides/how-to-calculate-hours-worked`, `/guides/how-to-calculate-overtime`. The QuickBooks guide stays on hold until Jeff confirms CSV export.
+- **Next:** Jeff's review of PR #6/#8. Remaining week-four posts still need a go-live yes: `/guides/how-to-calculate-hours-worked`, `/guides/how-to-calculate-overtime`. When the hours-worked guide ships, link it from military-chart FAQ 4. The QuickBooks guide stays on hold until Jeff confirms CSV export.
 - **Biggest open item:** Jeff's call on PR #6 merge, CSV-export confirmation for the QuickBooks
   guide, and two Cursor branches (Open Questions). Optional later: Auth admin on `sb_secret_`
   (then disable legacy JWT), Neon→one Supabase DB.
@@ -114,6 +114,14 @@ Supabase; app rows moved to Neon.
 
 ## Session Log
 
+### 2026-10-21 — Military time chart live (00d2ee9)
+**Did:** Published `/templates/military-time-chart` from the approved 2026-10-21 draft (Jeff's go-live, including the downloads). New `MilitaryTimeChartPage` with the 24-hour chart, minutes strip, conversion rules, a made-up punch-clock day, soft CTA, and 5 FAQs. Each guy joins his crew's team from his own phone; he or the foreman logs the hours. The office sees weekly hours, hours past 40, and a simple gross pay estimate. Prerender title `Military Time Chart for Time Cards (Printable PDF + Excel)`, the draft meta and OG description, self-canonical `https://www.myguystime.com/templates/military-time-chart`, plus Article (Jeff Mohler, Founder, datePublished 2026-10-21), WebPage, FAQPage from the 5 FAQs, and BreadcrumbList Home / Free Construction Timesheet Template / Military Time Chart. PDF and XLSX are in `public/templates/` and are not in the sitemap. Sitemap is 34 URLs. Inbound links: `/guides`, the decimal chart, and the timesheet template. FAQ 4 links the decimal chart. `/guides/how-to-calculate-hours-worked` is not live, so that FAQ link was left off. No CSV, breaks, petty cash, crew map, or claims that the app does taxes, deductions, net pay, or payroll. Reviewer notes and the change log were not published. `npm run build` passed. Conversion check covered all 1,440 minutes and the 12 chart rows: 0000 is 12:00 AM, 1200 is 12:00 PM, 1300 is 1:00 PM, 2359 is 11:59 PM. Excel Monday example 06:45 to 15:30 with 30 minutes unpaid lunch is 8.25; overnight 22:00 to 06:30 with 0 is 8.50. PDF is one Letter page, text selectable, 3,235 bytes, chart times at 14 pt. Live: Vercel reported the 00d2ee9 production deploy complete. https://www.myguystime.com/templates/military-time-chart returns 200, text/html, one H1. The PDF returns 200, application/pdf. The xlsx returns 200, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet. Live sitemap returns 200 with 34 URLs and does not list the files.
+**Decided:** nothing new.
+**Killed:** nothing.
+**Deferred:** `npm test`. This environment has no local fixture database. Jeff approved shipping this content-only page without it. The draft's optional DigitalDocument blocks were left off so the schema matches the decimal chart. The footer Guides link still waits on PR #6. FAQ 4's hours-worked guide link waits until that page is live.
+**State after:** `/templates/military-time-chart` is on `main` (00d2ee9). Sitemap has 34 URLs.
+**Next:** Remaining week-four pages still need Jeff's go-live: `/guides/how-to-calculate-hours-worked`, `/guides/how-to-calculate-overtime`.
+
 ### 2026-10-20 — Landscaping trade page refresh live (c9a722b, 3775728)
 **Did:** Refreshed `/trades/landscaping` in place from the approved 2026-10-20 draft (Jeff's go-live for the content-only page). H1 is `Landscaping Time Tracking for Route and Install Crews`; the old H1 is the kicker. Title `Landscaping Time Tracking for Crews | My Guys Time` and the draft meta. Each guy logs from his own phone. Step 3 says the office moves a guy to the other crew on the Team page and his open weeks go with him. Removed "Move their hours" and "for job costing". Added the multiple-crews section, the apps section, two FAQs, the timesheet-template link, and the guides link. The Clockify bullet link shipped in 3775728 once `/vs/clockify` was on main (50f3705). Kept the route, the live free-week CTA, and the WebPage + SoftwareApplication schema. No new FAQPage or breadcrumb. This refresh did not add a sitemap URL; this URL's `<lastmod>` is 2026-10-20. After the Clockify page, the sitemap has 33 URLs. No crew map, CSV, breaks, petty cash, competitor prices, or claims that the app does taxes, deductions, net pay, or payroll. Reviewer notes and the change log were not published. `npm run build` passed. Dist HTML: one H1, canonical `https://www.myguystime.com/trades/landscaping`, dollar amounts are only `$12`. Live check: production deploy `dpl_61ovfvqoyok6dre8K2giQGkqo3Ym` is READY. https://www.myguystime.com/trades/landscaping returns 200 with the new H1 and without "Move their hours", "job costing", or "crew map". Live sitemap returns 200 with 33 URLs and this page's lastmod 2026-10-20.
 **Decided:** nothing new.
@@ -137,14 +145,6 @@ Supabase; app rows moved to Neon.
 **Deferred:** `/guides/crew-hours-quickbooks` (still on hold until Jeff confirms CSV export). The subcontractor-vs-employee guide (DOL's final independent-contractor rule has been at OIRA review since 2026-09-28; wait for it). `npm test` not run: no local fixture database in this environment; doc-only change shipped on a passing build per Jeff's 2026-09-28 rule.
 **State after:** sitemap 32 URLs (live = main). PR #6 (structure fixes) and PR #8 (/privacy and /terms) are open and wait on Jeff. Week four is planned and briefed, not approved.
 **Next:** Week four, each pending Jeff's go-live yes: Mon 2026-10-19 `/vs/clockify`; Tue 2026-10-20 `/trades/landscaping` refresh (same URL); Wed 2026-10-21 `/templates/military-time-chart` (ships only if PDF + Excel are built); Thu 2026-10-22 `/guides/how-to-calculate-hours-worked`; Fri 2026-10-23 `/guides/how-to-calculate-overtime`. Fix the `/guides` orphan (PR #6 footer, or body links).
-
-### 2026-10-16 — Construction daily report template live (17d05f3)
-**Did:** Published `/templates/construction-daily-report-template` from the approved 2026-10-16 draft (Jeff's standing content-only ship rule). New `ConstructionDailyReportTemplatePage`, registered in `marketingPageMap` and `scripts/prerender-landing.mjs`. Title `Free Construction Daily Report Template (PDF + Excel)`, the draft meta and OG description, self-canonical `https://www.myguystime.com/templates/construction-daily-report-template`, plus Article (Jeff Mohler, Founder, datePublished 2026-10-16), WebPage, FAQPage from the 5 FAQs, BreadcrumbList Home / Free Construction Timesheet Template / Construction Daily Report Template, and DigitalDocument for the PDF and Excel files. PDF, XLSX, and a page-1 thumbnail are in `public/templates/` and are not in the sitemap. Sitemap is 32 URLs. Inbound links: the timesheet template ("construction daily report template"), the construction time tracking pillar, and the guides hub. Outbound: timesheet template, time-to-decimal chart, the crew-hours guide, `/construction-time-tracking` once in the body, `/pricing`, and `/demo/foreman`. No link to `/guides/crew-hours-quickbooks`. Each guy joins the crew team from his own phone, and he or the foreman logs the hours. The page says the app is a time card and does not do weather, deliveries, or job logs. Lunch stays on the paper form. No CSV, breaks, petty cash, Google Sheets, competitor prices, or payroll/tax claims. `npm run build` passed. Dist HTML: one H1, both download hrefs, canonical as above, dollar amounts are only `$12`.
-**Decided:** nothing new.
-**Killed:** nothing.
-**Deferred:** `npm test`. This environment has no local fixture database (`DATABASE_URL` unset). The fixture-safety guard would refuse, and tests must not point at real Neon or Supabase.
-**State after:** `/templates/construction-daily-report-template` is on `main` (17d05f3). Sitemap has 32 URLs.
-**Next:** Confirm the Vercel deploy is READY and the live page plus both file URLs return 200.
 
 > Older sessions archived in [JOURNEY_ARCHIVE.md](JOURNEY_ARCHIVE.md).
 
