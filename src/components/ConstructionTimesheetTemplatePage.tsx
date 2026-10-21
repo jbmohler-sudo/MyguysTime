@@ -180,6 +180,10 @@ export function ConstructionTimesheetTemplatePage() {
             <TextLink href="/templates/time-to-decimal-chart">convert minutes to decimal hours</TextLink>.
           </p>
           <p className="text-slate-600 leading-relaxed mt-6">
+            Cards printed in 24-hour time? Use the{" "}
+            <TextLink href="/templates/military-time-chart">military time chart</TextLink>.
+          </p>
+          <p className="text-slate-600 leading-relaxed mt-6">
             For the job's day, weather, work done, and delays, use the{" "}
             <TextLink href="/templates/construction-daily-report-template">construction daily report template</TextLink>.
           </p>

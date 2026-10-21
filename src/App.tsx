@@ -14,6 +14,7 @@ import { ConstructionTimeTrackingPage } from "./components/ConstructionTimeTrack
 import { ConstructionTimeTrackingCostPage } from "./components/ConstructionTimeTrackingCostPage";
 import { ConstructionTimesheetTemplatePage } from "./components/ConstructionTimesheetTemplatePage";
 import { TimeToDecimalChartPage } from "./components/TimeToDecimalChartPage";
+import { MilitaryTimeChartPage } from "./components/MilitaryTimeChartPage";
 import { ConstructionDailyReportTemplatePage } from "./components/ConstructionDailyReportTemplatePage";
 import { BestConstructionTimeTrackingAppsPage } from "./components/BestConstructionTimeTrackingAppsPage";
 import { GuidePage } from "./components/GuidePage";
@@ -544,6 +545,7 @@ function AppContent() {
       "/construction-time-tracking-cost": <ConstructionTimeTrackingCostPage />,
       "/templates/construction-timesheet-template": <ConstructionTimesheetTemplatePage />,
       "/templates/time-to-decimal-chart": <TimeToDecimalChartPage />,
+      "/templates/military-time-chart": <MilitaryTimeChartPage />,
       "/templates/construction-daily-report-template": <ConstructionDailyReportTemplatePage />,
       "/best-construction-time-tracking-apps": <BestConstructionTimeTrackingAppsPage />,
       "/guides": <GuidesHubPage />,

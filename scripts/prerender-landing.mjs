@@ -1054,6 +1054,7 @@ pages.push([
     "Is there a free timesheet template?",
     "Can I track 1099 subs on the same timesheet?",
     "$12/month",
+    "/templates/military-time-chart",
   ],
 ]);
 
@@ -1160,8 +1161,223 @@ pages.push([
     "/templates/construction-timesheet-template",
     "/guides/how-contractors-track-crew-hours",
     "/vs/paper-timesheets",
+    "/templates/military-time-chart",
     "38.58",
     "each guy joins the crew team from his own phone",
+  ],
+]);
+
+const militaryChartRoute = "/templates/military-time-chart";
+const militaryChartTitle = "Military Time Chart for Time Cards (Printable PDF + Excel)";
+const militaryChartDescription =
+  "24-hour military time to standard time, every hour and minute, on one printable page. Read punch-clock time cards fast. Free PDF and Excel, no signup.";
+const militaryChartHeadline = "Military Time Chart: 24-Hour Clock to Standard Time";
+
+function militaryStandardTime(hour, minute) {
+  const hour12 = hour % 12 || 12;
+  const period = hour < 12 ? "AM" : "PM";
+  return `${hour12}:${String(minute).padStart(2, "0")} ${period}`;
+}
+
+function militaryCode(hour, minute) {
+  return `${String(hour).padStart(2, "0")}${String(minute).padStart(2, "0")}`;
+}
+
+const militarySpotChecks = [
+  [0, 0, "12:00 AM"],
+  [12, 0, "12:00 PM"],
+  [13, 0, "1:00 PM"],
+  [23, 59, "11:59 PM"],
+  [14, 30, "2:30 PM"],
+  [17, 15, "5:15 PM"],
+  [0, 30, "12:30 AM"],
+  [16, 45, "4:45 PM"],
+  [12, 15, "12:15 PM"],
+  [0, 10, "12:10 AM"],
+  [0, 45, "12:45 AM"],
+  [17, 0, "5:00 PM"],
+];
+for (const [hour, minute, expected] of militarySpotChecks) {
+  const fromPage = ssr.militaryToStandard(hour, minute);
+  const fromPrerender = militaryStandardTime(hour, minute);
+  if (fromPage !== expected || fromPrerender !== expected) {
+    console.error("[prerender] military time spot check failed:", hour, minute, fromPage, fromPrerender, expected);
+    process.exit(1);
+  }
+}
+let militaryMinutesChecked = 0;
+for (let hour = 0; hour < 24; hour += 1) {
+  for (let minute = 0; minute < 60; minute += 1) {
+    const fromPage = ssr.militaryToStandard(hour, minute);
+    const fromPrerender = militaryStandardTime(hour, minute);
+    const [clock, period] = fromPrerender.split(" ");
+    const [hour12Text, minuteText] = clock.split(":");
+    const hour12 = Number(hour12Text);
+    const parsedMinute = Number(minuteText);
+    const hour24 = period === "AM" ? (hour12 === 12 ? 0 : hour12) : hour12 === 12 ? 12 : hour12 + 12;
+    if (fromPage !== fromPrerender || hour24 !== hour || parsedMinute !== minute) {
+      console.error("[prerender] military time round trip failed:", hour, minute, fromPage, fromPrerender);
+      process.exit(1);
+    }
+    militaryMinutesChecked += 1;
+  }
+}
+if (militaryMinutesChecked !== 1440) {
+  console.error("[prerender] military time check did not cover 1440 minutes.");
+  process.exit(1);
+}
+if (!Array.isArray(ssr.militaryChartFaqItems) || ssr.militaryChartFaqItems.length !== 5) {
+  console.error("[prerender] military chart FAQ array missing or not 5 items — refusing to ship drifted JSON-LD.");
+  process.exit(1);
+}
+if (!Array.isArray(ssr.militaryHourRows) || ssr.militaryHourRows.length !== 12) {
+  console.error("[prerender] military chart hour rows missing or not 12 — refusing to ship.");
+  process.exit(1);
+}
+for (let hour = 0; hour < 12; hour += 1) {
+  const row = ssr.militaryHourRows[hour];
+  if (
+    row.am !== militaryStandardTime(hour, 0) ||
+    row.amMil !== militaryCode(hour, 0) ||
+    row.pm !== militaryStandardTime(hour + 12, 0) ||
+    row.pmMil !== militaryCode(hour + 12, 0)
+  ) {
+    console.error("[prerender] military chart row drifted:", hour, row);
+    process.exit(1);
+  }
+}
+const militaryPdfPath = path.resolve("public/templates/military-time-chart.pdf");
+const militaryXlsxPath = path.resolve("public/templates/military-time-chart.xlsx");
+for (const filePath of [militaryPdfPath, militaryXlsxPath]) {
+  if (!fs.existsSync(filePath) || fs.statSync(filePath).size < 1000) {
+    console.error("[prerender] military chart download missing:", filePath);
+    process.exit(1);
+  }
+}
+if (fs.statSync(militaryPdfPath).size > 200 * 1024) {
+  console.error("[prerender] military chart PDF is over 200 KB.");
+  process.exit(1);
+}
+const militaryPdfRaw = fs.readFileSync(militaryPdfPath);
+if (!militaryPdfRaw.subarray(0, 5).equals(Buffer.from("%PDF-"))) {
+  console.error("[prerender] military chart PDF is not a PDF.");
+  process.exit(1);
+}
+const militaryPdfPages = militaryPdfRaw.toString("latin1").match(/\/Type \/Page(?!s)/g) || [];
+if (militaryPdfPages.length !== 1) {
+  console.error("[prerender] military chart PDF must be exactly one page.");
+  process.exit(1);
+}
+const militaryXlsxHead = fs.readFileSync(militaryXlsxPath).subarray(0, 2);
+if (!militaryXlsxHead.equals(Buffer.from("PK"))) {
+  console.error("[prerender] military chart Excel file is not an xlsx zip.");
+  process.exit(1);
+}
+
+const militaryChartFaqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: ssr.militaryChartFaqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const militaryChartArticleLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: militaryChartHeadline,
+  description: militaryChartDescription,
+  datePublished: "2026-10-21",
+  author: {
+    "@type": "Person",
+    name: "Jeff Mohler",
+    jobTitle: "Founder",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "My Guys Time",
+    url: canonicalHost + "/",
+    logo: {
+      "@type": "ImageObject",
+      url: canonicalHost + "/images/og-myguystime.png",
+    },
+  },
+  mainEntityOfPage: canonicalHost + militaryChartRoute,
+};
+
+const militaryChartBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: canonicalHost + "/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Free Construction Timesheet Template",
+      item: canonicalHost + templateRoute,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Military Time Chart",
+      item: canonicalHost + militaryChartRoute,
+    },
+  ],
+};
+
+pages.push([
+  militaryChartRoute,
+  "templates/military-time-chart/index.html",
+  () => ssr.renderMilitaryTimeChartHtml(),
+  militaryChartTitle,
+  militaryChartDescription,
+  [
+    ["ld-article", militaryChartArticleLd],
+    ["ld-faqpage", militaryChartFaqLd],
+    ["ld-breadcrumb", militaryChartBreadcrumbLd],
+    ["ld-organization", organizationLd],
+    ["ld-website", websiteLd],
+  ],
+  [
+    militaryChartHeadline,
+    "Printable · PDF + Excel",
+    "1430 is 2:30 PM",
+    "1715 is 5:15 PM",
+    "0030 is 12:30 AM",
+    "2359",
+    "military time chart, 24-hour clock to standard time, AM and PM",
+    "/templates/military-time-chart.pdf",
+    "/templates/military-time-chart.xlsx",
+    ">0000</td>",
+    ">1200</td>",
+    ">1300</td>",
+    ">12:00 AM</td>",
+    ">12:00 PM</td>",
+    ">1:00 PM</td>",
+    "0700 = 7:00 AM",
+    "1500 = 3:00 PM",
+    "1555 = 3:55 PM",
+    "8.25",
+    "What is 1700 in military time?",
+    "1700 is 5:00 PM.",
+    "Is the chart free?",
+    "Converting times off paper cards every Friday?",
+    "hours past 40",
+    "simple gross pay estimate",
+    "$12/month flat for the whole company",
+    "his own phone",
+    "/demo/foreman",
+    "/pricing",
+    "/templates/time-to-decimal-chart",
+    "/templates/construction-timesheet-template",
+    'href="/guides"',
   ],
 ]);
 
@@ -1404,7 +1620,7 @@ pages.push([
 const guidesHubRoute = "/guides";
 const guidesHubTitle = "Guides and Templates for Construction Crew Hours | My Guys Time";
 const guidesHubDescription =
-  "Guides and free templates for construction crew hours: paper versus a crew app, 1099 overtime, a weekly timesheet, a daily report, and a minutes-to-decimal chart.";
+  "Guides and free templates for construction crew hours: paper versus a crew app, 1099 overtime, a weekly timesheet, a daily report, a minutes-to-decimal chart, and a military time chart.";
 const guidesHubHeadline = "Guides and Templates for Construction Crew Hours";
 
 const guidesHubHrefs = [
@@ -1413,6 +1629,7 @@ const guidesHubHrefs = [
   "/templates/construction-timesheet-template",
   "/templates/construction-daily-report-template",
   "/templates/time-to-decimal-chart",
+  "/templates/military-time-chart",
 ];
 
 if (
@@ -2217,6 +2434,87 @@ for (const [routePath, outFile, renderFn, title, description, ldBlocks, snippets
     );
     if (faqMismatch.length > 0) {
       console.error("[prerender] decimal chart FAQ text drifted from JSON-LD source:", faqMismatch.map((item) => item.q));
+      process.exit(1);
+    }
+  }
+
+  if (routePath === "/templates/military-time-chart") {
+    const lower = markup.toLowerCase();
+    const banned = [
+      "csv",
+      "export",
+      "petty cash",
+      "crew map",
+      "google sheets",
+      "one phone per crew",
+      "/guides/crew-hours-quickbooks",
+      "/guides/how-to-calculate-hours-worked",
+      "calculates payroll",
+      "calculates tax",
+      "payroll",
+      "deduction",
+      "net pay",
+    ];
+    const hit = banned.filter((token) => lower.includes(token));
+    if (/\bbreaks?\b/.test(lower)) hit.push("break");
+    const dollars = markup.match(/\$\d+(?:\.\d+)?/g) || [];
+    const badDollars = [...new Set(dollars.filter((amount) => amount !== "$12"))];
+    const missingRows = (ssr.militaryHourRows || []).filter(
+      (row) =>
+        !markup.includes(`>${row.am}</td><td class="p-4 text-slate-600">${row.amMil}</td>`) ||
+        !markup.includes(`>${row.pm}</td><td class="p-4 text-slate-600">${row.pmMil}</td>`),
+    );
+    if (hit.length > 0 || badDollars.length > 0 || missingRows.length > 0) {
+      console.error("[prerender] military chart page failed copy or table check:", hit, badDollars, missingRows.slice(0, 5));
+      process.exit(1);
+    }
+    if ((markup.match(/<h1[\s>]/g) || []).length !== 1) {
+      console.error("[prerender] military chart page must have exactly one H1.");
+      process.exit(1);
+    }
+    if (
+      !finalHtml.includes('"@type":"Article"') ||
+      !finalHtml.includes('"@type":"FAQPage"') ||
+      !finalHtml.includes('"@type":"WebPage"') ||
+      !finalHtml.includes('"@type":"BreadcrumbList"')
+    ) {
+      console.error("[prerender] military chart page missing Article, WebPage, FAQPage, or BreadcrumbList JSON-LD.");
+      process.exit(1);
+    }
+    if (
+      !finalHtml.includes('"datePublished":"2026-10-21"') ||
+      !finalHtml.includes('"name":"Jeff Mohler"') ||
+      !finalHtml.includes('"jobTitle":"Founder"')
+    ) {
+      console.error("[prerender] military chart Article JSON-LD missing author or date.");
+      process.exit(1);
+    }
+    if (
+      finalHtml.includes('"name":"Templates"') ||
+      !finalHtml.includes("https://www.myguystime.com/templates/military-time-chart") ||
+      !finalHtml.includes('"name":"Free Construction Timesheet Template"') ||
+      !finalHtml.includes('"name":"Military Time Chart"')
+    ) {
+      console.error("[prerender] military chart canonical or breadcrumb is wrong.");
+      process.exit(1);
+    }
+    if (
+      !markup.includes('href="/templates/military-time-chart.pdf"') ||
+      !markup.includes('href="/templates/military-time-chart.xlsx"')
+    ) {
+      console.error("[prerender] military chart download links missing from prerendered HTML.");
+      process.exit(1);
+    }
+    const visible = markup
+      .replace(/&#x27;/g, "'")
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"')
+      .replace(/<[^>]+>/g, "");
+    const faqMismatch = ssr.militaryChartFaqItems.filter(
+      (item) => !visible.includes(item.q) || !visible.includes(item.a),
+    );
+    if (faqMismatch.length > 0) {
+      console.error("[prerender] military chart FAQ text drifted from JSON-LD source:", faqMismatch.map((item) => item.q));
       process.exit(1);
     }
   }

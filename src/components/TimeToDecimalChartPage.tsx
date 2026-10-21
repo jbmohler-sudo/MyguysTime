@@ -371,6 +371,10 @@ export function TimeToDecimalChartPage() {
               <TextLink href={DECIMAL_CHART_XLSX_HREF}>Excel version</TextLink> with the same table.
             </p>
             <p>
+              Reading a punch clock in 24-hour time? Use the{" "}
+              <TextLink href="/templates/military-time-chart">military time chart</TextLink>.
+            </p>
+            <p>
               Need the card itself? Grab the{" "}
               <TextLink href="/templates/construction-timesheet-template">construction timesheet template</TextLink>.
               If hours keep going missing between the job and the office, here's{" "}

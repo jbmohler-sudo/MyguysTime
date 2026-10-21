@@ -34,6 +34,12 @@ import {
   decimalMinuteRows,
 } from "../src/components/TimeToDecimalChartPage";
 import {
+  MilitaryTimeChartPage,
+  militaryChartFaqItems,
+  militaryHourRows,
+  militaryToStandard,
+} from "../src/components/MilitaryTimeChartPage";
+import {
   ConstructionDailyReportTemplatePage,
   dailyReportFaqItems,
 } from "../src/components/ConstructionDailyReportTemplatePage";
@@ -45,7 +51,7 @@ import { GuidePage, guideFaqItems } from "../src/components/GuidePage";
 import { Do1099SubsOvertimePage, overtimeGuideFaqItems } from "../src/components/Do1099SubsOvertimePage";
 import { GuidesHubPage, guidesHubItems } from "../src/components/GuidesHubPage";
 
-export { faqItems, faqPageItems, constructionFaqItems, costFaqItems, templateFaqItems, bestAppsFaqItems, guideFaqItems, overtimeGuideFaqItems, decimalChartFaqItems, decimalMinuteRows, guidesHubItems, dailyReportFaqItems };
+export { faqItems, faqPageItems, constructionFaqItems, costFaqItems, templateFaqItems, bestAppsFaqItems, guideFaqItems, overtimeGuideFaqItems, decimalChartFaqItems, decimalMinuteRows, militaryChartFaqItems, militaryHourRows, militaryToStandard, guidesHubItems, dailyReportFaqItems };
 
 export function vsPageFaqs(slug: string): { q: string; a: string }[] {
   const page = getVs(slug);
@@ -87,6 +93,10 @@ export function renderConstructionTimesheetTemplateHtml(): string {
 
 export function renderTimeToDecimalChartHtml(): string {
   return renderToStaticMarkup(createElement(TimeToDecimalChartPage));
+}
+
+export function renderMilitaryTimeChartHtml(): string {
+  return renderToStaticMarkup(createElement(MilitaryTimeChartPage));
 }
 
 export function renderConstructionDailyReportTemplateHtml(): string {

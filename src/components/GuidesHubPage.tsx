@@ -31,6 +31,12 @@ export const guidesHubItems: { href: string; title: string; description: string 
     description:
       "Minutes to decimal hours, from 1 to 60, for writing a time card, plus decimal hours back to minutes.",
   },
+  {
+    href: "/templates/military-time-chart",
+    title: "Military Time Chart",
+    description:
+      "24-hour military time to standard time, every hour, for reading a punch-clock time card. Free PDF and Excel.",
+  },
 ];
 
 export function GuidesHubPage() {
